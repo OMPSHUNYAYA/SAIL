@@ -13,7 +13,7 @@
 ![Memoryless](https://img.shields.io/badge/Operation-Memoryless-orange)
 ![Federated](https://img.shields.io/badge/Federation-Certified-lightgrey)
 ![Applications](https://img.shields.io/badge/Applications-5%20Reference%20Apps-blue)
-![Application Conformance](https://img.shields.io/badge/Application%20Conformance-55000%20Cases-blue)
+![Application Conformance](https://img.shields.io/badge/Application%20Conformance-55000%20Executions-blue)
 ![Synthetic Conformance](https://img.shields.io/badge/Synthetic%20Conformance-347400%20Executions-blue)
 ![Behavioral Specifications](https://img.shields.io/badge/Behavioral%20Specifications-96-green)
 ![Mutation Detection](https://img.shields.io/badge/Mutation%20Detection-5%2F5-green)
@@ -716,7 +716,7 @@ Current reference-application version:
 
 **1.1.2**
 
-Locally executed application-conformance cases:
+Locally executed application-conformance executions:
 
 **55,000**
 
@@ -993,7 +993,7 @@ Contains the five reference applications.
 
 Recommended folders:
 
-* `SAIL_Requirement_Realization_Console_v_1_1_2/`
+* `SAIL_Requirement_Realization_Console_v1_1_2/`
 * `SAIL_Requirements_Management_System_v1_1_2/`
 * `SAIL_Incident_Management_System_v1_1_2/`
 * `SAIL_Compliance_Audit_Console_v1_1_2/`
@@ -1004,7 +1004,7 @@ Each application folder contains:
 * standalone HTML application
 * application README
 * browser console-verification document
-* Python structural-verification script
+* Python executable-validation script
 
 ## **docs/**
 
@@ -1036,7 +1036,7 @@ SAIL includes five validated reference applications built on the complete 37-lay
 
 ### **Purpose**
 
-Certify a requirement, bind it to a workflow, execute the workflow, measure the result, verify the outcome, and issue a realization certificate.
+Certify a requirement, bind it to a workflow, incorporate supplied execution and measurement evidence, verify the outcome, and issue a realization certificate.
 
 Application chain:
 
@@ -1063,7 +1063,7 @@ Application chain:
 * Application Version: **1.1.2**
 * SAIL Stack: **5.9.0**
 * Application Audit: **PASS**
-* Local Application-Conformance Cases: **10,000**
+* Local Application-Conformance Executions: **10,000**
 * Audit Scenarios: **5**
 * Iterations Per Scenario: **2,000**
 * Certified Layers: **37**
@@ -1135,22 +1135,22 @@ Structural grammar:
 
 Policy invariant:
 
-`policy bound iff requirement certified AND policy present`
+`policy bound iff requirement integrity valid AND requirement certified AND policy belongs to the admitted policy set`
 
 Trace invariant:
 
-`trace certified iff requirement certified AND policy bound AND measurement present`
+`trace certified iff requirement integrity valid AND policy bound AND measurement present`
 
 Realization invariant:
 
-`realization allowed iff requirement certified AND policy bound AND trace certified AND approval certified`
+`realization allowed iff approval integrity reproduces AND all prerequisite stages remain valid`
 
 ### **Validated Status**
 
 * Application Version: **1.1.2**
 * SAIL Stack: **5.9.0**
 * Application Audit: **PASS**
-* Local Application-Conformance Cases: **12,000**
+* Local Application-Conformance Executions: **12,000**
 * Audit Scenarios: **8**
 * Iterations Per Scenario: **1,500**
 * Certified Layers: **37**
@@ -1242,7 +1242,7 @@ It is required only when the risk or severity structure activates the escalation
 * Application Version: **1.1.2**
 * SAIL Stack: **5.9.0**
 * Application Audit: **PASS**
-* Local Application-Conformance Cases: **12,000**
+* Local Application-Conformance Executions: **12,000**
 * Audit Scenarios: **8**
 * Iterations Per Scenario: **1,500**
 * Certified Layers: **37**
@@ -1314,7 +1314,7 @@ Compliance invariant:
 * Application Version: **1.1.2**
 * SAIL Stack: **5.9.0**
 * Application Audit: **PASS**
-* Local Application-Conformance Cases: **12,000**
+* Local Application-Conformance Executions: **12,000**
 * Audit Scenarios: **8**
 * Iterations Per Scenario: **1,500**
 * Certified Layers: **37**
@@ -1405,7 +1405,7 @@ Replay invariant:
 * Application Version: **1.1.2**
 * SAIL Stack: **5.9.0**
 * Application Audit: **PASS**
-* Local Application-Conformance Cases: **9,000**
+* Local Application-Conformance Executions: **9,000**
 * Audit Scenarios: **6**
 * Iterations Per Scenario: **1,500**
 * Certified Layers: **37**
@@ -1449,11 +1449,11 @@ Expected:
 
 ## **Requirements Management**
 
-`policy bound iff requirement certified AND policy present`
+`policy bound iff requirement integrity valid AND requirement certified AND policy belongs to the admitted policy set`
 
-`trace certified iff requirement certified AND policy bound AND measurement present`
+`trace certified iff requirement integrity valid AND policy bound AND measurement present`
 
-`realization allowed iff requirement certified AND policy bound AND trace certified AND approval certified`
+`realization allowed iff approval integrity reproduces AND all prerequisite stages remain valid`
 
 ## **Incident Management**
 
@@ -1617,7 +1617,7 @@ Open an application HTML file inside:
 
 Example:
 
-`applications/SAIL_Requirement_Realization_Console_v_1_1_2/SAIL_Requirement_Realization_Console_v1_1_2.html`
+`applications/SAIL_Requirement_Realization_Console_v1_1_2/SAIL_Requirement_Realization_Console_v1_1_2.html`
 
 Run:
 
@@ -1645,7 +1645,7 @@ Expected:
 ]
 ```
 
-Each application includes its own browser console-verification document and Python structural-verification script with additional success, blocked, incomplete, replay, idempotency, reset, and export tests.
+Each application includes its own browser console-verification document and Python executable-validation script with additional success, blocked, incomplete, replay, idempotency, reset, and export tests.
 
 ---
 
@@ -1959,39 +1959,53 @@ Both runtime behavioral verification and source-integrity verification are requi
 
 ---
 
-# 🧩 **Reference Application Folders**
+# 🧩 **Reference Applications**
 
 SAIL includes five validated reference applications built on the **SAIL v5.9.0 Evidence Integrity Runtime**.
 
-The application folders will be added to the repository progressively:
+Application folders:
 
-* Requirement Realization Console v1.1.2
-* Requirements Management System v1.1.2
-* Incident Management System v1.1.2
-* Compliance and Audit Console v1.1.2
-* Federation Operations Console v1.1.2
+* [Requirement Realization Console v1.1.2](applications/SAIL_Requirement_Realization_Console_v1_1_2/)
+* [Requirements Management System v1.1.2](applications/SAIL_Requirements_Management_System_v1_1_2/)
+* [Incident Management System v1.1.2](applications/SAIL_Incident_Management_System_v1_1_2/)
+* [Compliance and Audit Console v1.1.2](applications/SAIL_Compliance_Audit_Console_v1_1_2/)
+* [Federation Operations Console v1.1.2](applications/SAIL_Federation_Operations_Console_v1_1_2/)
 
-Each application directory will contain:
+Each application directory contains:
 
 * standalone HTML application
 * application README
-* browser console-verification tests
-* Python structural-verification script
+* browser console-verification document
+* Python executable-validation script
 
 Current application validation:
 
-| Application                     |   Version | Local Application-Conformance Cases |
-| ------------------------------- | --------: | ----------------------------------: |
-| Requirement Realization Console | **1.1.2** |                          **10,000** |
-| Requirements Management System  | **1.1.2** |                          **12,000** |
-| Incident Management System      | **1.1.2** |                          **12,000** |
-| Compliance and Audit Console    | **1.1.2** |                          **12,000** |
-| Federation Operations Console   | **1.1.2** |                           **9,000** |
-| **Total**                       |           |                          **55,000** |
+| Application                     |   Version | Local Application-Conformance Executions |
+| ------------------------------- | --------: | ---------------------------------------: |
+| Requirement Realization Console | **1.1.2** |                               **10,000** |
+| Requirements Management System  | **1.1.2** |                               **12,000** |
+| Incident Management System      | **1.1.2** |                               **12,000** |
+| Compliance and Audit Console    | **1.1.2** |                               **12,000** |
+| Federation Operations Console   | **1.1.2** |                                **9,000** |
+| **Total**                       |           |                               **55,000** |
 
-Application audits are executed locally and identified as `LOCAL_RUNTIME` with the classification `LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS`.
+Application audits are executed locally.
 
-Core evidence values displayed by the applications are referenced from the validated SAIL release and identified as `REFERENCE_RELEASE_VALIDATION`.
+They are identified as:
+
+`LOCAL_RUNTIME`
+
+Their classification is:
+
+`LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS`
+
+Core evidence values displayed by the applications are referenced from the validated SAIL release.
+
+They are identified as:
+
+`REFERENCE_RELEASE_VALIDATION`
+
+The applications do not independently rerun the complete SAIL core validation suites.
 
 ---
 

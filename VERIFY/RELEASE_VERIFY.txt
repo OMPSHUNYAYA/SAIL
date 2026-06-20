@@ -879,7 +879,7 @@ Core Runtime
 
 [x] SAIL_v5_9_0_Evidence_Integrity_Runtime.html present
 
-[x] README_SAIL_v5_9_0.md synchronized
+[x] README.md synchronized
 
 [x] SAIL_v5_9_0_console_tests.txt synchronized
 

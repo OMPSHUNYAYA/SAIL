@@ -1,0 +1,1136 @@
+{
+  "version": "5.9.0",
+  "oracle_origin": "externally_specified_literal_expectations",
+  "specification_count": 96,
+  "specifications": [
+    {
+      "id": "A01",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 17,
+      "input": "2 + 3 * 5",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A02",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 25,
+      "input": "(2 + 3) * 5",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A03",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 8,
+      "input": "2^3",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A04",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": -3,
+      "input": "-5 + 2",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A05",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 2.5,
+      "input": "10 / 4",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A06",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 1,
+      "input": "5 % 2",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A07",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 0,
+      "input": "0 * 999",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A08",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 0,
+      "input": "1 - 1",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A09",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 27,
+      "input": "3 * 3 * 3",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A10",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": 17,
+      "input": "100 / 10 + 7",
+      "path": "classical_output.value"
+    },
+    {
+      "id": "A11",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "2 +",
+      "path": "status"
+    },
+    {
+      "id": "A12",
+      "category": "arithmetic",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "1 / 0",
+      "path": "status"
+    },
+    {
+      "id": "F01",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": 98,
+      "input": "F = m*a, m=10, a=9.8",
+      "path": "reasoning_output.value"
+    },
+    {
+      "id": "F02",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": 16,
+      "input": "y = x^2, x=4",
+      "path": "reasoning_output.value"
+    },
+    {
+      "id": "F03",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": 20,
+      "input": "z = (a+b)*c, a=2, b=3, c=4",
+      "path": "reasoning_output.value"
+    },
+    {
+      "id": "F04",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": 2.5,
+      "input": "r = a/b, a=10, b=4",
+      "path": "reasoning_output.value"
+    },
+    {
+      "id": "F05",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": 2,
+      "input": "q = x%3, x=8",
+      "path": "reasoning_output.value"
+    },
+    {
+      "id": "F06",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": -20,
+      "input": "v = a-b, a=-5, b=15",
+      "path": "reasoning_output.value"
+    },
+    {
+      "id": "F07",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": 7.5,
+      "input": "p = a+b, a=2.5, b=5",
+      "path": "reasoning_output.value"
+    },
+    {
+      "id": "F08",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": true,
+      "input": "F = m*a, m=10",
+      "path": "reasoning_output.symbolic"
+    },
+    {
+      "id": "F09",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "F = m*a, m=10, m=11, a=2",
+      "path": "status"
+    },
+    {
+      "id": "F10",
+      "category": "formula",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "r = a/b, a=10, b=0",
+      "path": "status"
+    },
+    {
+      "id": "C01",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "input": "solve x from 0 to 5 where x > 0 and x < 5",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C02",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "input": "solve x from 0 to 5 where x >= 0 and x <= 5",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C03",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        5
+      ],
+      "input": "solve x from 0 to 5 where x == 5",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C04",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        8,
+        11,
+        14,
+        17
+      ],
+      "input": "solve x from 0 to 20 where x > 5 and x < 20 and x % 3 == 2",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C05",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        5,
+        4,
+        3,
+        2
+      ],
+      "input": "solve x from 5 to 0 step -1 where x >= 2",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C06",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [],
+      "input": "solve x from 5 to 0 where x >= 0",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C07",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        3
+      ],
+      "input": "solve x from 3 to 3 where x == 3",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C08",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        -3,
+        -2,
+        -1
+      ],
+      "input": "solve x from -3 to 3 where x < 0",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C09",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "input": "solve x from 0 to 10 where x <= 6 and x % 2 == 0",
+      "path": "reasoning_output.solutions"
+    },
+    {
+      "id": "C10",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "solve x from 0 to 5 step 0 where x >= 0",
+      "path": "status"
+    },
+    {
+      "id": "C11",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "solve x from 0 to 10 where x > 5 and x < 5",
+      "path": "status"
+    },
+    {
+      "id": "C12",
+      "category": "constraint",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "solve x from 0 to 5 where",
+      "path": "status"
+    },
+    {
+      "id": "P01",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": true,
+      "input": "prove (x + 1)^2 = x^2 + 2*x + 1 for x 0..10",
+      "path": "reasoning_output.verified"
+    },
+    {
+      "id": "P02",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": false,
+      "input": "prove x+1 = x+2 for x 0..10",
+      "path": "reasoning_output.verified"
+    },
+    {
+      "id": "P03",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": 1,
+      "input": "prove x = 0 for x 0..0",
+      "path": "reasoning_output.row_count"
+    },
+    {
+      "id": "P04",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": 6,
+      "input": "prove x*x = x^2 for x 0..5",
+      "path": "reasoning_output.row_count"
+    },
+    {
+      "id": "P05",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": true,
+      "input": "prove x*x = x^2 for x -3..3",
+      "path": "reasoning_output.verified"
+    },
+    {
+      "id": "P06",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "prove 1/x = 1/x for x 0..1",
+      "path": "status"
+    },
+    {
+      "id": "P07",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "prove x+1 equals x+1",
+      "path": "status"
+    },
+    {
+      "id": "P08",
+      "category": "proof",
+      "op": "extract_path",
+      "expected": false,
+      "input": "prove x = 0 for x 1..1",
+      "path": "reasoning_output.verified"
+    },
+    {
+      "id": "L01",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "increase_cooling",
+      "input": "if temperature > threshold then increase_cooling; temperature=107; threshold=100",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "L02",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "increase_cooling",
+      "input": "if temperature < threshold then increase_cooling; temperature=90; threshold=100",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "L03",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "increase_cooling",
+      "input": "if temperature >= threshold then increase_cooling; temperature=100; threshold=100",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "L04",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "no_action",
+      "input": "if temperature > threshold then increase_cooling; temperature=100; threshold=100",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "L05",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "proceed",
+      "input": "if a > 0 and b > 0 then proceed; a=1; b=2",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "L06",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "proceed",
+      "input": "if a > 0 or b > 0 then proceed; a=0; b=2",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "L07",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "no_action",
+      "input": "if a > 0 and b > 0 then proceed; a=1; b=0",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "L08",
+      "category": "logic",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "if a > b then proceed;",
+      "path": "status"
+    },
+    {
+      "id": "T01",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "increase_cooling",
+      "input": "Increase cooling when temperature is 107F and threshold is 100F.",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "T02",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "increase_cooling",
+      "input": "Increase cooling when temperature is 40C and threshold is 38C.",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "T03",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "Increase cooling when temperature is 100F and threshold is 100F.",
+      "path": "status"
+    },
+    {
+      "id": "T04",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "travel_booking",
+      "input": "Book a flight from Chennai to Tokyo next Friday.",
+      "path": "scenario"
+    },
+    {
+      "id": "T05",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "Book a flight from Chennai to Chennai next Friday.",
+      "path": "status"
+    },
+    {
+      "id": "T06",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "Book a flight from Chennai to Tokyo.",
+      "path": "status"
+    },
+    {
+      "id": "T07",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "Book a flight from Chennai to Tokyo yesterday next Friday.",
+      "path": "status"
+    },
+    {
+      "id": "T08",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "create_purchase_request",
+      "input": "Create a purchase request when filter stock is 8 and reorder level is 10.",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "T09",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "no_action",
+      "input": "Create a purchase request when filter stock is 10 and reorder level is 10.",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "T10",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "prepare_transfer",
+      "input": "Transfer 2500 INR from account payroll to account vendor.",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "T11",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "Transfer 2500 INR from account payroll to account payroll.",
+      "path": "status"
+    },
+    {
+      "id": "T12",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "Transfer 0 INR from account payroll to account vendor.",
+      "path": "status"
+    },
+    {
+      "id": "T13",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "triage_review",
+      "input": "Triage patient Bob with fever 39C and spo2 91.",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "T14",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "routine_review",
+      "input": "Triage patient Bob with fever 37C and spo2 98.",
+      "path": "reasoning_output.action"
+    },
+    {
+      "id": "T15",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "software_requirement",
+      "input": "Requirement: user can export report.",
+      "path": "scenario"
+    },
+    {
+      "id": "T16",
+      "category": "template",
+      "op": "extract_path",
+      "expected": "ABSTAIN",
+      "input": "unrecognized structural phrase without a supported domain",
+      "path": "status"
+    },
+    {
+      "id": "I01",
+      "category": "identity",
+      "op": "api_path",
+      "expected": true,
+      "api": "permissionCheck",
+      "args": [
+        {
+          "role": "viewer",
+          "permission": "read"
+        }
+      ],
+      "path": "allowed"
+    },
+    {
+      "id": "I02",
+      "category": "identity",
+      "op": "api_path",
+      "expected": false,
+      "api": "permissionCheck",
+      "args": [
+        {
+          "role": "viewer",
+          "permission": "approve"
+        }
+      ],
+      "path": "allowed"
+    },
+    {
+      "id": "I03",
+      "category": "identity",
+      "op": "api_path",
+      "expected": true,
+      "api": "permissionCheck",
+      "args": [
+        {
+          "role": "admin",
+          "permission": "restore"
+        }
+      ],
+      "path": "allowed"
+    },
+    {
+      "id": "I04",
+      "category": "identity",
+      "op": "api_path",
+      "expected": false,
+      "api": "permissionCheck",
+      "args": [
+        {
+          "role": "admin",
+          "permission": "server"
+        }
+      ],
+      "path": "allowed"
+    },
+    {
+      "id": "I05",
+      "category": "identity",
+      "op": "api_path",
+      "expected": true,
+      "api": "permissionCheck",
+      "args": [
+        {
+          "role": "system",
+          "permission": "server"
+        }
+      ],
+      "path": "allowed"
+    },
+    {
+      "id": "I06",
+      "category": "identity",
+      "op": "api_path",
+      "expected": false,
+      "api": "permissionCheck",
+      "args": [
+        {
+          "role": "unknown",
+          "permission": "read"
+        }
+      ],
+      "path": "allowed"
+    },
+    {
+      "id": "S01",
+      "category": "persistence",
+      "op": "persistence_valid",
+      "expected": "RESTORE_CERTIFIED",
+      "input": "visible context alpha"
+    },
+    {
+      "id": "S02",
+      "category": "persistence",
+      "op": "persistence_context_tamper",
+      "expected": "RESTORE_BLOCKED",
+      "input": "visible context beta"
+    },
+    {
+      "id": "S03",
+      "category": "persistence",
+      "op": "persistence_replay_tamper",
+      "expected": "RESTORE_BLOCKED",
+      "input": "visible context gamma"
+    },
+    {
+      "id": "S04",
+      "category": "persistence",
+      "op": "compare_export",
+      "expected": "equal",
+      "left": "stable context",
+      "right": "stable context",
+      "path": "export_certificate"
+    },
+    {
+      "id": "N01",
+      "category": "federation",
+      "op": "api_path",
+      "expected": true,
+      "api": "federationNetwork",
+      "args": [
+        {
+          "nodes": [
+            {
+              "node_id": "a",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "b",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "c",
+              "state": "BLOCKED",
+              "vote": "B"
+            }
+          ],
+          "quorum": 2
+        }
+      ],
+      "path": "quorum_met"
+    },
+    {
+      "id": "N02",
+      "category": "federation",
+      "op": "api_path",
+      "expected": true,
+      "api": "federationNetwork",
+      "args": [
+        {
+          "nodes": [
+            {
+              "node_id": "a",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "b",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "c",
+              "state": "BLOCKED",
+              "vote": "B"
+            }
+          ],
+          "quorum": 2
+        }
+      ],
+      "path": "consensus_met"
+    },
+    {
+      "id": "N03",
+      "category": "federation",
+      "op": "api_path",
+      "expected": false,
+      "api": "federationNetwork",
+      "args": [
+        {
+          "nodes": [
+            {
+              "node_id": "a",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "b",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "c",
+              "state": "BLOCKED",
+              "vote": "B"
+            }
+          ],
+          "quorum": 3
+        }
+      ],
+      "path": "certified"
+    },
+    {
+      "id": "N04",
+      "category": "federation",
+      "op": "api_path",
+      "expected": true,
+      "api": "federationNetwork",
+      "args": [
+        {
+          "nodes": [
+            {
+              "node_id": "a",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "b",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "c",
+              "state": "CERTIFIED",
+              "vote": "B"
+            },
+            {
+              "node_id": "d",
+              "state": "CERTIFIED",
+              "vote": "B"
+            }
+          ],
+          "quorum": 2
+        }
+      ],
+      "path": "tie_detected"
+    },
+    {
+      "id": "N05",
+      "category": "federation",
+      "op": "api_path",
+      "expected": false,
+      "api": "federationNetwork",
+      "args": [
+        {
+          "nodes": [
+            {
+              "node_id": "a",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "b",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "c",
+              "state": "CERTIFIED",
+              "vote": "B"
+            },
+            {
+              "node_id": "d",
+              "state": "CERTIFIED",
+              "vote": "B"
+            }
+          ],
+          "quorum": 2
+        }
+      ],
+      "path": "certified"
+    },
+    {
+      "id": "N06",
+      "category": "federation",
+      "op": "api_path",
+      "expected": "A",
+      "api": "federationNetwork",
+      "args": [
+        {
+          "nodes": [
+            {
+              "node_id": "a",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "b",
+              "state": "CERTIFIED",
+              "vote": "A"
+            },
+            {
+              "node_id": "c",
+              "state": "CERTIFIED",
+              "vote": "B"
+            }
+          ],
+          "quorum": 2
+        }
+      ],
+      "path": "winning_vote"
+    },
+    {
+      "id": "R01",
+      "category": "realization",
+      "op": "api_path",
+      "expected": true,
+      "api": "realizationRuntime",
+      "args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": true,
+          "score": 0,
+          "threshold": 1
+        }
+      ],
+      "path": "certified"
+    },
+    {
+      "id": "R02",
+      "category": "realization",
+      "op": "api_path",
+      "expected": false,
+      "api": "realizationRuntime",
+      "args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": false,
+          "score": 0,
+          "threshold": 1
+        }
+      ],
+      "path": "certified"
+    },
+    {
+      "id": "R03",
+      "category": "realization",
+      "op": "api_path",
+      "expected": true,
+      "api": "realizationRuntime",
+      "args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": false,
+          "score": 1,
+          "threshold": 1
+        }
+      ],
+      "path": "certified"
+    },
+    {
+      "id": "R04",
+      "category": "realization",
+      "op": "api_path",
+      "expected": "INVALID_THRESHOLD",
+      "api": "realizationRuntime",
+      "args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": false,
+          "score": 0,
+          "threshold": -1
+        }
+      ],
+      "path": "reason"
+    },
+    {
+      "id": "R05",
+      "category": "realization",
+      "op": "api_path",
+      "expected": "INCOMPLETE_REALIZATION_STRUCTURE",
+      "api": "realizationRuntime",
+      "args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "",
+          "expected": true,
+          "actual": true,
+          "score": 1,
+          "threshold": 1
+        }
+      ],
+      "path": "reason"
+    },
+    {
+      "id": "R06",
+      "category": "realization",
+      "op": "api_path",
+      "expected": "INVALID_SCORE",
+      "api": "realizationRuntime",
+      "args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": false,
+          "score": "not-a-number",
+          "threshold": 1
+        }
+      ],
+      "path": "reason"
+    },
+    {
+      "id": "M01",
+      "category": "metamorphic",
+      "op": "compare_extract",
+      "expected": "equal",
+      "left": "F = m*a, m=10, a=9.8",
+      "right": "F = m*a, a=9.8, m=10",
+      "path": "structural_invariant_hash"
+    },
+    {
+      "id": "M02",
+      "category": "metamorphic",
+      "op": "compare_extract",
+      "expected": "different",
+      "left": "F = m*a, m=10, a=9.8",
+      "right": "F = m*a, m=11, a=9.8",
+      "path": "structural_invariant_hash"
+    },
+    {
+      "id": "M03",
+      "category": "metamorphic",
+      "op": "compare_extract",
+      "expected": "equal",
+      "left": "Requirement: user can export report.",
+      "right": "Requirement: user can export report.",
+      "path": "certificate"
+    },
+    {
+      "id": "M04",
+      "category": "metamorphic",
+      "op": "compare_export",
+      "expected": "different",
+      "left": "context one",
+      "right": "context two",
+      "path": "export_certificate"
+    },
+    {
+      "id": "M05",
+      "category": "metamorphic",
+      "op": "compare_api",
+      "expected": "equal",
+      "api": "roleCertificate",
+      "left_args": [
+        {
+          "role": "admin",
+          "user": "a"
+        }
+      ],
+      "right_args": [
+        {
+          "role": "admin",
+          "user": "b"
+        }
+      ],
+      "path": "role_certificate"
+    },
+    {
+      "id": "M06",
+      "category": "metamorphic",
+      "op": "compare_api",
+      "expected": "equal",
+      "api": "tenantCertificate",
+      "left_args": [
+        {
+          "organization": "org",
+          "tenant": "t",
+          "user": "a"
+        }
+      ],
+      "right_args": [
+        {
+          "organization": "org",
+          "tenant": "t",
+          "user": "b"
+        }
+      ],
+      "path": "tenant_certificate"
+    },
+    {
+      "id": "M07",
+      "category": "metamorphic",
+      "op": "compare_api",
+      "expected": "equal",
+      "api": "realizationRuntime",
+      "left_args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": true,
+          "score": 1,
+          "threshold": 1
+        }
+      ],
+      "right_args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": true,
+          "score": 1,
+          "threshold": 1
+        }
+      ],
+      "path": "realization_certificate"
+    },
+    {
+      "id": "M08",
+      "category": "metamorphic",
+      "op": "compare_api",
+      "expected": "different",
+      "api": "realizationRuntime",
+      "left_args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M",
+          "expected": true,
+          "actual": true,
+          "score": 1,
+          "threshold": 1
+        }
+      ],
+      "right_args": [
+        {
+          "requirement": "R",
+          "workflow": "W",
+          "execution": "E",
+          "measurement": "M2",
+          "expected": true,
+          "actual": true,
+          "score": 1,
+          "threshold": 1
+        }
+      ],
+      "path": "realization_certificate"
+    }
+  ]
+}

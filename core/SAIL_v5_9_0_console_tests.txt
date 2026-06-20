@@ -1,0 +1,506 @@
+SAIL Core Runtime Validation
+SAIL v5.9.0 Evidence Integrity Runtime
+
+==================================================
+EVIDENCE-HARDENED VALIDATION
+==================================================
+
+[
+  SAIL.version(),
+  SAIL.conformanceAudit().allPass,
+  SAIL.conformanceAudit().conformance_execution_count,
+  SAIL.behaviorAudit().allPass,
+  SAIL.behaviorAudit().specification_count,
+  SAIL.evidenceValidation().allPass,
+  SAIL.certify().layers
+]
+
+Expected
+
+[
+  "5.9.0",
+  true,
+  347400,
+  true,
+  96,
+  true,
+  37
+]
+
+==================================================
+BACKWARD-COMPATIBLE CORE VALIDATION
+==================================================
+
+[
+  SAIL.version(),
+  SAIL.realizationAudit().allPass,
+  SAIL.realizationAudit().case_count,
+  SAIL.benchmark().allPass,
+  SAIL.benchmark().benchmark_case_count,
+  SAIL.certify().layers
+]
+
+Expected
+
+[
+  "5.9.0",
+  true,
+  48600,
+  true,
+  347400,
+  37
+]
+
+Interpretation
+
+Realization audit cases:
+48600
+
+Synthetic structural conformance executions:
+347400
+
+Independent behavioral specifications:
+96
+
+==================================================
+RUNTIME AVAILABILITY
+==================================================
+
+[
+  typeof SAIL.realizationRuntime,
+  typeof SAIL.realize,
+  typeof SAIL.measureOutcome,
+  typeof SAIL.verifyOutcome,
+  typeof SAIL.realizationCertificate,
+  typeof SAIL.outcomeLedger,
+  typeof SAIL.realizationReplay,
+  typeof SAIL.realizationAudit,
+  typeof SAIL.conformanceAudit,
+  typeof SAIL.behaviorAudit,
+  typeof SAIL.behaviorSpecifications,
+  typeof SAIL.evidenceValidation,
+  typeof SAIL.evidenceProfile,
+  typeof SAIL.releaseManifest
+]
+
+Expected
+
+[
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function",
+  "function"
+]
+
+==================================================
+EVIDENCE PROFILE
+==================================================
+
+SAIL.evidenceProfile()
+
+Expected core fields
+
+{
+  version: "5.9.0",
+  conformance_classification: "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  synthetic_conformance_execution_count: 347400,
+  behavioral_specification_count: 96,
+  behavioral_execution_count: 96,
+  independent_oracle: true,
+  external_mutation_operator_count: 5,
+  certification_scope: "SAIL_INTERNAL_STRUCTURAL_CONFORMANCE",
+  third_party_certification: false
+}
+
+==================================================
+BEHAVIORAL AUDIT
+==================================================
+
+SAIL.behaviorAudit()
+
+Expected core fields
+
+{
+  version: "5.9.0",
+  mode: "independent_behavioral_specification_audit",
+  oracle_origin: "EXTERNALLY_SPECIFIED_LITERAL_EXPECTATIONS",
+  independent_oracle: true,
+  specification_count: 96,
+  execution_count: 96,
+  passed_count: 96,
+  failed_count: 0,
+  allPass: true,
+  oracle_discrimination_probe_count: 5,
+  oracle_discrimination_all_detected: true,
+  expected_external_mutation_operator_count: 5
+}
+
+==================================================
+CONFORMANCE AUDIT
+==================================================
+
+SAIL.conformanceAudit()
+
+Expected core fields
+
+{
+  version: "5.9.0",
+  mode: "synthetic_structural_conformance_audit",
+  classification: "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  synthetic: true,
+  conformance_execution_count: 347400,
+  benchmark_case_count: 347400,
+  allPass: true
+}
+
+==================================================
+EVIDENCE VALIDATION
+==================================================
+
+SAIL.evidenceValidation()
+
+Expected core fields
+
+{
+  version: "5.9.0",
+  mode: "evidence_hardened_release_validation",
+  allPass: true,
+  benchmark_classification: "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  synthetic_conformance_execution_count: 347400,
+  conformance_count_match: true,
+  behavioral_specification_count: 96,
+  behavioral_execution_count: 96,
+  behavioral_count_match: true,
+  independent_behavioral_oracle: true,
+  behavioral_allPass: true,
+  conformance_allPass: true,
+  realization_case_count: 48600
+}
+
+==================================================
+RELEASE MANIFEST
+==================================================
+
+SAIL.releaseManifest()
+
+Expected core fields
+
+{
+  version: "5.9.0",
+  certified_layers: 37,
+  expected_conformance_execution_count: 347400,
+  expected_behavioral_specification_count: 96,
+  expected_realization_case_count: 48600,
+  expected_external_mutation_operator_count: 5,
+  certification_scope: "INTERNAL_STRUCTURAL_CONFORMANCE_AND_INDEPENDENT_BEHAVIORAL_VALIDATION",
+  external_certification: false,
+  immutable: true
+}
+
+==================================================
+REALIZATION RUNTIME
+==================================================
+
+SAIL.realizationRuntime({
+  requirement:"Requirement: user can export report",
+  workflow:"Export Report Workflow",
+  execution:"Export completed",
+  measurement:"Report file generated",
+  expected:true,
+  actual:true,
+  score:1,
+  threshold:1
+})
+
+Expected core fields
+
+{
+  version:"5.9.0",
+  realization_state:"REALIZATION_CERTIFIED",
+  certified:true,
+  reason:"OUTCOME_MATCHED",
+  complete:true,
+  threshold_valid:true,
+  score_valid:true,
+  outcome_matched:true,
+  realized:true
+}
+
+==================================================
+OUTCOME MEASUREMENT
+==================================================
+
+SAIL.measureOutcome({
+  requirement:"Requirement: user can export report",
+  workflow:"Export Report Workflow",
+  execution:"Export completed",
+  measurement:"Report file generated",
+  expected:true,
+  actual:true
+})
+
+Expected core fields
+
+{
+  version:"5.9.0",
+  realization_state:"REALIZATION_CERTIFIED",
+  certified:true,
+  measurement_state:"MEASUREMENT_CERTIFIED",
+  measured:true
+}
+
+==================================================
+OUTCOME VERIFICATION
+==================================================
+
+SAIL.verifyOutcome({
+  requirement:"Requirement: user can export report",
+  workflow:"Export Report Workflow",
+  execution:"Export completed",
+  measurement:"Report file generated",
+  expected:true,
+  actual:true
+})
+
+Expected core fields
+
+{
+  version:"5.9.0",
+  realization_state:"REALIZATION_CERTIFIED",
+  certified:true,
+  verification_state:"OUTCOME_VERIFIED",
+  verified:true
+}
+
+==================================================
+REALIZATION CERTIFICATE
+==================================================
+
+SAIL.realizationCertificate({
+  requirement:"Requirement: user can export report",
+  workflow:"Export Report Workflow",
+  execution:"Export completed",
+  measurement:"Report file generated",
+  expected:true,
+  actual:true
+})
+
+Expected core fields
+
+{
+  version:"5.9.0",
+  certificate_state:"REALIZATION_CERTIFICATE_ISSUED",
+  certified:true,
+  realized:true
+}
+
+==================================================
+REALIZATION BOUNDARY VALIDATION
+==================================================
+
+Exact threshold must certify when the direct expected/actual comparison does not match but the score reaches the threshold.
+
+SAIL.realizationRuntime({
+  requirement:"Requirement: threshold boundary",
+  workflow:"Boundary Workflow",
+  execution:"Boundary execution",
+  measurement:"Boundary measurement",
+  expected:true,
+  actual:false,
+  score:1,
+  threshold:1
+})
+
+Expected core fields
+
+{
+  realization_state:"REALIZATION_CERTIFIED",
+  certified:true,
+  reason:"OUTCOME_MATCHED",
+  threshold_valid:true,
+  outcome_matched:true
+}
+
+Below-threshold outcome must remain blocked.
+
+SAIL.realizationRuntime({
+  requirement:"Requirement: below threshold",
+  workflow:"Boundary Workflow",
+  execution:"Boundary execution",
+  measurement:"Boundary measurement",
+  expected:true,
+  actual:false,
+  score:0.99,
+  threshold:1
+})
+
+Expected core fields
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  certified:false,
+  reason:"OUTCOME_NOT_MATCHED",
+  threshold_valid:true,
+  outcome_matched:false
+}
+
+Missing measurement must remain blocked.
+
+SAIL.realizationRuntime({
+  requirement:"Requirement: missing measurement",
+  workflow:"Boundary Workflow",
+  execution:"Boundary execution",
+  measurement:"",
+  expected:true,
+  actual:true,
+  score:1,
+  threshold:1
+})
+
+Expected core fields
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  certified:false,
+  reason:"INCOMPLETE_REALIZATION_STRUCTURE",
+  complete:false,
+  outcome_matched:false
+}
+
+Negative threshold must remain blocked.
+
+SAIL.realizationRuntime({
+  requirement:"Requirement: invalid threshold",
+  workflow:"Boundary Workflow",
+  execution:"Boundary execution",
+  measurement:"Boundary measurement",
+  expected:true,
+  actual:true,
+  score:1,
+  threshold:-1
+})
+
+Expected core fields
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  certified:false,
+  reason:"INVALID_THRESHOLD",
+  threshold_valid:false,
+  outcome_matched:false
+}
+
+==================================================
+FINAL COMBINED VALIDATION
+==================================================
+
+[
+  SAIL.version(),
+  SAIL.certify().certified,
+  SAIL.certify().layers,
+  SAIL.realizationAudit().allPass,
+  SAIL.realizationAudit().case_count,
+  SAIL.benchmark().allPass,
+  SAIL.benchmark().benchmark_case_count,
+  SAIL.conformanceAudit().allPass,
+  SAIL.behaviorAudit().allPass,
+  SAIL.behaviorAudit().specification_count,
+  SAIL.evidenceValidation().allPass
+]
+
+Expected
+
+[
+  "5.9.0",
+  true,
+  37,
+  true,
+  48600,
+  true,
+  347400,
+  true,
+  true,
+  96,
+  true
+]
+
+==================================================
+EXECUTABLE EXTERNAL TEST
+==================================================
+
+python sail_v5_9_0_runtime_behavior_test.py
+
+Expected core fields
+
+{
+  "version": "5.9.0",
+  "external_behavioral_oracles": 96,
+  "behavioral_failures": 0,
+  "synthetic_conformance_executions": 347400,
+  "source_mutation_operators": 5,
+  "source_mutations_detected": 5,
+  "status": "PASS"
+}
+
+==================================================
+SOURCE INTEGRITY TEST
+==================================================
+
+python sail_v5_9_0_source_integrity_test.py
+
+Expected
+
+SAIL v5.9.0 source and release-package integrity checks passed
+
+==================================================
+VALIDATION STATUS
+==================================================
+
+Core Runtime:
+PASS
+
+Realization Runtime:
+PASS
+
+Outcome Measurement:
+PASS
+
+Outcome Verification:
+PASS
+
+Realization Certificate:
+PASS
+
+Realization Boundary Validation:
+PASS
+
+Synthetic Structural Conformance:
+347400 executions PASS
+
+Independent Behavioral Validation:
+96 of 96 specifications PASS
+
+External Source Mutation Detection:
+5 of 5 operators detected
+
+Certified Structural Layers:
+37
+
+Certification Scope:
+INTERNAL STRUCTURAL CONFORMANCE AND INDEPENDENT BEHAVIORAL VALIDATION
+
+Third-Party Certification:
+FALSE
+
+Validation Status:
+VALIDATED WITHIN DOCUMENTED BOUNDED REFERENCE-RUNTIME SCOPE

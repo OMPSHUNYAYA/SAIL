@@ -1,0 +1,1179 @@
+SAIL Application Verification
+
+SAIL v5.9.0 Evidence Integrity Runtime
+
+Purpose
+
+This document defines the minimum verification requirements for the five SAIL reference applications.
+
+Application verification focuses on:
+
+- application version
+- SAIL stack version
+- local application-conformance execution
+- observed and expected application case counts
+- deterministic structural identity
+- operational identity separation
+- lifecycle guards
+- idempotent transitions
+- certificate consistency
+- structural reset behavior
+- replay behavior
+- export pack states
+- referenced SAIL evidence metadata
+- Python structural verification
+
+Each application must be verified independently.
+
+==================================================
+VALIDATION SOURCE DISTINCTION
+==================================================
+
+Application-specific audits are executed locally.
+
+Application audit classification:
+
+LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS
+
+Application audit execution:
+
+LOCAL_RUNTIME
+
+The following values exposed by applications are references to the validated SAIL v5.9.0 release:
+
+- 347400 synthetic structural conformance executions
+- 96 independently specified behavioral cases
+- 5 source-mutation operators
+- 5 source mutations detected
+- 48600 realization-audit cases where exposed
+- 43200 federation-network audit checks where exposed through SAIL.federationNetworkAudit()
+
+Referenced core validation:
+
+REFERENCE_RELEASE_VALIDATION
+
+An application must not imply that it independently reruns the complete SAIL core conformance, behavioral, mutation, realization, or federation validation suites.
+
+==================================================
+CORE EVIDENCE REFERENCE
+==================================================
+
+SAIL Version:
+
+5.9.0
+
+Certified Structural Layers:
+
+37
+
+Synthetic Structural Conformance Executions:
+
+347400
+
+Conformance Classification:
+
+SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS
+
+Independent Behavioral Specifications:
+
+96
+
+Behavioral Oracle Origin:
+
+EXTERNALLY_SPECIFIED_LITERAL_EXPECTATIONS
+
+Behavioral Failures:
+
+0
+
+Source-Mutation Operators:
+
+5
+
+Source Mutations Detected:
+
+5
+
+==================================================
+CURRENT APPLICATION AUDIT TOTAL
+==================================================
+
+Requirement Realization Console:
+
+10000 cases
+
+Requirements Management System:
+
+12000 cases
+
+Incident Management System:
+
+12000 cases
+
+Compliance and Audit Console:
+
+12000 cases
+
+Federation Operations Console:
+
+9000 cases
+
+Total locally executed application-conformance cases:
+
+10000 + 12000 + 12000 + 12000 + 9000 = 55000
+
+==================================================
+APPLICATION 1
+==================================================
+
+Requirement Realization Console
+
+Expected
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Audit Classification:
+LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS
+
+Application Audit Execution:
+LOCAL_RUNTIME
+
+Application Audit Cases:
+10000
+
+Expected Application Audit Cases:
+10000
+
+Audit Scenarios:
+5
+
+Iterations Per Scenario:
+2000
+
+Application Audit Result:
+PASS
+
+Certified Layers:
+37
+
+Referenced Structural Conformance Executions:
+347400
+
+Referenced Behavioral Specifications:
+96
+
+Referenced Source-Mutation Operators:
+5
+
+Referenced Source Mutations Detected:
+5
+
+Referenced Realization Audit Cases:
+48600
+
+Primary Validation Command
+
+[
+  SAIL_APP.version(),
+  SAIL_APP.stackVersion(),
+  SAIL_APP.audit().allPass,
+  SAIL_APP.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected Output
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  10000,
+  37,
+  347400
+]
+
+Evidence Reference Command
+
+(() => {
+  const manifest = SAIL_APP.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version: manifest.version,
+    application_audit_classification:
+      manifest.application_audit_classification,
+    conformance_classification:
+      conformance.classification,
+    conformance_execution_count:
+      conformance.conformance_execution_count,
+    behavioral_specification_count:
+      behavior.specification_count,
+    behavioral_failures:
+      behavior.failed_count,
+    source_mutation_operators:
+      evidence.source_mutation_operator_count,
+    source_mutations_detected:
+      evidence.source_mutations_detected,
+    evidence_all_pass:
+      evidence.allPass
+  };
+})()
+
+Expected Core Fields
+
+{
+  version: "5.9.0",
+  application_audit_classification:
+    "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count: 347400,
+  behavioral_specification_count: 96,
+  behavioral_failures: 0,
+  source_mutation_operators: 5,
+  source_mutations_detected: 5,
+  evidence_all_pass: true
+}
+
+Primary Verification Areas
+
+- requirement certification independent from workflow identity
+- workflow binding and workflow blocking
+- execution certification
+- measurement certification
+- boolean outcome and score-threshold separation
+- zero threshold acceptance
+- negative threshold rejection
+- deterministic realization certificates
+- deterministic outcome-ledger certificates
+- blocked realization visibility
+- view and download pack consistency
+- application-audit caching
+
+Structural Invariants
+
+`same requirement -> same requirement certificate`
+`same requirement + different workflow -> same requirement certificate + different workflow certificate`
+`realization certified iff requirement, workflow, execution, measurement, and outcome guards pass`
+`realized iff boolean match AND score match AND structural chain complete`
+`threshold >= 0`
+
+Required Negative Tests
+
+- missing workflow must block workflow certification and realization
+- missing execution evidence must block execution certification
+- missing measurement evidence must block measurement certification
+- negative threshold must block measurement and realization
+- boolean mismatch must remain blocked even when the score passes
+- blocked realization must not be represented as certified
+
+Python Structural Verification
+
+python sail_requirement_realization_console_v1_1_2_test.py
+
+Expected Status
+
+PASS
+
+==================================================
+APPLICATION 2
+==================================================
+
+Requirements Management System
+
+Expected
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Audit Classification:
+LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS
+
+Application Audit Execution:
+LOCAL_RUNTIME
+
+Application Audit Cases:
+12000
+
+Expected Application Audit Cases:
+12000
+
+Audit Scenarios:
+8
+
+Iterations Per Scenario:
+1500
+
+Application Audit Result:
+PASS
+
+Certified Layers:
+37
+
+Referenced Structural Conformance Executions:
+347400
+
+Referenced Behavioral Specifications:
+96
+
+Referenced Source-Mutation Operators:
+5
+
+Referenced Source Mutations Detected:
+5
+
+Referenced Realization Audit Cases:
+48600
+
+Primary Validation Command
+
+[
+  SAIL_REQ.version(),
+  SAIL_REQ.stackVersion(),
+  SAIL_REQ.audit().allPass,
+  SAIL_REQ.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected Output
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  12000,
+  37,
+  347400
+]
+
+Evidence Reference Command
+
+(() => {
+  const manifest = SAIL_REQ.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version: manifest.version,
+    application_audit_classification:
+      manifest.application_audit_classification,
+    conformance_classification:
+      conformance.classification,
+    conformance_execution_count:
+      conformance.conformance_execution_count,
+    behavioral_specification_count:
+      behavior.specification_count,
+    behavioral_failures:
+      behavior.failed_count,
+    source_mutation_operators:
+      evidence.source_mutation_operator_count,
+    source_mutations_detected:
+      evidence.source_mutations_detected,
+    evidence_all_pass:
+      evidence.allPass
+  };
+})()
+
+Expected Core Fields
+
+{
+  version: "5.9.0",
+  application_audit_classification:
+    "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count: 347400,
+  behavioral_specification_count: 96,
+  behavioral_failures: 0,
+  source_mutation_operators: 5,
+  source_mutations_detected: 5,
+  evidence_all_pass: true
+}
+
+Primary Verification Areas
+
+- deterministic requirement identity
+- separate operational record identity
+- actor-action-object decomposition
+- incomplete-field reporting
+- independent policy binding
+- measurement-based trace certification
+- input-driven approval and realization
+- approval and realization preconditions
+- approval and realization idempotency
+- policy-change lifecycle reset
+- requirement-structure lifecycle reset
+- dynamic trace stages
+- deterministic trace-chain certificates
+- missing-field register visibility
+- certified, unresolved, incomplete, and empty pack states
+- structural and operational export separation
+
+Structural Invariants
+
+`requirement capability = actor + action + object`
+`policy bound iff requirement certified AND policy present`
+`trace certified iff requirement certified AND policy bound AND measurement present`
+`approval allowed iff requirement certified AND policy bound AND trace certified`
+`realization allowed iff requirement certified AND policy bound AND trace certified AND approval certified`
+
+Required Negative Tests
+
+- incomplete requirement must not bind policy
+- missing policy must not issue policy or trace certificates
+- missing measurement must block trace certification
+- missing trace certification must block approval
+- missing approval must block realization
+- changed policy must reset approval and realization
+- changed core requirement structure must create a new structural identity
+- unresolved or incomplete content must not produce a certified pack
+
+Python Structural Verification
+
+python sail_requirements_management_system_v1_1_2_test.py
+
+Expected Status
+
+PASS
+
+==================================================
+APPLICATION 3
+==================================================
+
+Incident Management System
+
+Expected
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Audit Classification:
+LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS
+
+Application Audit Execution:
+LOCAL_RUNTIME
+
+Application Audit Cases:
+12000
+
+Expected Application Audit Cases:
+12000
+
+Audit Scenarios:
+8
+
+Iterations Per Scenario:
+1500
+
+Application Audit Result:
+PASS
+
+Certified Layers:
+37
+
+Referenced Structural Conformance Executions:
+347400
+
+Referenced Behavioral Specifications:
+96
+
+Referenced Source-Mutation Operators:
+5
+
+Referenced Source Mutations Detected:
+5
+
+Referenced Realization Audit Cases:
+48600
+
+Primary Validation Command
+
+[
+  SAIL_INC.version(),
+  SAIL_INC.stackVersion(),
+  SAIL_INC.audit().allPass,
+  SAIL_INC.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected Output
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  12000,
+  37,
+  347400
+]
+
+Evidence Reference Command
+
+(() => {
+  const manifest = SAIL_INC.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version: manifest.version,
+    application_audit_classification:
+      manifest.application_audit_classification,
+    conformance_classification:
+      conformance.classification,
+    conformance_execution_count:
+      conformance.conformance_execution_count,
+    behavioral_specification_count:
+      behavior.specification_count,
+    behavioral_failures:
+      behavior.failed_count,
+    source_mutation_operators:
+      evidence.source_mutation_operator_count,
+    source_mutations_detected:
+      evidence.source_mutations_detected,
+    evidence_all_pass:
+      evidence.allPass
+  };
+})()
+
+Expected Core Fields
+
+{
+  version: "5.9.0",
+  application_audit_classification:
+    "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count: 347400,
+  behavioral_specification_count: 96,
+  behavioral_failures: 0,
+  source_mutation_operators: 5,
+  source_mutations_detected: 5,
+  evidence_all_pass: true
+}
+
+Primary Verification Areas
+
+- deterministic incident identity
+- separate operational record identity
+- incident completeness certification
+- severity-and-condition risk scoring
+- triage certification
+- critical-severity independent escalation
+- visible escalation reasons
+- recovery and verification guards
+- optional and required escalation paths
+- escalation, recovery, and verification idempotency
+- lifecycle reset after structural change
+- deterministic certificate chains
+- realization certificates
+- Verified status counter
+- certified, unresolved, incomplete, and empty pack states
+- structural and operational export separation
+
+Structural Invariants
+
+`risk score = severity weight + condition weight`
+`escalation required iff triage = HIGH OR triage = CRITICAL OR severity = CRITICAL`
+`recovery allowed iff incident certified AND (escalation not required OR escalation certified)`
+`verification allowed iff incident certified AND recovery certified`
+`incident resolved iff recovery certified AND verification certified`
+
+Required Negative Tests
+
+- incomplete incident must not proceed through the lifecycle
+- recovery must be blocked when structurally required escalation is absent
+- verification must be blocked before recovery
+- repeated accepted transitions must not change certificates or timestamps
+- changed incident structure must reset downstream lifecycle artifacts
+- unresolved incident content must not produce a certified pack
+
+Python Structural Verification
+
+python sail_incident_management_system_v1_1_2_test.py
+
+Expected Status
+
+PASS
+
+==================================================
+APPLICATION 4
+==================================================
+
+Compliance and Audit Console
+
+Expected
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Audit Classification:
+LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS
+
+Application Audit Execution:
+LOCAL_RUNTIME
+
+Application Audit Cases:
+12000
+
+Expected Application Audit Cases:
+12000
+
+Audit Scenarios:
+8
+
+Iterations Per Scenario:
+1500
+
+Application Audit Result:
+PASS
+
+Certified Layers:
+37
+
+Referenced Structural Conformance Executions:
+347400
+
+Referenced Behavioral Specifications:
+96
+
+Referenced Source-Mutation Operators:
+5
+
+Referenced Source Mutations Detected:
+5
+
+Primary Validation Command
+
+[
+  SAIL_AUD.version(),
+  SAIL_AUD.stackVersion(),
+  SAIL_AUD.audit().allPass,
+  SAIL_AUD.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected Output
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  12000,
+  37,
+  347400
+]
+
+Evidence Reference Command
+
+(() => {
+  const manifest = SAIL_AUD.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version: manifest.version,
+    application_audit_classification:
+      manifest.application_audit_classification,
+    conformance_classification:
+      conformance.classification,
+    conformance_execution_count:
+      conformance.conformance_execution_count,
+    behavioral_specification_count:
+      behavior.specification_count,
+    behavioral_failures:
+      behavior.failed_count,
+    source_mutation_operators:
+      evidence.source_mutation_operator_count,
+    source_mutations_detected:
+      evidence.source_mutations_detected,
+    evidence_all_pass:
+      evidence.allPass
+  };
+})()
+
+Expected Core Fields
+
+{
+  version: "5.9.0",
+  application_audit_classification:
+    "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count: 347400,
+  behavioral_specification_count: 96,
+  behavioral_failures: 0,
+  source_mutation_operators: 5,
+  source_mutations_detected: 5,
+  evidence_all_pass: true
+}
+
+Primary Verification Areas
+
+- deterministic structural control identity
+- separate operational record identity
+- control certification
+- policy binding
+- evidence certification
+- PASS, FAIL, and EXCEPTION semantics
+- exception guards
+- deterministic audit receipts
+- certificate and replay consistency
+- structural reset behavior
+- certified and unresolved pack states
+- structural and operational export separation
+- application-audit caching
+
+Structural Invariants
+
+`control compliant iff evaluation certified AND result = PASS`
+`same control structure -> same control certificate`
+`operational metadata excluded -> structural certificates remain stable`
+
+Required Negative Tests
+
+- incomplete control must not certify
+- missing policy must not produce a policy-bound state
+- missing evidence must not produce a compliant state
+- failed evidence must not produce PASS
+- unresolved exception must prevent compliant resolution
+- changed control structure must reset dependent audit artifacts
+- unresolved controls must not produce a certified pack
+
+Python Structural Verification
+
+python sail_compliance_audit_console_v1_1_2_test.py
+
+Expected Status
+
+PASS
+
+==================================================
+APPLICATION 5
+==================================================
+
+Federation Operations Console
+
+Expected
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Audit Classification:
+LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS
+
+Application Audit Execution:
+LOCAL_RUNTIME
+
+Application Audit Cases:
+9000
+
+Expected Application Audit Cases:
+9000
+
+Audit Scenarios:
+6
+
+Iterations Per Scenario:
+1500
+
+Application Audit Result:
+PASS
+
+Certified Layers:
+37
+
+Referenced Structural Conformance Executions:
+347400
+
+Referenced Behavioral Specifications:
+96
+
+Referenced Source-Mutation Operators:
+5
+
+Referenced Source Mutations Detected:
+5
+
+Referenced Federation Network Audit Checks:
+43200
+
+Referenced Core API:
+SAIL.federationNetworkAudit()
+
+Primary Validation Command
+
+[
+  SAIL_FED.version(),
+  SAIL_FED.stackVersion(),
+  SAIL_FED.audit().allPass,
+  SAIL_FED.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected Output
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  9000,
+  37,
+  347400
+]
+
+Evidence Reference Command
+
+(() => {
+  const manifest = SAIL_FED.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version: manifest.version,
+    application_audit_classification:
+      manifest.application_audit_classification,
+    conformance_classification:
+      conformance.classification,
+    conformance_execution_count:
+      conformance.conformance_execution_count,
+    behavioral_specification_count:
+      behavior.specification_count,
+    behavioral_failures:
+      behavior.failed_count,
+    source_mutation_operators:
+      evidence.source_mutation_operator_count,
+    source_mutations_detected:
+      evidence.source_mutations_detected,
+    evidence_all_pass:
+      evidence.allPass
+  };
+})()
+
+Expected Core Fields
+
+{
+  version: "5.9.0",
+  application_audit_classification:
+    "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count: 347400,
+  behavioral_specification_count: 96,
+  behavioral_failures: 0,
+  source_mutation_operators: 5,
+  source_mutations_detected: 5,
+  evidence_all_pass: true
+}
+
+Primary Verification Areas
+
+- independent network configuration
+- deterministic network-configuration certificates
+- deterministic node identity
+- quorum stored at network level and excluded from node identity
+- certified-node counting and pending-node exclusion
+- observer-role behavior
+- network identity and scope alignment
+- quorum and consensus resolution
+- federation certification
+- replay and audit guards
+- deterministic network, replay, and audit certificates
+- consensus-failure behavior
+- certified and unresolved pack states
+- application-audit caching
+
+Structural Invariants
+
+`same node structure -> same node certificate`
+`quorum certified iff certified node count >= configured quorum`
+`consensus certified iff quorum met AND network identity aligned AND scope aligned`
+`federation certified iff network resolved AND quorum certified AND consensus certified`
+`federated replay allowed iff federation certified`
+`federated audit allowed iff federation certified AND replay certified`
+
+Required Negative Tests
+
+- quorum failure must prevent consensus and federation certification
+- network identity mismatch must prevent consensus
+- scope mismatch must prevent consensus
+- pending nodes must not satisfy certified quorum
+- unresolved federation must not produce a replay certificate
+- audit before replay must remain blocked
+- changed network configuration must invalidate dependent network artifacts
+- unresolved federation must not produce a certified pack
+
+Python Structural Verification
+
+python sail_federation_operations_console_v1_1_2_test.py
+
+Expected Status
+
+PASS
+
+==================================================
+CROSS-APPLICATION IDENTITY VERIFICATION
+==================================================
+
+Every application using structural and operational identities must confirm:
+
+`same structural payload -> same structural identity`
+
+`same structural payload -> same structural certificate`
+
+`separate runtime record -> separate operational identity`
+
+Operational fields must not alter deterministic certificates.
+
+Operational fields include:
+
+- record IDs
+- creation timestamps
+- update timestamps
+- export timestamps
+- delivery modes
+
+Expected Status
+
+PASS
+
+==================================================
+CROSS-APPLICATION IDEMPOTENCY VERIFICATION
+==================================================
+
+Repeated accepted lifecycle transitions must preserve their original certificates and transition timestamps.
+
+Examples include:
+
+- repeated requirement approval
+- repeated requirement realization
+- repeated incident escalation
+- repeated incident recovery
+- repeated incident verification
+- repeated compliance exception handling
+- repeated federation resolution, replay, or audit where supported
+
+Idempotency Invariant
+
+`repeat accepted transition -> same certificate + unchanged transition timestamp`
+
+Expected Status
+
+PASS
+
+==================================================
+CROSS-APPLICATION STRUCTURAL RESET VERIFICATION
+==================================================
+
+Changing upstream structural or governance inputs must invalidate dependent lifecycle artifacts.
+
+Verification must confirm:
+
+- changed requirement structure resets dependent realization
+- changed policy resets requirement approval and realization
+- changed measurement resets dependent trace or realization artifacts
+- changed incident structure resets escalation, recovery, verification, and realization
+- changed control structure resets dependent compliance artifacts
+- changed federation configuration resets dependent network artifacts
+
+Reset Invariant
+
+`changed upstream structure -> dependent downstream certificates reset`
+
+Expected Status
+
+PASS
+
+==================================================
+PACK STATE VERIFICATION
+==================================================
+
+Applications must expose pack states that reflect their actual structural contents.
+
+Expected categories include:
+
+- certified
+- unresolved
+- incomplete
+- empty
+
+Verification must confirm:
+
+- resolved content produces certified state
+- unresolved content produces unresolved state
+- incomplete content produces incomplete state
+- empty collection produces empty state
+- delivery mode distinguishes view from download
+- structural payload excludes operational metadata
+- operational metadata remains available for traceability
+
+Pack Invariant
+
+`pack state reflects actual structural resolution state`
+
+Expected Status
+
+PASS
+
+==================================================
+AUDIT COUNT INTEGRITY
+==================================================
+
+For each application:
+
+`audit valid iff every required scenario passes AND observed case count = expected case count`
+
+Expected Application Counts
+
+Requirement Realization Console:
+10000
+
+Requirements Management System:
+12000
+
+Incident Management System:
+12000
+
+Compliance and Audit Console:
+12000
+
+Federation Operations Console:
+9000
+
+Expected Total:
+55000
+
+A reported PASS with an unexpected case count must not be accepted as complete application verification.
+
+==================================================
+PYTHON STRUCTURAL VERIFICATION
+==================================================
+
+Run each application's supplied Python structural-verification script.
+
+Expected result for every script:
+
+PASS
+
+Python verification confirms structural file markers, version synchronization, required interfaces, release metadata, and absence of stale active-version markers.
+
+Browser console verification confirms runtime behavior.
+
+Both forms of verification are required for release validation.
+
+==================================================
+RECOMMENDED VERIFICATION ORDER
+==================================================
+
+1. Verify the SAIL v5.9.0 core release.
+2. Open Application 1.
+3. Run its primary validation command.
+4. Run its evidence-reference command.
+5. Run its extended console tests.
+6. Run its Python structural-verification script.
+7. Repeat for Applications 2 through 5.
+8. Confirm every observed application case count.
+9. Confirm all blocked lifecycle scenarios.
+10. Confirm deterministic structural identity.
+11. Confirm operational identity separation.
+12. Confirm idempotent lifecycle transitions.
+13. Confirm structural-change resets.
+14. Confirm pack-state behavior.
+15. Confirm LOCAL_RUNTIME and REFERENCE_RELEASE_VALIDATION are not conflated.
+16. Attempt cross-application falsification.
+
+==================================================
+FINAL EXPECTED STATUS
+==================================================
+
+Requirement Realization Console
+
+PASS
+
+Requirements Management System
+
+PASS
+
+Incident Management System
+
+PASS
+
+Compliance and Audit Console
+
+PASS
+
+Federation Operations Console
+
+PASS
+
+Total Applications
+
+5
+
+Application Version
+
+1.1.2
+
+SAIL Stack Version
+
+5.9.0
+
+Total Local Application-Conformance Cases
+
+55000
+
+Certified SAIL Layers
+
+37
+
+Referenced Synthetic Structural Conformance Executions
+
+347400
+
+Referenced Behavioral Specifications
+
+96
+
+Referenced Source Mutations Detected
+
+5 of 5
+
+Application Verification Status
+
+VALIDATED
+
+==================================================
+FINAL APPLICATION VERIFICATION PRINCIPLE
+==================================================
+
+Application verification is complete only when version, stack, audit classification, audit count, deterministic identity, lifecycle guards, idempotency, structural reset behavior, replay behavior, pack state, evidence metadata, and Python structural verification all agree.
+
+`same structure -> same evidence -> same certificate -> same replayable outcome`
+
+One Structural Foundation. Infinite Manifestations.

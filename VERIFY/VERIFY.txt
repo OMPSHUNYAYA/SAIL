@@ -1,0 +1,698 @@
+SAIL Verification Guide
+
+SAIL v5.9.0 Evidence Integrity Runtime
+
+Purpose
+
+This directory contains the minimum verification artifacts required to validate the SAIL reference implementation and its five reference applications.
+
+Verification focuses on observable structural behavior, accurate evidence classification, deterministic identities, certificates, guarded transitions, replayable outcomes, mutation sensitivity, and consistent realization states.
+
+The objective is to determine whether documented guarantees remain true under repetition, variation, blocked conditions, structural change, and adversarial testing.
+
+Verification Areas
+
+1. Core Runtime Validation
+2. Evidence Classification Validation
+3. Independent Behavioral Validation
+4. Source-Mutation Sensitivity
+5. Supplemental Environment-Isolation Validation
+6. Application Conformance Validation
+7. Structural Identity Validation
+8. Operational Identity Separation
+9. Certificate Determinism
+10. Lifecycle Guard Validation
+11. Idempotency Validation
+12. Replay Validation
+13. Federation Validation
+14. Realization Validation
+15. Export Pack Validation
+16. Release Validation
+17. Falsification Testing
+
+Primary Verification Invariant
+
+same structure -> same evidence -> same certificate -> same replayable outcome
+
+Supporting Invariants
+
+same structural payload -> same structural identity
+
+separate runtime record -> separate operational identity
+
+operational identity and timestamps -> excluded from structural certificates
+
+same accepted lifecycle transition repeated -> same certificate and unchanged transition timestamp
+
+changed structural input -> affected downstream certificates reset
+
+downstream certification allowed iff required upstream structures are certified
+
+environment-dependent expression -> ABSTAIN
+
+same rejected expression + changed browser environment -> same rejection state + same certificate
+
+==================================================
+EVIDENCE MODEL
+==================================================
+
+Synthetic Structural Conformance
+
+Classification:
+
+SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS
+
+Execution Count:
+
+347400
+
+Purpose:
+
+- deterministic hashing validation
+- cloning validation
+- replay validation
+- component-integration validation
+- structural self-consistency validation
+
+Independent Behavioral Validation
+
+Specification Count:
+
+96
+
+Oracle Origin:
+
+EXTERNALLY_SPECIFIED_LITERAL_EXPECTATIONS
+
+Expected Failures:
+
+0
+
+Mutation Sensitivity
+
+Source-Mutation Operators:
+
+5
+
+Required Detections:
+
+5
+
+Supplemental Environment-Isolation Validation
+
+Environment-Isolation Checks:
+
+7
+
+Environment-Isolation Failures:
+
+0
+
+These checks verify that expression resolution cannot depend on browser-global state, undeclared identifiers, property traversal, constructor access, or nondeterministic environment functions.
+
+The seven checks are supplemental external runtime checks.
+
+They are separate from, and are not included in, the 96 independently specified behavioral specifications.
+
+Evidence Boundary
+
+The 347400 figure represents total synthetic conformance execution volume over bounded structural case-template sets.
+
+Some conformance-audit families repeatedly cycle through their available templates until their configured execution totals are reached. This repetition validates deterministic stability, replay consistency, certificate consistency, and structural self-consistency under repeated execution.
+
+The 347400 executions must not be represented as:
+
+- 347400 unique input structures
+- 347400 distinct scenarios
+- 347400 independent behavioral specifications
+
+Evidence interpretation:
+
+347400 = synthetic structural conformance execution volume
+
+347400 != unique structural template count
+
+347400 != independent behavioral specification count
+
+The 96 behavioral specifications provide the independently specified behavioral evidence supplied with the release.
+
+The five controlled source mutations test sensitivity to the supplied mutation operators and do not claim exhaustive defect detection.
+
+==================================================
+STRUCTURAL AND OPERATIONAL IDENTITY
+==================================================
+
+SAIL v5.9.0 reference applications distinguish structural identity from operational identity.
+
+Structural identity describes the deterministic structure being certified.
+
+Operational identity describes a particular runtime record or operational instance.
+
+Verification must confirm:
+
+same structure -> same structural ID
+
+separate runtime record -> separate operational record ID
+
+record IDs do not alter structural certificates
+
+timestamps do not alter structural certificates
+
+operational metadata remains available for traceability
+
+==================================================
+VALIDATION SOURCE DISTINCTION
+==================================================
+
+Application audits are executed locally by each application.
+
+Application audit classification:
+
+LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS
+
+Application audit execution:
+
+LOCAL_RUNTIME
+
+Core values referenced by applications are identified as:
+
+REFERENCE_RELEASE_VALIDATION
+
+Referenced core values may include:
+
+- structural conformance
+- behavioral validation
+- mutation validation
+- realization audit
+- legacy structural-federation audit
+- federation-network audit
+
+Verification must confirm that applications do not imply that they independently rerun the complete core validation suites.
+
+Federation API distinction:
+
+SAIL.federationAudit().case_count = 450
+
+SAIL.federationNetworkAudit().case_count = 43200
+
+==================================================
+CURRENT CORE VALIDATION REFERENCE
+==================================================
+
+SAIL Version:
+
+5.9.0
+
+Certified Structural Layers:
+
+37
+
+Synthetic Structural Conformance Executions:
+
+347400
+
+Independent Behavioral Specifications:
+
+96
+
+Behavioral Failures:
+
+0
+
+Source-Mutation Operators:
+
+5
+
+Source Mutations Detected:
+
+5
+
+Supplemental Environment-Isolation Checks:
+
+7
+
+Environment-Isolation Failures:
+
+0
+
+Core Realization Audit Cases:
+
+48600
+
+Legacy Structural-Federation Audit Cases:
+
+450
+
+Federation-Network Audit Checks:
+
+43200
+
+Federation API distinction:
+
+SAIL.federationAudit().case_count = 450
+
+SAIL.federationNetworkAudit().case_count = 43200
+
+==================================================
+REFERENCE APPLICATION AUDITS
+==================================================
+
+Requirement Realization Console v1.1.2:
+
+10000 local application-conformance cases
+
+Requirements Management System v1.1.2:
+
+12000 local application-conformance cases
+
+Incident Management System v1.1.2:
+
+12000 local application-conformance cases
+
+Compliance and Audit Console v1.1.2:
+
+12000 local application-conformance cases
+
+Federation Operations Console v1.1.2:
+
+9000 local application-conformance cases
+
+Total locally executed application-conformance cases:
+
+10000 + 12000 + 12000 + 12000 + 9000 = 55000
+
+==================================================
+APPLICATION VERIFICATION
+==================================================
+
+Each application must be verified using:
+
+- application version
+- SAIL stack version
+- local audit classification
+- local audit execution source
+- observed application case count
+- expected application case count
+- failed-case count
+- count-match status
+- certified layer reference
+- conformance classification and count reference
+- behavioral specification reference
+- source-mutation reference
+- application-specific guards
+- deterministic certificates
+- idempotent transitions
+- structural reset behavior
+- pack-state behavior
+- Python structural verification
+
+Application Audit Validity
+
+`audit passes iff observed case count = expected case count AND every required scenario passes`
+
+==================================================
+LIFECYCLE GUARD VALIDATION
+==================================================
+
+Verification must test both successful and blocked transitions.
+
+Examples include:
+
+- realization blocked before approval
+- approval blocked before trace certification
+- trace blocked when policy is absent
+- recovery blocked before required escalation
+- verification blocked before recovery
+- federation replay blocked before network resolution
+- federation audit blocked before replay
+- incomplete structures blocked from downstream certification
+
+A blocked transition must not issue the downstream certificate.
+
+==================================================
+IDEMPOTENCY VALIDATION
+==================================================
+
+Accepted lifecycle transitions must be idempotent.
+
+Verification must confirm:
+
+- repeated approval preserves approval certificate and timestamp
+- repeated realization preserves realization certificate and timestamp
+- repeated escalation preserves escalation certificate and timestamp
+- repeated recovery preserves recovery certificate and timestamp
+- repeated verification preserves verification certificate and timestamp
+- repeated accepted transition does not duplicate structural outcomes
+
+==================================================
+STRUCTURAL CHANGE VALIDATION
+==================================================
+
+When structural inputs change, certificates derived from the prior structure must not remain valid.
+
+Verification must confirm:
+
+- changed requirement structure resets approval and realization
+- changed policy resets downstream requirement governance
+- changed trace evidence resets downstream approval and realization
+- changed incident structure resets escalation, recovery, verification, and realization
+- changed control structure resets dependent compliance artifacts
+- changed federation configuration invalidates dependent network-resolution artifacts
+
+==================================================
+REPLAY VALIDATION
+==================================================
+
+Replay validation must confirm:
+
+same certified structure -> same replay result
+
+same certificate chain -> same chain certificate
+
+same federation structure -> same federated outcome
+
+Replay must fail closed when required certificates or upstream states are absent.
+
+==================================================
+FEDERATION VALIDATION
+==================================================
+
+Federation verification must confirm:
+
+quorum belongs to network configuration, not node identity
+
+same node structure -> same node certificate
+
+quorum certified iff certified node count >= configured quorum
+
+consensus certified iff quorum met AND network identity aligned AND scope aligned
+
+federation certified iff network resolved AND quorum certified AND consensus certified
+
+federated replay allowed iff federation certified
+
+federated audit allowed iff federation certified AND replay certified
+
+Required failure scenarios include:
+
+- quorum failure
+- network identity mismatch
+- scope mismatch
+- pending-node exclusion
+- unresolved federation replay
+- audit before replay
+
+==================================================
+REALIZATION VALIDATION
+==================================================
+
+Realization verification must confirm that measurable outcome evidence is structurally connected to the certified lifecycle.
+
+Core Realization Invariant
+
+`realization certified iff required upstream structures, execution evidence, measurement, and verification are complete`
+
+Realization certificates must not be issued when required preconditions are absent.
+
+==================================================
+EXPORT PACK VALIDATION
+==================================================
+
+Applications may produce multiple pack states.
+
+Expected state categories include:
+
+- certified
+- unresolved
+- incomplete
+- empty
+
+Where applicable, verification should also test:
+
+- blocked
+- exception
+- consensus failure
+- missing policy
+- missing measurement
+
+Export packs must separate:
+
+Structural Payload
+
+- structural identities
+- structural fields
+- lifecycle states
+- certificates
+- certificate chains
+- realization artifacts
+
+Operational Metadata
+
+- operational record IDs
+- creation timestamps
+- update timestamps
+- export timestamps
+- delivery mode
+
+Pack Invariant
+
+`operational record identity and timestamps are excluded from structural certificates`
+
+Delivery modes must be distinguishable as:
+
+view
+
+download
+
+==================================================
+CORE EVIDENCE VALIDATION
+==================================================
+
+Run:
+
+[
+  SAIL.version(),
+  SAIL.conformanceAudit().allPass,
+  SAIL.conformanceAudit().conformance_execution_count,
+  SAIL.behaviorAudit().allPass,
+  SAIL.behaviorAudit().specification_count,
+  SAIL.evidenceValidation().allPass,
+  SAIL.certify().layers
+]
+
+Expected:
+
+[
+  "5.9.0",
+  true,
+  347400,
+  true,
+  96,
+  true,
+  37
+]
+
+==================================================
+CORE EXTERNAL TESTS
+==================================================
+
+Runtime Behavioral Test
+
+python sail_v5_9_0_runtime_behavior_test.py
+
+Expected:
+
+status: PASS
+
+external_behavioral_oracles: 96
+
+behavioral_failures: 0
+
+synthetic_conformance_executions: 347400
+
+source_mutation_operators: 5
+
+source_mutations_detected: 5
+
+environment_isolation_checks: 7
+
+environment_isolation_failures: 0
+
+Source Integrity Test
+
+python sail_v5_9_0_source_integrity_test.py
+
+Expected:
+
+SAIL v5.9.0 source and release-package integrity checks passed
+
+The source-integrity test also verifies:
+
+- bounded environment-isolated evaluator markers are present
+- unrestricted Function(...) expression evaluation is absent
+- active release markers and package files remain synchronized
+
+==================================================
+STANDARD APPLICATION VALIDATION
+==================================================
+
+For each application, run:
+
+[
+  APPLICATION_API.version(),
+  APPLICATION_API.stackVersion(),
+  APPLICATION_API.audit().allPass,
+  APPLICATION_API.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Confirm:
+
+- application version is 1.1.2
+- SAIL stack version is 5.9.0
+- application audit passes
+- application case count matches its documented count
+- certified layer count is 37
+- backward-compatible benchmark count is 347400
+- benchmark classification is SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS
+- behavioral specification count is 96
+- source mutation detection reports 5 of 5
+
+==================================================
+RECOMMENDED VERIFICATION ORDER
+==================================================
+
+1. Verify all required release files and checksums.
+2. Run the core evidence-hardened validation.
+3. Inspect the evidence profile.
+4. Run the external runtime behavioral test.
+5. Confirm all five controlled source mutations are detected.
+6. Confirm environment_isolation_checks = 7.
+7. Confirm environment_isolation_failures = 0.
+8. Confirm browser-global and environment-dependent expressions produce ABSTAIN.
+9. Confirm rejection states and certificates remain stable after unrelated browser-environment changes.
+10. Run the source-integrity test.
+11. Run each application validation command.
+12. Force each local application audit.
+13. Confirm observed and expected application case counts match.
+14. Run each application Python structural-verification script.
+15. Test deterministic structural identity.
+16. Test operational identity separation.
+17. Test successful lifecycle paths.
+18. Test blocked lifecycle paths.
+19. Test idempotent transitions.
+20. Test structural-change resets.
+21. Test replay consistency.
+22. Test federation quorum and consensus failures.
+23. Test certified, unresolved, incomplete, and empty pack states.
+24. Review release verification.
+25. Attempt falsification scenarios.
+
+==================================================
+INDEPENDENT VALIDATION
+==================================================
+
+Reviewers are encouraged to:
+
+- inspect
+- verify
+- replay
+- benchmark
+- compare
+- challenge
+- mutate
+- falsify
+
+documented guarantees.
+
+Reviewers should inspect successful outcomes and blocked outcomes.
+
+A passing happy-path demonstration alone is not sufficient to validate lifecycle guards.
+
+==================================================
+FALSIFICATION TARGETS
+==================================================
+
+Attempt to produce:
+
+same structure -> different structural identity
+
+same structure -> different certificate
+
+same visible input -> different replay result
+
+separate runtime record -> same operational record identity
+
+timestamp change -> changed structural certificate
+
+missing policy -> policy certificate issued
+
+missing measurement -> trace certificate issued
+
+unapproved requirement -> realization certificate issued
+
+required escalation absent -> recovery certificate issued
+
+recovery absent -> verification certificate issued
+
+quorum not met -> federation certified
+
+network mismatch -> consensus certified
+
+scope mismatch -> consensus certified
+
+replay before federation resolution -> replay certificate issued
+
+audit before replay -> federation audit certificate issued
+
+unresolved content -> certified pack state
+
+changed structure -> prior downstream certificate preserved
+
+behavioral failure -> evidence validation passes
+
+controlled source mutation undetected -> mutation validation passes
+
+browser-global or environment-dependent expression -> resolved or certified result
+
+undeclared identifier, property traversal, or constructor access -> resolved expression
+
+browser-environment change -> changed rejection state or rejection certificate
+
+environment-isolation check count differs from 7
+
+environment-isolation failure count differs from 0
+
+uncertified compliance evaluation -> COMPLIANT
+
+certified FAIL or EXCEPTION evaluation -> COMPLIANT
+
+synthetic conformance execution count -> represented as unique input, distinct scenario, or independent behavioral count
+
+Successful falsification attempts are valid verification outcomes.
+
+Reproducible violations should be used to:
+
+- correct the implementation
+- strengthen validation
+- narrow documented guarantees
+- improve release verification
+
+==================================================
+CERTIFICATION SCOPE
+==================================================
+
+SAIL certification denotes internal structural conformance and behavioral validation within the supplied reference implementation.
+
+It is not third-party, regulatory, safety, security, compliance, governmental, or standards certification.
+
+==================================================
+FINAL VERIFICATION PRINCIPLE
+==================================================
+
+Verification is not confirmation by assumption.
+
+Verification is the independent attempt to determine whether documented structural guarantees and evidence classifications remain true under repetition, variation, blocked conditions, structural change, mutation, and adversarial testing.
+
+One Structural Foundation. Infinite Manifestations.

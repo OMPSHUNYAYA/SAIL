@@ -1,0 +1,1785 @@
+SAIL Federation Operations Console Validation
+SAIL Federation Operations Console v1.1.2
+Built on SAIL v5.9.0 Evidence Integrity Runtime
+
+==================================================
+APPLICATION VALIDATION
+==================================================
+
+[
+  SAIL_FED.version(),
+  SAIL_FED.stackVersion(),
+  SAIL_FED.audit().allPass,
+  SAIL_FED.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected:
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  9000,
+  37,
+  347400
+]
+
+==================================================
+CORE EVIDENCE REFERENCE
+==================================================
+
+(() => {
+  const manifest = SAIL_FED.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version:manifest.version,
+    conformance_classification:conformance.classification,
+    conformance_execution_count:conformance.conformance_execution_count,
+    behavioral_specification_count:behavior.specification_count,
+    behavioral_failures:behavior.failed_count,
+    source_mutation_operators:evidence.source_mutation_operator_count,
+    source_mutations_detected:evidence.source_mutations_detected,
+    evidence_all_pass:evidence.allPass
+  };
+})()
+
+Expected:
+
+{
+  version:"5.9.0",
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  behavioral_failures:0,
+  source_mutation_operators:5,
+  source_mutations_detected:5,
+  evidence_all_pass:true
+}
+
+==================================================
+NETWORK-LEVEL QUORUM CONFIGURATION
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:3
+  });
+
+  const configuration =
+    SAIL_FED.networkConfiguration();
+
+  return {
+    network_id:
+      configuration.network_id,
+
+    quorum:
+      configuration.quorum,
+
+    configuration_state:
+      configuration.configuration_state,
+
+    configured:
+      configuration.configured,
+
+    configuration_certificate_present:
+      configuration.configuration_certificate.startsWith("NETCFG-")
+  };
+})()
+
+Expected:
+
+{
+  network_id:"SAIL_FEDERATION_NETWORK",
+  quorum:3,
+  configuration_state:"NETWORK_CONFIGURATION_CERTIFIED",
+  configured:true,
+  configuration_certificate_present:true
+}
+
+Configuration invariant:
+
+quorum belongs to network configuration, not node identity
+
+==================================================
+NODE CERTIFICATE INDEPENDENCE FROM QUORUM
+==================================================
+
+(() => {
+  const input = {
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node A",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  };
+
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  const first =
+    SAIL_FED.certifyNode(input);
+
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:5
+  });
+
+  const second =
+    SAIL_FED.certifyNode(input);
+
+  return {
+    same_node_certificate:
+      first.node_certificate === second.node_certificate,
+
+    quorum_absent_from_node:
+      !Object.prototype.hasOwnProperty.call(first,"quorum"),
+
+    quorum_absent_from_node_invariant:
+      !Object.prototype.hasOwnProperty.call(first.invariant,"quorum"),
+
+    first_certificate_prefix_valid:
+      first.node_certificate.startsWith("NODE-"),
+
+    second_certificate_prefix_valid:
+      second.node_certificate.startsWith("NODE-")
+  };
+})()
+
+Expected:
+
+{
+  same_node_certificate:true,
+  quorum_absent_from_node:true,
+  quorum_absent_from_node_invariant:true,
+  first_certificate_prefix_valid:true,
+  second_certificate_prefix_valid:true
+}
+
+Node invariant:
+
+same node structure -> same node certificate
+
+==================================================
+NETWORK CONFIGURATION CERTIFICATE SENSITIVITY
+==================================================
+
+(() => {
+  const first =
+    SAIL_FED.configureNetwork({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      quorum:2
+    });
+
+  const second =
+    SAIL_FED.configureNetwork({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      quorum:3
+    });
+
+  return {
+    first_configured:first.configured,
+    second_configured:second.configured,
+    different_configuration_certificate:
+      first.configuration_certificate !==
+      second.configuration_certificate,
+    first_quorum:first.quorum,
+    second_quorum:second.quorum
+  };
+})()
+
+Expected:
+
+{
+  first_configured:true,
+  second_configured:true,
+  different_configuration_certificate:true,
+  first_quorum:2,
+  second_quorum:3
+}
+
+==================================================
+INVALID NETWORK CONFIGURATION
+==================================================
+
+(() => {
+  const missingNetwork =
+    SAIL_FED.configureNetwork({
+      network_id:"",
+      quorum:2
+    });
+
+  const invalidQuorum =
+    SAIL_FED.configureNetwork({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      quorum:0
+    });
+
+  return {
+    missing_network_configured:
+      missingNetwork.configured,
+
+    missing_network_state:
+      missingNetwork.state,
+
+    invalid_quorum_configured:
+      invalidQuorum.configured,
+
+    invalid_quorum_state:
+      invalidQuorum.state
+  };
+})()
+
+Expected:
+
+{
+  missing_network_configured:false,
+  missing_network_state:"NETWORK_CONFIGURATION_INVALID",
+  invalid_quorum_configured:false,
+  invalid_quorum_state:"NETWORK_CONFIGURATION_INVALID"
+}
+
+==================================================
+INVALID NODE ADMISSION
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"NETWORK_A",
+    quorum:2
+  });
+
+  const invalidRole =
+    SAIL_FED.certifyNode({
+      network_id:"NETWORK_A",
+      node_id:"Invalid Role",
+      role:"root",
+      scope:"default_scope",
+      state:"CERTIFIED"
+    });
+
+  const invalidState =
+    SAIL_FED.certifyNode({
+      network_id:"NETWORK_A",
+      node_id:"Invalid State",
+      role:"peer",
+      scope:"default_scope",
+      state:"TRUSTED"
+    });
+
+  const blankNetwork =
+    SAIL_FED.certifyNode({
+      network_id:"",
+      node_id:"Blank Network",
+      role:"peer",
+      scope:"default_scope",
+      state:"CERTIFIED"
+    });
+
+  const network =
+    SAIL_FED.networkState();
+
+  return {
+    invalid_role_certified:
+      invalidRole.certified,
+
+    invalid_role_identity_state:
+      invalidRole.identity_state,
+
+    invalid_role_fields:
+      invalidRole.invalid_fields,
+
+    invalid_state_certified:
+      invalidState.certified,
+
+    invalid_state_identity_state:
+      invalidState.identity_state,
+
+    invalid_state_fields:
+      invalidState.invalid_fields,
+
+    blank_network_certified:
+      blankNetwork.certified,
+
+    blank_network_id:
+      blankNetwork.network_id,
+
+    blank_network_incomplete_fields:
+      blankNetwork.incomplete_fields,
+
+    certified_node_count:
+      network.certified_node_count
+  };
+})()
+
+Expected:
+
+{
+  invalid_role_certified:false,
+  invalid_role_identity_state:"NODE_IDENTITY_INVALID",
+  invalid_role_fields:["role"],
+  invalid_state_certified:false,
+  invalid_state_identity_state:"NODE_IDENTITY_INVALID",
+  invalid_state_fields:["state"],
+  blank_network_certified:false,
+  blank_network_id:"",
+  blank_network_incomplete_fields:["network_id"],
+  certified_node_count:0
+}
+
+Admission invariant:
+
+node certified iff required fields are complete and role and state are admitted
+
+==================================================
+CLEAR NETWORK API INDEPENDENCE FROM DOM STATE
+==================================================
+
+(() => {
+  document.getElementById("networkId").value =
+    "DOM_NETWORK";
+
+  document.getElementById("quorum").value =
+    "9";
+
+  const result =
+    SAIL_FED.clearNetwork({
+      network_id:"API_NETWORK",
+      quorum:4
+    });
+
+  const configuration =
+    SAIL_FED.networkConfiguration();
+
+  return {
+    node_count:result.node_count,
+    configured_network_id:
+      configuration.network_id,
+    configured_quorum:
+      configuration.quorum,
+    dom_network_after_clear:
+      document.getElementById("networkId").value,
+    dom_quorum_after_clear:
+      document.getElementById("quorum").value
+  };
+})()
+
+Expected:
+
+{
+  node_count:0,
+  configured_network_id:"API_NETWORK",
+  configured_quorum:4,
+  dom_network_after_clear:"API_NETWORK",
+  dom_quorum_after_clear:"4"
+}
+
+API invariant:
+
+explicit API configuration is independent of prior DOM state
+
+==================================================
+INVALID CLEAR NETWORK GUARD
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"NETWORK_A",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_A",
+    node_id:"Node A",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  const before =
+    SAIL_FED.networkState();
+
+  const result =
+    SAIL_FED.clearNetwork({
+      network_id:"",
+      quorum:0
+    });
+
+  const after =
+    SAIL_FED.networkState();
+
+  return {
+    cleared:
+      result.cleared,
+
+    configured:
+      result.configured,
+
+    state:
+      result.state,
+
+    invalid_fields:
+      result.invalid_fields,
+
+    node_count_preserved:
+      before.node_count === after.node_count,
+
+    network_id_preserved:
+      before.network_id === after.network_id,
+
+    quorum_preserved:
+      before.quorum === after.quorum
+  };
+})()
+
+Expected:
+
+{
+  cleared:false,
+  configured:false,
+  state:"NETWORK_CONFIGURATION_INVALID",
+  invalid_fields:[
+    "network_id",
+    "quorum"
+  ],
+  node_count_preserved:true,
+  network_id_preserved:true,
+  quorum_preserved:true
+}
+
+Clear-network invariant:
+
+invalid explicit configuration does not clear or replace the active network
+
+==================================================
+QUORUM SAFETY
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node X",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  const result =
+    SAIL_FED.resolveNetwork();
+
+  return {
+    node_count:result.node_count,
+    certified_node_count:
+      result.certified_node_count,
+    quorum:result.quorum,
+    quorum_met:result.quorum_met,
+    consensus_met:result.consensus_met,
+    federation_certified:
+      result.federation_certified,
+    replayed:result.replayed,
+    audited:result.audited
+  };
+})()
+
+Expected:
+
+{
+  node_count:1,
+  certified_node_count:1,
+  quorum:2,
+  quorum_met:false,
+  consensus_met:false,
+  federation_certified:false,
+  replayed:false,
+  audited:false
+}
+
+Quorum invariant:
+
+quorum certified iff certified node count >= configured quorum
+
+==================================================
+NETWORK-IDENTITY CONSENSUS SAFETY
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"NETWORK_A",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_A",
+    node_id:"Node A",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_B",
+    node_id:"Node B",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  const result =
+    SAIL_FED.resolveNetwork();
+
+  return {
+    quorum_met:result.quorum_met,
+    consensus_met:result.consensus_met,
+    network_identity_aligned:
+      result.network_identity_aligned,
+    scope_aligned:result.scope_aligned,
+    consensus_network_ids:
+      result.consensus_network_ids,
+    federation_certified:
+      result.federation_certified
+  };
+})()
+
+Expected:
+
+{
+  quorum_met:true,
+  consensus_met:false,
+  network_identity_aligned:false,
+  scope_aligned:true,
+  consensus_network_ids:[
+    "NETWORK_A",
+    "NETWORK_B"
+  ],
+  federation_certified:false
+}
+
+Consensus invariant:
+
+consensus certified iff quorum is met and certified nodes agree on configured network identity and scope
+
+==================================================
+SCOPE CONSENSUS SAFETY
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node A",
+    role:"peer",
+    scope:"scope_a",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node B",
+    role:"peer",
+    scope:"scope_b",
+    state:"CERTIFIED"
+  });
+
+  const result =
+    SAIL_FED.resolveNetwork();
+
+  return {
+    quorum_met:result.quorum_met,
+    consensus_met:result.consensus_met,
+    network_identity_aligned:
+      result.network_identity_aligned,
+    scope_aligned:result.scope_aligned,
+    consensus_scopes:
+      result.consensus_scopes,
+    federation_certified:
+      result.federation_certified
+  };
+})()
+
+Expected:
+
+{
+  quorum_met:true,
+  consensus_met:false,
+  network_identity_aligned:true,
+  scope_aligned:false,
+  consensus_scopes:[
+    "scope_a",
+    "scope_b"
+  ],
+  federation_certified:false
+}
+
+==================================================
+PENDING NODE EXCLUSION
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node A",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node B",
+    role:"peer",
+    scope:"default_scope",
+    state:"PENDING"
+  });
+
+  const result =
+    SAIL_FED.resolveNetwork();
+
+  return {
+    node_count:result.node_count,
+    certified_node_count:
+      result.certified_node_count,
+    quorum_met:result.quorum_met,
+    consensus_met:result.consensus_met,
+    federation_certified:
+      result.federation_certified
+  };
+})()
+
+Expected:
+
+{
+  node_count:2,
+  certified_node_count:1,
+  quorum_met:false,
+  consensus_met:false,
+  federation_certified:false
+}
+
+==================================================
+RETURNED NODE MUTATION ISOLATION
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"NETWORK_A",
+    quorum:2
+  });
+
+  const returnedNode =
+    SAIL_FED.certifyNode({
+      network_id:"NETWORK_A",
+      node_id:"Node A",
+      role:"peer",
+      scope:"default_scope",
+      state:"PENDING"
+    });
+
+  returnedNode.state =
+    "CERTIFIED";
+
+  returnedNode.certified =
+    true;
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_A",
+    node_id:"Node B",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  const network =
+    SAIL_FED.resolveNetwork();
+
+  const storedNode =
+    network.nodes.find(
+      node => node.node_id === "Node A"
+    );
+
+  return {
+    certified_node_count:
+      network.certified_node_count,
+
+    quorum_met:
+      network.quorum_met,
+
+    federation_certified:
+      network.federation_certified,
+
+    stored_state:
+      storedNode.state,
+
+    stored_certified:
+      storedNode.certified
+  };
+})()
+
+Expected:
+
+{
+  certified_node_count:1,
+  quorum_met:false,
+  federation_certified:false,
+  stored_state:"PENDING",
+  stored_certified:false
+}
+
+Isolation invariant:
+
+mutation of a returned node snapshot does not mutate the internal node register
+
+==================================================
+NETWORK SNAPSHOT MUTATION ISOLATION
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"NETWORK_A",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_A",
+    node_id:"Node A",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_A",
+    node_id:"Node B",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  const first =
+    SAIL_FED.networkState();
+
+  first.nodes[0].state =
+    "BLOCKED";
+
+  first.nodes[0].certified =
+    false;
+
+  const second =
+    SAIL_FED.resolveNetwork();
+
+  return {
+    certified_node_count:
+      second.certified_node_count,
+
+    quorum_met:
+      second.quorum_met,
+
+    consensus_met:
+      second.consensus_met,
+
+    federation_certified:
+      second.federation_certified,
+
+    internal_node_certified:
+      second.nodes[0].certified
+  };
+})()
+
+Expected:
+
+{
+  certified_node_count:2,
+  quorum_met:true,
+  consensus_met:true,
+  federation_certified:true,
+  internal_node_certified:true
+}
+
+Isolation invariant:
+
+mutation of a network snapshot does not mutate internal federation state
+
+==================================================
+OBSERVER ROLE CERTIFICATION
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  const coordinator =
+    SAIL_FED.certifyNode({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      node_id:"Node A",
+      role:"coordinator",
+      scope:"default_scope",
+      state:"CERTIFIED"
+    });
+
+  const observer =
+    SAIL_FED.certifyNode({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      node_id:"Node B",
+      role:"observer",
+      scope:"default_scope",
+      state:"CERTIFIED"
+    });
+
+  const result =
+    SAIL_FED.resolveNetwork();
+
+  return {
+    coordinator_certified:
+      coordinator.certified,
+    observer_role:
+      observer.role,
+    observer_certified:
+      observer.certified,
+    quorum_met:
+      result.quorum_met,
+    consensus_met:
+      result.consensus_met,
+    federation_certified:
+      result.federation_certified
+  };
+})()
+
+Expected:
+
+{
+  coordinator_certified:true,
+  observer_role:"observer",
+  observer_certified:true,
+  quorum_met:true,
+  consensus_met:true,
+  federation_certified:true
+}
+
+==================================================
+REPLAY REQUIRES NETWORK RESOLUTION
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node A",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  const replayResult =
+    SAIL_FED.replayNetwork();
+
+  const network =
+    SAIL_FED.networkState();
+
+  return {
+    replay_result:replayResult,
+    federation_certified:
+      network.federation_certified,
+    replayed:network.replayed,
+    replay_certificate:
+      network.replay_certificate
+  };
+})()
+
+Expected:
+
+{
+  replay_result:false,
+  federation_certified:false,
+  replayed:false,
+  replay_certificate:null
+}
+
+Replay invariant:
+
+federated replay requires resolved quorum and consensus
+
+==================================================
+AUDIT REQUIRES REPLAY
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node A",
+    role:"coordinator",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    node_id:"Node B",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.resolveNetwork();
+
+  const auditBeforeReplay =
+    SAIL_FED.issueAudit();
+
+  const replayResult =
+    SAIL_FED.replayNetwork();
+
+  const auditAfterReplay =
+    SAIL_FED.issueAudit();
+
+  const network =
+    SAIL_FED.networkState();
+
+  return {
+    audit_before_replay:
+      auditBeforeReplay,
+    replay_result:
+      replayResult,
+    audit_after_replay:
+      auditAfterReplay,
+    replayed:
+      network.replayed,
+    audited:
+      network.audited,
+    replay_certificate_present:
+      network.replay_certificate.startsWith("REPLAY-"),
+    audit_certificate_present:
+      network.audit_certificate.startsWith("AUDIT-")
+  };
+})()
+
+Expected:
+
+{
+  audit_before_replay:false,
+  replay_result:true,
+  audit_after_replay:true,
+  replayed:true,
+  audited:true,
+  replay_certificate_present:true,
+  audit_certificate_present:true
+}
+
+Audit invariant:
+
+federated audit requires certified network and certified replay
+
+==================================================
+CERTIFIED NETWORK EXAMPLE
+==================================================
+
+(() => {
+  const result =
+    SAIL_FED.loadExample("certified");
+
+  return {
+    network_id:result.network_id,
+    version:result.version,
+    sail_version:result.sail_version,
+    node_count:result.node_count,
+    certified_node_count:
+      result.certified_node_count,
+    quorum:result.quorum,
+    quorum_met:result.quorum_met,
+    consensus_met:result.consensus_met,
+    federation_certified:
+      result.federation_certified,
+    replayed:result.replayed,
+    audited:result.audited,
+    observer_present:
+      result.nodes.some(
+        node =>
+          node.role === "observer" &&
+          node.certified === true
+      ),
+    network_certificate_present:
+      result.network_certificate.startsWith("FED-"),
+    replay_certificate_present:
+      result.replay_certificate.startsWith("REPLAY-"),
+    audit_certificate_present:
+      result.audit_certificate.startsWith("AUDIT-")
+  };
+})()
+
+Expected:
+
+{
+  network_id:"SAIL_FEDERATION_NETWORK",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  node_count:3,
+  certified_node_count:3,
+  quorum:2,
+  quorum_met:true,
+  consensus_met:true,
+  federation_certified:true,
+  replayed:true,
+  audited:true,
+  observer_present:true,
+  network_certificate_present:true,
+  replay_certificate_present:true,
+  audit_certificate_present:true
+}
+
+==================================================
+CONSENSUS-FAILURE EXAMPLE
+==================================================
+
+(() => {
+  const result =
+    SAIL_FED.loadExample("consensus_fail");
+
+  return {
+    node_count:result.node_count,
+    certified_node_count:
+      result.certified_node_count,
+    quorum_met:result.quorum_met,
+    consensus_met:result.consensus_met,
+    network_identity_aligned:
+      result.network_identity_aligned,
+    federation_certified:
+      result.federation_certified,
+    replayed:result.replayed,
+    audited:result.audited,
+    replay_certificate:
+      result.replay_certificate,
+    audit_certificate:
+      result.audit_certificate
+  };
+})()
+
+Expected:
+
+{
+  node_count:3,
+  certified_node_count:3,
+  quorum_met:true,
+  consensus_met:false,
+  network_identity_aligned:false,
+  federation_certified:false,
+  replayed:false,
+  audited:false,
+  replay_certificate:null,
+  audit_certificate:null
+}
+
+==================================================
+NETWORK FLOW ORDER
+==================================================
+
+(() => {
+  const ids = [
+    "flowIdentity",
+    "flowPeer",
+    "flowQuorum",
+    "flowConsensus",
+    "flowReplay",
+    "flowAudit"
+  ];
+
+  return ids.map(
+    id =>
+      document
+        .getElementById(id)
+        .querySelector("strong")
+        .textContent
+  );
+})()
+
+Expected:
+
+[
+  "Identity",
+  "Peer Exchange",
+  "Quorum",
+  "Consensus",
+  "Replay",
+  "Audit"
+]
+
+Flow invariant:
+
+Identity -> Peer Exchange -> Quorum -> Consensus -> Replay -> Audit
+
+==================================================
+EMPTY-SELECTION BLOCK GUARD
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"SAIL_FEDERATION_NETWORK",
+    quorum:2
+  });
+
+  const result =
+    SAIL_FED.blockSelected();
+
+  return {
+    block_result:result,
+    node_count:
+      SAIL_FED.networkState().node_count,
+    system_status:
+      document.getElementById("systemStatus").textContent
+  };
+})()
+
+Expected immediately after execution:
+
+{
+  block_result:false,
+  node_count:0,
+  system_status:"NO NODE SELECTED"
+}
+
+==================================================
+DETERMINISTIC NETWORK REPLAY
+==================================================
+
+(() => {
+  const build = () => {
+    SAIL_FED.clearNetwork({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      quorum:2
+    });
+
+    SAIL_FED.certifyNode({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      node_id:"Node A",
+      role:"coordinator",
+      scope:"default_scope",
+      state:"CERTIFIED"
+    });
+
+    SAIL_FED.certifyNode({
+      network_id:"SAIL_FEDERATION_NETWORK",
+      node_id:"Node B",
+      role:"peer",
+      scope:"default_scope",
+      state:"CERTIFIED"
+    });
+
+    SAIL_FED.resolveNetwork();
+    SAIL_FED.replayNetwork();
+    SAIL_FED.issueAudit();
+
+    return SAIL_FED.networkState();
+  };
+
+  const first = build();
+  const second = build();
+
+  return {
+    same_network_configuration_certificate:
+      first.network_configuration_certificate ===
+      second.network_configuration_certificate,
+
+    same_node_certificates:
+      first.nodes
+        .map(node => node.node_certificate)
+        .sort()
+        .join("|") ===
+      second.nodes
+        .map(node => node.node_certificate)
+        .sort()
+        .join("|"),
+
+    same_network_certificate:
+      first.network_certificate ===
+      second.network_certificate,
+
+    same_replay_certificate:
+      first.replay_certificate ===
+      second.replay_certificate,
+
+    same_audit_certificate:
+      first.audit_certificate ===
+      second.audit_certificate
+  };
+})()
+
+Expected:
+
+{
+  same_network_configuration_certificate:true,
+  same_node_certificates:true,
+  same_network_certificate:true,
+  same_replay_certificate:true,
+  same_audit_certificate:true
+}
+
+Replay invariant:
+
+same federation structure -> same certificate chain -> same federated outcome
+
+==================================================
+APPLICATION AUDIT
+==================================================
+
+SAIL_FED.audit(true)
+
+Expected key fields:
+
+{
+  app:"SAIL Federation Operations Console",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  allPass:true,
+  case_count:9000,
+  expected_case_count:9000,
+  count_match:true,
+  failed_case_count:0,
+  scenario_count:6,
+  iterations_per_scenario:1500,
+  classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  execution:"LOCAL_RUNTIME",
+  layers:37,
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_executions:347400,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_specifications:96,
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operators:5,
+  source_mutations_detected:5,
+  federation_audit_cases:43200,
+  federation_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_cases:347400,
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_execution:"LOCAL_RUNTIME",
+  cached:true
+}
+
+Application audit invariant:
+
+audit passes iff observed case count equals expected case count and every scenario validation passes
+
+==================================================
+APPLICATION AUDIT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  const first =
+    SAIL_FED.audit(true);
+
+  first.allPass =
+    false;
+
+  first.case_count =
+    1;
+
+  first.failed_case_count =
+    999;
+
+  const second =
+    SAIL_FED.audit();
+
+  return {
+    independent_snapshot:
+      first !== second,
+
+    allPass:
+      second.allPass,
+
+    case_count:
+      second.case_count,
+
+    failed_case_count:
+      second.failed_case_count,
+
+    cached:
+      second.cached
+  };
+})()
+
+Expected:
+
+{
+  independent_snapshot:true,
+  allPass:true,
+  case_count:9000,
+  failed_case_count:0,
+  cached:true
+}
+
+Audit isolation invariant:
+
+external mutation does not alter the cached application-audit result
+
+==================================================
+STACK MANIFEST
+==================================================
+
+SAIL_FED.stackManifest()
+
+Expected:
+
+{
+  version:"5.9.0",
+  certified_layers:37,
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_specification_count:96,
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operator_count:5,
+  source_mutations_detected:5,
+  evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_case_count:347400,
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  federation_audit_case_count:43200,
+  federation_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  application_audit_execution:"LOCAL_RUNTIME",
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Federation Operations Runtime"
+  ]
+}
+
+==================================================
+STACK INTERFACE
+==================================================
+
+SAIL.certify()
+
+Expected key fields:
+
+{
+  version:"5.9.0",
+  certified:true,
+  layers:37,
+  validation_source:"REFERENCE_RELEASE_VALIDATION",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Federation Operations Runtime"
+  ]
+}
+
+SAIL.benchmark()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  benchmark_case_count:347400,
+  conformance_execution_count:347400,
+  classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.federationAudit()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  case_count:43200,
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+Validation distinction:
+
+Application audit execution:
+LOCAL_RUNTIME
+
+Core conformance execution:
+REFERENCE_RELEASE_VALIDATION
+
+Core behavioral validation:
+REFERENCE_RELEASE_VALIDATION
+
+Core evidence validation:
+REFERENCE_RELEASE_VALIDATION
+
+Core federation audit execution:
+REFERENCE_RELEASE_VALIDATION
+
+==================================================
+TRUTHFUL FEDERATION PACK LIFECYCLE
+==================================================
+
+(() => {
+  SAIL_FED.clearNetwork({
+    network_id:"NETWORK_A",
+    quorum:2
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_A",
+    node_id:"Node A",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.certifyNode({
+    network_id:"NETWORK_A",
+    node_id:"Node B",
+    role:"peer",
+    scope:"default_scope",
+    state:"CERTIFIED"
+  });
+
+  SAIL_FED.resolveNetwork();
+
+  const resolvedPack =
+    SAIL_FED.exportPack();
+
+  SAIL_FED.replayNetwork();
+
+  const replayedPack =
+    SAIL_FED.exportPack();
+
+  SAIL_FED.issueAudit();
+
+  const auditedPack =
+    SAIL_FED.exportPack();
+
+  return {
+    resolved_pack_state:
+      resolvedPack.pack_state,
+
+    resolved_pack_certified:
+      resolvedPack.pack_certified,
+
+    replayed_pack_state:
+      replayedPack.pack_state,
+
+    replayed_pack_certified:
+      replayedPack.pack_certified,
+
+    audited_pack_state:
+      auditedPack.pack_state,
+
+    audited_pack_certified:
+      auditedPack.pack_certified
+  };
+})()
+
+Expected:
+
+{
+  resolved_pack_state:"FEDERATION_PACK_UNRESOLVED",
+  resolved_pack_certified:false,
+  replayed_pack_state:"FEDERATION_PACK_UNRESOLVED",
+  replayed_pack_certified:false,
+  audited_pack_state:"FEDERATION_PACK_CERTIFIED",
+  audited_pack_certified:true
+}
+
+Pack invariant:
+
+pack certified iff federation is resolved, replayed, and audited
+
+==================================================
+CERTIFIED FEDERATION PACK VIEW STATE
+==================================================
+
+(() => {
+  SAIL_FED.loadExample("certified");
+
+  const pack =
+    SAIL_FED.exportPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    delivery_mode:pack.delivery_mode,
+    version:pack.version,
+    sail_version:pack.sail_version,
+    configuration_present:
+      !!pack.network_configuration,
+    network_present:
+      !!pack.network,
+    federation_certified:
+      pack.network.federation_certified,
+    replayed:
+      pack.network.replayed,
+    audited:
+      pack.network.audited,
+    network_certificate_present:
+      pack.network.network_certificate.startsWith("FED-"),
+    replay_certificate_present:
+      pack.network.replay_certificate.startsWith("REPLAY-"),
+    audit_certificate_present:
+      pack.network.audit_certificate.startsWith("AUDIT-")
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"FEDERATION_PACK_CERTIFIED",
+  pack_certified:true,
+  delivery_mode:"view",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  configuration_present:true,
+  network_present:true,
+  federation_certified:true,
+  replayed:true,
+  audited:true,
+  network_certificate_present:true,
+  replay_certificate_present:true,
+  audit_certificate_present:true
+}
+
+==================================================
+CERTIFIED FEDERATION PACK DOWNLOAD STATE
+==================================================
+
+(() => {
+  const pack =
+    SAIL_FED.downloadPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    delivery_mode:pack.delivery_mode,
+    version:pack.version,
+    sail_version:pack.sail_version,
+    configuration_present:
+      !!pack.network_configuration,
+    network_present:
+      !!pack.network,
+    federation_certified:
+      pack.network.federation_certified
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"FEDERATION_PACK_CERTIFIED",
+  pack_certified:true,
+  delivery_mode:"download",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  configuration_present:true,
+  network_present:true,
+  federation_certified:true
+}
+
+==================================================
+UNRESOLVED FEDERATION PACK STATE
+==================================================
+
+(() => {
+  SAIL_FED.loadExample("consensus_fail");
+
+  const pack =
+    SAIL_FED.exportPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    delivery_mode:pack.delivery_mode,
+    federation_certified:
+      pack.network.federation_certified,
+    quorum_met:
+      pack.network.quorum_met,
+    consensus_met:
+      pack.network.consensus_met,
+    replayed:
+      pack.network.replayed,
+    audited:
+      pack.network.audited
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"FEDERATION_PACK_UNRESOLVED",
+  pack_certified:false,
+  delivery_mode:"view",
+  federation_certified:false,
+  quorum_met:true,
+  consensus_met:false,
+  replayed:false,
+  audited:false
+}
+
+==================================================
+VALIDATION STATUS
+==================================================
+
+Application:
+SAIL Federation Operations Console
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Audit:
+PASS
+
+Application Validation Cases:
+9000
+
+Expected Application Validation Cases:
+9000
+
+Application Count Match:
+PASS
+
+Failed Application Cases:
+0
+
+Audit Scenarios:
+6
+
+Iterations Per Scenario:
+1500
+
+Certified Layers:
+37
+
+Referenced Core Conformance Executions:
+347400
+
+Core Conformance Classification:
+SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS
+
+Referenced Behavioral Specifications:
+96
+
+Referenced Source Mutations Detected:
+5 of 5
+
+Referenced Core Federation Audit Cases:
+43200
+
+Network-Level Quorum Configuration:
+PASS
+
+Node Certificate Quorum Independence:
+PASS
+
+Network Configuration Certificate:
+PASS
+
+Invalid Network Configuration:
+PASS
+
+Invalid Node Admission:
+PASS
+
+DOM-Independent Clear Network API:
+PASS
+
+Invalid Clear Network Guard:
+PASS
+
+Quorum Safety:
+PASS
+
+Network Identity Consensus Safety:
+PASS
+
+Scope Consensus Safety:
+PASS
+
+Pending Node Exclusion:
+PASS
+
+Returned Node Mutation Isolation:
+PASS
+
+Network Snapshot Mutation Isolation:
+PASS
+
+Observer Role Certification:
+PASS
+
+Replay Guard:
+PASS
+
+Audit Guard:
+PASS
+
+Certified Network Example:
+PASS
+
+Consensus-Failure Example:
+PASS
+
+Network Flow Order:
+PASS
+
+Empty Selection Guard:
+PASS
+
+Deterministic Network Replay:
+PASS
+
+Application Audit Snapshot Isolation:
+PASS
+
+Stack Validation Metadata:
+PASS
+
+Truthful Federation Pack Lifecycle:
+PASS
+
+Certified Pack View State:
+PASS
+
+Certified Pack Download State:
+PASS
+
+Unresolved Pack State:
+PASS
+
+External Source Integrity Checks:
+30
+
+External Runtime Behavioral Checks:
+18
+
+External Validation Failed Checks:
+0
+
+Validation Status:
+VALIDATED

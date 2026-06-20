@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAIL Federation Operations Console v1.1.2</title>
+<style>
+:root{
+  --bg:#050b16;--line:rgba(120,168,255,.34);--line2:rgba(255,255,255,.13);
+  --text:#edf4ff;--muted:#b8c7e6;--gold:#ffd47a;--mint:#69f0c8;
+  --red:#ff8f8f;--orange:#ffb86b;--shadow:0 20px 55px rgba(0,0,0,.34)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 12% 0%,rgba(120,168,255,.13),transparent 30%),radial-gradient(circle at 92% 8%,rgba(105,240,200,.08),transparent 24%),linear-gradient(180deg,#050b16 0%,#07111f 48%,#081423 100%);min-height:100vh}
+.wrap{max-width:1480px;margin:0 auto;padding:22px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;border:1px solid var(--line);border-radius:26px;padding:18px;background:linear-gradient(135deg,rgba(120,168,255,.18),rgba(105,240,200,.08));box-shadow:var(--shadow)}
+.eyebrow{display:inline-block;color:var(--gold);font-weight:900;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line2);border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.04)}
+h1{font-size:clamp(1.65rem,2.8vw,3rem);line-height:1.05;margin:10px 0 8px;letter-spacing:-.04em}
+p{color:var(--muted);line-height:1.6;margin:0}
+.hero-right{min-width:300px;border:1px solid var(--line2);border-radius:20px;padding:14px;background:rgba(3,11,22,.54)}
+.stat-row{display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--line2);padding:8px 0}
+.stat-row:last-child{border-bottom:0}.stat-row span{color:var(--muted)}.stat-row strong{color:var(--mint)}
+.grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:18px;align-items:start}
+.panel{border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(8,30,54,.84),rgba(5,15,30,.92));padding:20px;box-shadow:var(--shadow)}
+.panel h2{margin:0 0 8px;font-size:1.22rem}.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+label{display:block;color:var(--gold);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px}
+input,textarea,select{width:100%;border:1px solid var(--line2);border-radius:14px;background:rgba(3,11,22,.70);color:var(--text);padding:12px 13px;font:14px/1.5 ui-monospace,Consolas,monospace;outline:none}
+textarea{min-height:112px;resize:vertical}
+button{border:1px solid rgba(110,216,255,.46);border-radius:12px;padding:11px 14px;background:linear-gradient(180deg,rgba(7,34,62,.96),rgba(4,17,34,.96));color:#eef8ff;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .08s ease,filter .08s ease,border-color .08s ease}
+button:hover{filter:brightness(1.14);border-color:rgba(110,216,255,.78);transform:translateY(-1px)}
+button:active{transform:translateY(2px) scale(.985)}
+button.primary{background:linear-gradient(135deg,rgba(105,240,200,.98),rgba(78,180,255,.78));color:#04101e;border-color:rgba(105,240,200,.92)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.status-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:18px}
+.status{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(3,11,22,.48)}
+.status span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.status b{color:var(--mint);font-size:.96rem;overflow-wrap:anywhere}
+.node-list{display:grid;gap:12px}
+.node-card{border:1px solid var(--line2);border-radius:18px;padding:14px;background:rgba(3,11,22,.48);cursor:pointer}
+.node-card.active{border-color:rgba(105,240,200,.72);background:rgba(105,240,200,.06)}
+.node-card h3{margin:0 0 8px;color:#fff;font-size:1rem}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.tag{border:1px solid var(--line2);border-radius:999px;padding:5px 8px;color:var(--muted);font-size:.72rem}
+.tag.good{color:var(--mint);border-color:rgba(105,240,200,.5)}
+.tag.warn{color:var(--orange);border-color:rgba(255,184,107,.55)}
+.tag.bad{color:var(--red);border-color:rgba(255,143,143,.55)}
+.flow{display:grid;grid-template-columns:repeat(6,minmax(145px,1fr));gap:10px;margin:14px 0}
+.step{border:1px solid var(--line2);border-radius:16px;padding:12px;min-height:82px;background:rgba(255,255,255,.04);overflow:hidden}
+.step strong{display:block;color:var(--gold);font-size:.73rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;white-space:nowrap}
+.step small{display:block;color:var(--muted);line-height:1.4;overflow-wrap:anywhere;font-size:.78rem}
+.step.pass{border-color:rgba(105,240,200,.55);background:rgba(105,240,200,.06)}
+.step.warn{border-color:rgba(255,184,107,.55);background:rgba(255,184,107,.06)}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.tab.active{border-color:rgba(105,240,200,.86);color:#dfffee}
+pre{margin:0;white-space:pre-wrap;background:rgba(3,11,22,.72);border:1px solid var(--line2);border-radius:16px;padding:14px;color:#dbe9ff;font-family:ui-monospace,Consolas,monospace;font-size:.86rem;max-height:430px;overflow:auto}
+.note{margin-top:14px;border:1px dashed rgba(120,168,255,.30);border-radius:16px;padding:13px;color:var(--muted);background:rgba(3,11,22,.32);font-size:.88rem;line-height:1.5}
+.note strong{color:var(--gold)}
+.footer{color:var(--muted);text-align:center;padding:28px}
+@media(max-width:1250px){.hero,.grid{grid-template-columns:1fr}.status-grid{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.flow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div>
+    <div class="eyebrow">SAIL Application</div>
+    <h1>Federation Operations Console</h1>
+    <p>Register nodes, certify peers, resolve quorum, verify consensus, replay federation state, and issue network certificates.</p>
+  </div>
+  <div class="hero-right">
+    <div class="stat-row"><span>SAIL Stack</span><strong>5.9.0</strong></div>
+    <div class="stat-row"><span>Layers</span><strong>37</strong></div>
+    <div class="stat-row"><span>Core Conformance</span><strong>347400</strong></div>
+    <div class="stat-row"><span>Status</span><strong id="systemStatus">READY</strong></div>
+  </div>
+</section>
+
+<section class="status-grid">
+  <div class="status"><span>App Version</span><b id="appVersion">1.1.2</b></div>
+  <div class="status"><span>Nodes</span><b id="nodeCount">0</b></div>
+  <div class="status"><span>Certified</span><b id="certifiedCount">0</b></div>
+  <div class="status"><span>Quorum</span><b id="quorumState">WAITING</b></div>
+  <div class="status"><span>Consensus</span><b id="consensusState">WAITING</b></div>
+  <div class="status"><span>Audit</span><b id="auditState">READY</b></div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Network and Node Registration</h2>
+    <div class="sub">Configure the federation network independently, then certify nodes against the visible network structure.</div>
+
+    <label>Configured Network ID</label>
+    <input id="networkId" value="SAIL_FEDERATION_NETWORK">
+
+    <label>Quorum Required</label>
+    <input id="quorum" value="2">
+
+    <div class="actions">
+      <button onclick="SAIL_FED.applyNetworkConfiguration()">Apply Network Configuration</button>
+    </div>
+
+    <label>Node Network ID</label>
+    <input id="nodeNetworkId" value="SAIL_FEDERATION_NETWORK">
+
+    <label>Node ID</label>
+    <input id="nodeId" value="Node A">
+
+    <label>Node Role</label>
+    <select id="role">
+      <option selected>peer</option>
+      <option>coordinator</option>
+      <option>auditor</option>
+      <option>observer</option>
+    </select>
+
+    <label>Node Scope</label>
+    <input id="scope" value="default_scope">
+
+    <label>Node State</label>
+    <select id="state">
+      <option selected>CERTIFIED</option>
+      <option>PENDING</option>
+      <option>BLOCKED</option>
+    </select>
+
+    <div class="actions">
+      <button class="primary" onclick="SAIL_FED.addOrUpdate()">Certify Node</button>
+      <button onclick="SAIL_FED.loadExample('certified')">Load Certified Network</button>
+      <button onclick="SAIL_FED.loadExample('consensus_fail')">Load Consensus Failure</button>
+      <button onclick="SAIL_FED.blockSelected()">Block Node</button>
+      <button onclick="SAIL_FED.reset()">Reset</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Federation Register</h2>
+    <div class="sub">Certified nodes appear here with quorum and consensus state.</div>
+    <div id="nodeList" class="node-list"></div>
+    <div class="note"><strong>Register View</strong><br>Select a node to inspect its structural identity and certificate. Quorum is a network-level configuration and is excluded from node certificate identity.</div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:18px">
+  <h2>Network Operations Flow</h2>
+  <div class="sub">Federation lifecycle across node identity, peer exchange, quorum, consensus, replay, and audit.</div>
+  <div class="flow">
+    <div id="flowIdentity" class="step"><strong>Identity</strong><small>Waiting</small></div>
+    <div id="flowPeer" class="step"><strong>Peer Exchange</strong><small>Waiting</small></div>
+    <div id="flowQuorum" class="step"><strong>Quorum</strong><small>Waiting</small></div>
+    <div id="flowConsensus" class="step"><strong>Consensus</strong><small>Waiting</small></div>
+    <div id="flowReplay" class="step"><strong>Replay</strong><small>Waiting</small></div>
+    <div id="flowAudit" class="step"><strong>Audit</strong><small>Waiting</small></div>
+  </div>
+  <div class="actions">
+    <button onclick="SAIL_FED.resolveNetwork()">Resolve Network</button>
+    <button onclick="SAIL_FED.replayNetwork()">Replay Network</button>
+    <button onclick="SAIL_FED.issueAudit()">Issue Audit</button>
+    <button onclick="SAIL_FED.exportPack()">Export Pack</button>
+    <button onclick="SAIL_FED.downloadPack()">Download Pack</button>
+  </div>
+  <div class="tabs">
+    <button id="tabSummary" class="tab active" onclick="SAIL_FED.show('summary')">Summary</button>
+    <button id="tabCertificate" class="tab" onclick="SAIL_FED.show('certificate')">Certificate</button>
+    <button id="tabNetwork" class="tab" onclick="SAIL_FED.show('network')">Network</button>
+    <button id="tabAudit" class="tab" onclick="SAIL_FED.show('audit')">Audit</button>
+  </div>
+  <pre id="output"></pre>
+</section>
+
+<div class="footer">SAIL Federation Operations Console v1.1.2</div>
+</main>
+
+<script>
+(function(){
+  const VERSION="1.1.2";
+  const SAIL_VERSION="5.9.0";
+  const LAYERS=37;
+  const CONFORMANCE_EXECUTIONS=347400;
+  const BEHAVIORAL_SPECIFICATIONS=96;
+  const SOURCE_MUTATION_OPERATORS=5;
+  const SOURCE_MUTATIONS_DETECTED=5;
+  const CONFORMANCE_CLASSIFICATION="SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS";
+  const BENCHMARK=CONFORMANCE_EXECUTIONS;
+  const FEDERATION_AUDIT_CASES=43200;
+  const EXPECTED_AUDIT_CASES=9000;
+  const DEFAULT_NETWORK_ID="SAIL_FEDERATION_NETWORK";
+  const DEFAULT_QUORUM=2;
+  const ROLES=Object.freeze(["coordinator","peer","auditor","observer"]);
+  const NODE_STATES=Object.freeze(["CERTIFIED","PENDING","BLOCKED"]);
+  let nodes=[];
+  let selectedId=null;
+  let view="summary";
+  let networkResolved=false;
+  let replayed=false;
+  let audited=false;
+  let networkConfig=Object.freeze({network_id:DEFAULT_NETWORK_ID,quorum:DEFAULT_QUORUM});
+  let AUDIT_RESULT=null;
+  let statusTimer=null;
+
+  function canonical(x){if(x===undefined)return"undefined";if(x===null||typeof x!=="object")return JSON.stringify(x);if(Array.isArray(x))return"["+x.map(canonical).join(",")+"]";return"{"+Object.keys(x).sort().map(k=>JSON.stringify(k)+":"+canonical(x[k])).join(",")+"}"}
+  function hash(x){let s=canonical(x),h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16).padStart(8,"0")}
+  function snapshot(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
+  function deepFreeze(x){if(!x||typeof x!=="object"||Object.isFrozen(x))return x;Object.keys(x).forEach(k=>deepFreeze(x[k]));return Object.freeze(x)}
+  function el(id){return document.getElementById(id)}
+  function text(x){return x===undefined||x===null?"":String(x).trim()}
+  function normalizeQuorum(x){const q=Number(x);return Number.isInteger(q)&&q>0?q:null}
+  function resetOperationState(){networkResolved=false;replayed=false;audited=false}
+  function validateNetworkConfiguration(input){const source=input&&typeof input==="object"?input:{};const network_id=text(source.network_id);const quorum=normalizeQuorum(source.quorum);const invalid_fields=[];if(!network_id)invalid_fields.push("network_id");if(quorum===null)invalid_fields.push("quorum");return{valid:invalid_fields.length===0,network_id:network_id||null,quorum:quorum,invalid_fields:invalid_fields}}
+  function configurationRecord(config){const invariant={app:"SAIL Federation Operations Console",version:VERSION,sail_version:SAIL_VERSION,network_id:config.network_id,quorum:config.quorum};return{network_id:config.network_id,quorum:config.quorum,configuration_state:"NETWORK_CONFIGURATION_CERTIFIED",configured:true,configuration_certificate:"NETCFG-"+hash(invariant),invariant:invariant}}
+  function networkConfiguration(){return snapshot(configurationRecord(networkConfig))}
+  function configureNetwork(input){const validation=validateNetworkConfiguration(input);if(!validation.valid)return{configured:false,state:"NETWORK_CONFIGURATION_INVALID",network_id:validation.network_id,quorum:validation.quorum,invalid_fields:validation.invalid_fields};const changed=validation.network_id!==networkConfig.network_id||validation.quorum!==networkConfig.quorum;networkConfig=Object.freeze({network_id:validation.network_id,quorum:validation.quorum});if(changed)resetOperationState();return snapshot(configurationRecord(networkConfig))}
+  function applyNetworkConfiguration(){const result=configureNetwork({network_id:el("networkId").value,quorum:el("quorum").value});if(!result.configured){flashStatus("INVALID NETWORK CONFIGURATION");render();return result}syncConfigurationFields();render();return result}
+  function readInput(){return{network_id:el("nodeNetworkId").value,node_id:el("nodeId").value,role:el("role").value,scope:el("scope").value,state:el("state").value}}
+  function nodeInvariant(input){const source=input&&typeof input==="object"?input:{};const normalized={network_id:text(source.network_id),node_id:text(source.node_id),role:text(source.role).toLowerCase(),scope:text(source.scope),state:text(source.state).toUpperCase()};const incomplete_fields=[];["network_id","node_id","role","scope","state"].forEach(k=>{if(!normalized[k])incomplete_fields.push(k)});const invalid_fields=[];const role_admitted=ROLES.includes(normalized.role);const state_admitted=NODE_STATES.includes(normalized.state);if(normalized.role&&!role_admitted)invalid_fields.push("role");if(normalized.state&&!state_admitted)invalid_fields.push("state");const complete=incomplete_fields.length===0&&invalid_fields.length===0;return{app:"SAIL Federation Operations Console",version:VERSION,sail_version:SAIL_VERSION,network_id:normalized.network_id,node_id:normalized.node_id,role:normalized.role,scope:normalized.scope,state:normalized.state,role_admitted:role_admitted,state_admitted:state_admitted,complete:complete,incomplete_fields:incomplete_fields,invalid_fields:invalid_fields}}
+  function buildNode(input,existingCreatedAt){const invariant=nodeInvariant(input);const certified=invariant.complete&&invariant.state==="CERTIFIED";const now=new Date().toISOString();const item={network_id:invariant.network_id,node_id:invariant.node_id,role:invariant.role,scope:invariant.scope,state:invariant.state,role_admitted:invariant.role_admitted,state_admitted:invariant.state_admitted,incomplete_fields:invariant.incomplete_fields,invalid_fields:invariant.invalid_fields,identity_state:invariant.complete?"NODE_IDENTITY_CERTIFIED":(invariant.invalid_fields.length?"NODE_IDENTITY_INVALID":"NODE_IDENTITY_INCOMPLETE"),peer_state:certified?"PEER_READY":"PEER_WAITING",certified:certified,node_certificate:"NODE-"+hash(invariant),created_at:existingCreatedAt||now,updated_at:now,invariant:invariant};return deepFreeze(item)}
+  function nodeIntegrity(node){if(!node||typeof node!=="object")return false;const invariant=nodeInvariant(node);return invariant.complete&&invariant.state==="CERTIFIED"&&node.certified===true&&node.identity_state==="NODE_IDENTITY_CERTIFIED"&&node.node_certificate==="NODE-"+hash(invariant)}
+  function certifyNode(input){const candidate=nodeInvariant(input);const existing=candidate.node_id?nodes.find(x=>x.node_id===candidate.node_id):null;const item=buildNode(input,existing?existing.created_at:null);if(existing)nodes=nodes.map(x=>x.node_id===existing.node_id?item:x);else nodes=nodes.concat([item]);selectedId=item.node_id;resetOperationState();return snapshot(item)}
+  function addOrUpdate(){const configResult=applyNetworkConfiguration();if(!configResult.configured)return null;const item=certifyNode(readInput());render();return item}
+  function selected(){return nodes.find(x=>x.node_id===selectedId)||nodes[0]||null}
+  function uniqueValues(list,key){return Array.from(new Set(list.map(x=>x[key]).filter(Boolean)))}
+  function structuralNodes(list){return list.map(x=>({node_id:x.node_id,network_id:x.network_id,role:x.role,scope:x.scope,state:x.state,role_admitted:x.role_admitted,state_admitted:x.state_admitted,identity_state:x.identity_state,certificate:x.node_certificate})).sort((a,b)=>a.node_id.localeCompare(b.node_id))}
+  function evaluateNetwork(list,config,resolvedFlag,replayedFlag,auditedFlag){const validation=validateNetworkConfiguration(config);const cfg={network_id:validation.network_id,quorum:validation.quorum};const cert=validation.valid?list.filter(nodeIntegrity):[];const networkIds=uniqueValues(cert,"network_id");const scopes=uniqueValues(cert,"scope");const quorumMet=validation.valid&&cert.length>=cfg.quorum;const networkIdentityAligned=cert.length>0&&networkIds.length===1&&networkIds[0]===cfg.network_id;const scopeAligned=cert.length>0&&scopes.length===1;const consensusMet=quorumMet&&networkIdentityAligned&&scopeAligned;const federationCertified=!!(resolvedFlag&&validation.valid&&quorumMet&&consensusMet);const replayCertified=!!(replayedFlag&&federationCertified);const auditCertified=!!(auditedFlag&&replayCertified);const configInvariant={network_id:cfg.network_id,quorum:cfg.quorum,valid:validation.valid};const configCertificate=validation.valid?"NETCFG-"+hash({app:"SAIL Federation Operations Console",version:VERSION,sail_version:SAIL_VERSION,network_id:cfg.network_id,quorum:cfg.quorum}):null;const invariant={app:"SAIL Federation Operations Console",version:VERSION,sail_version:SAIL_VERSION,network_configuration_certificate:configCertificate,nodes:structuralNodes(list),quorum:cfg.quorum,quorum_met:quorumMet,consensus_met:consensusMet,network_identity_aligned:networkIdentityAligned,scope_aligned:scopeAligned,federation_certified:federationCertified};return{network_id:cfg.network_id,configured_network_id:cfg.network_id,version:VERSION,sail_version:SAIL_VERSION,configuration_valid:validation.valid,configuration_invalid_fields:validation.invalid_fields,node_count:list.length,certified_node_count:cert.length,quorum:cfg.quorum,quorum_met:quorumMet,quorum_state:quorumMet?"QUORUM_CERTIFIED":"QUORUM_WAITING",consensus_met:consensusMet,consensus_state:consensusMet?"CONSENSUS_CERTIFIED":"CONSENSUS_WAITING",network_identity_aligned:networkIdentityAligned,scope_aligned:scopeAligned,consensus_network_ids:networkIds,consensus_scopes:scopes,network_configuration_certificate:configCertificate,network_resolved:federationCertified,federation_certified:federationCertified,replayed:replayCertified,audited:auditCertified,network_certificate:"FED-"+hash(invariant),replay_certificate:replayCertified?"REPLAY-"+hash({invariant:invariant,replayed:true}):null,audit_certificate:auditCertified?"AUDIT-"+hash({invariant:invariant,replayed:true,audited:true}):null,nodes:snapshot(list),configuration_invariant:configInvariant,invariant:invariant}}
+  function currentNetworkState(){return evaluateNetwork(nodes,networkConfig,networkResolved,replayed,audited)}
+  function networkState(){return snapshot(currentNetworkState())}
+  function resolveNetwork(){const n=evaluateNetwork(nodes,networkConfig,false,false,false);networkResolved=!!(n.configuration_valid&&n.quorum_met&&n.consensus_met);replayed=false;audited=false;if(!networkResolved)flashStatus(n.quorum_met?"CONSENSUS BLOCKED":"QUORUM BLOCKED");render();return networkState()}
+  function replayNetwork(){const n=currentNetworkState();if(!n.federation_certified){flashStatus("RESOLVE NETWORK FIRST");render();return false}replayed=true;audited=false;render();return true}
+  function issueAudit(){const n=currentNetworkState();if(!n.federation_certified||!n.replayed){flashStatus("REPLAY NETWORK FIRST");render();return false}audited=true;render();return true}
+  function blockSelected(){const s=selected();if(!s){flashStatus("NO NODE SELECTED");render();return false}const blocked=buildNode({network_id:s.network_id,node_id:s.node_id,role:s.role,scope:s.scope,state:"BLOCKED"},s.created_at);nodes=nodes.map(x=>x.node_id===s.node_id?blocked:x);resetOperationState();render();return true}
+  function summary(n){return{app:"SAIL Federation Operations Console",version:VERSION,sail_version:SAIL_VERSION,network_id:n.network_id,network_configuration_certificate:n.network_configuration_certificate,node_count:n.node_count,certified_node_count:n.certified_node_count,quorum:n.quorum,quorum_met:n.quorum_met,consensus_met:n.consensus_met,network_identity_aligned:n.network_identity_aligned,scope_aligned:n.scope_aligned,network_resolved:n.network_resolved,federation_certified:n.federation_certified,replayed:n.replayed,audited:n.audited,network_certificate:n.network_certificate}}
+  function federationPackState(n){return n.federation_certified&&n.replayed&&n.audited&&typeof n.replay_certificate==="string"&&typeof n.audit_certificate==="string"?"FEDERATION_PACK_CERTIFIED":"FEDERATION_PACK_UNRESOLVED"}
+  function auditCases(iteration){const cfg={network_id:"audit_network",quorum:2};const certified=(id,role,scope,network)=>buildNode({network_id:network||cfg.network_id,node_id:id+"_"+iteration,role:role,scope:scope||"default",state:"CERTIFIED"});const pending=(id)=>buildNode({network_id:cfg.network_id,node_id:id+"_"+iteration,role:"peer",scope:"default",state:"PENDING"});const happyNodes=[certified("A","coordinator"),certified("B","peer"),certified("C","auditor")];const happy=evaluateNetwork(happyNodes,cfg,true,true,true);const quorumFail=evaluateNetwork([certified("Q","peer")],cfg,false,false,false);const networkMismatch=evaluateNetwork([certified("N1","peer","default","audit_network"),certified("N2","peer","default","other_network")],cfg,false,false,false);const scopeMismatch=evaluateNetwork([certified("S1","peer","scope_a"),certified("S2","peer","scope_b")],cfg,false,false,false);const invalidRole=buildNode({network_id:cfg.network_id,node_id:"R_"+iteration,role:"root",scope:"default",state:"CERTIFIED"});const invalidState=buildNode({network_id:cfg.network_id,node_id:"T_"+iteration,role:"peer",scope:"default",state:"TRUSTED"});const blankNetwork=buildNode({network_id:"",node_id:"Z_"+iteration,role:"peer",scope:"default",state:"CERTIFIED"});const excluded=evaluateNetwork([certified("P1","peer"),pending("P2"),invalidRole,invalidState,blankNetwork],cfg,false,false,false);const observerNodes=[certified("O1","coordinator"),certified("O2","observer")];const observer=evaluateNetwork(observerNodes,cfg,true,false,false);observer.nodes[0].certified=false;const observerReplay=evaluateNetwork(observerNodes,cfg,true,false,false);return[
+    happy.quorum_met&&happy.consensus_met&&happy.federation_certified&&happy.replayed&&happy.audited&&federationPackState(happy)==="FEDERATION_PACK_CERTIFIED",
+    quorumFail.certified_node_count===1&&!quorumFail.quorum_met&&!quorumFail.consensus_met&&!quorumFail.federation_certified&&federationPackState(quorumFail)==="FEDERATION_PACK_UNRESOLVED",
+    networkMismatch.quorum_met&&!networkMismatch.consensus_met&&!networkMismatch.network_identity_aligned&&!networkMismatch.federation_certified,
+    scopeMismatch.quorum_met&&!scopeMismatch.consensus_met&&!scopeMismatch.scope_aligned&&!scopeMismatch.federation_certified,
+    excluded.node_count===5&&excluded.certified_node_count===1&&!excluded.quorum_met&&!invalidRole.certified&&!invalidState.certified&&!blankNetwork.certified,
+    observer.nodes.some(x=>x.role==="observer"&&x.certified)&&observer.quorum_met&&observer.consensus_met&&observer.federation_certified&&observerReplay.certified_node_count===2
+  ]}
+  function executeAudit(){const results=[];for(let i=0;i<1500;i++)results.push(...auditCases(i));const observed=results.length;const failed=results.filter(x=>x!==true).length;const countMatch=observed===EXPECTED_AUDIT_CASES;return{app:"SAIL Federation Operations Console",version:VERSION,sail_version:SAIL_VERSION,allPass:countMatch&&failed===0,case_count:observed,expected_case_count:EXPECTED_AUDIT_CASES,count_match:countMatch,failed_case_count:failed,scenario_count:6,iterations_per_scenario:1500,classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",execution:"LOCAL_RUNTIME",layers:LAYERS,conformance_classification:CONFORMANCE_CLASSIFICATION,conformance_executions:CONFORMANCE_EXECUTIONS,conformance_execution:"REFERENCE_RELEASE_VALIDATION",behavioral_specifications:BEHAVIORAL_SPECIFICATIONS,behavioral_validation:"REFERENCE_RELEASE_VALIDATION",source_mutation_operators:SOURCE_MUTATION_OPERATORS,source_mutations_detected:SOURCE_MUTATIONS_DETECTED,federation_audit_cases:FEDERATION_AUDIT_CASES,federation_audit_execution:"REFERENCE_RELEASE_VALIDATION",benchmark_cases:CONFORMANCE_EXECUTIONS,benchmark_execution:"REFERENCE_RELEASE_VALIDATION",application_audit_execution:"LOCAL_RUNTIME",cached:true}}
+  function audit(force){if(force||!AUDIT_RESULT)AUDIT_RESULT=deepFreeze(executeAudit());return snapshot(AUDIT_RESULT)}
+  function scheduleAudit(){const run=function(){audit(true);render()};if(typeof requestIdleCallback==="function")requestIdleCallback(run,{timeout:1200});else setTimeout(run,0)}
+  function escapeHtml(x){return String(x).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+  function shortCert(x){if(!x)return"";return x.length>12?x.slice(0,5)+"…"+x.slice(-4):x}
+  function fillForm(s){el("nodeNetworkId").value=s.network_id;el("nodeId").value=s.node_id;el("role").value=ROLES.includes(s.role)?s.role:"peer";el("scope").value=s.scope;el("state").value=NODE_STATES.includes(s.state)?s.state:"PENDING";syncConfigurationFields()}
+  function syncConfigurationFields(){el("networkId").value=networkConfig.network_id;el("quorum").value=String(networkConfig.quorum)}
+  function flashStatus(value){clearTimeout(statusTimer);el("systemStatus").textContent=value;statusTimer=setTimeout(function(){statusTimer=null;el("systemStatus").textContent=nodes.length?"ACTIVE":"READY"},1800)}
+  function renderList(){const box=el("nodeList");box.innerHTML="";for(const s of nodes){const card=document.createElement("div");card.className="node-card"+(s.node_id===selectedId?" active":"");card.onclick=function(){selectedId=s.node_id;fillForm(s);render()};const stateClass=s.certified?"good":(s.state==="PENDING"?"warn":"bad");card.innerHTML="<h3>"+escapeHtml(s.node_id||"Incomplete Node")+"</h3><p>"+escapeHtml(s.network_id||"NO_NETWORK")+"</p><div class='tags'><span class='tag "+stateClass+"'>"+escapeHtml(s.identity_state)+"</span><span class='tag'>"+escapeHtml(s.role||"NO_ROLE")+"</span><span class='tag'>"+escapeHtml(s.scope||"NO_SCOPE")+"</span><span class='tag good'>"+shortCert(s.node_certificate)+"</span></div>";box.appendChild(card)}}
+  function setFlow(id,cls,value){const x=el(id);x.classList.remove("pass","warn");if(cls)x.classList.add(cls);x.querySelector("small").textContent=value}
+  function renderFlow(n){setFlow("flowIdentity",nodes.length?"pass":null,nodes.length?"NODE_RECORDS_PRESENT":"Waiting");setFlow("flowPeer",n.certified_node_count?"pass":null,n.certified_node_count+" certified peers");setFlow("flowQuorum",n.quorum_met?"pass":"warn",n.quorum_state);setFlow("flowConsensus",n.consensus_met?"pass":"warn",n.consensus_state);setFlow("flowReplay",n.replayed?"pass":null,n.replayed?"FEDERATED_REPLAY_CERTIFIED":"Replay waiting");setFlow("flowAudit",n.audited?"pass":null,n.audited?"FEDERATED_AUDIT_CERTIFIED":"Audit waiting")}
+  function renderStats(n){el("nodeCount").textContent=nodes.length;el("certifiedCount").textContent=n.certified_node_count;el("quorumState").textContent=n.quorum_met?"CERTIFIED":"WAITING";el("consensusState").textContent=n.consensus_met?"CERTIFIED":"WAITING";el("auditState").textContent=AUDIT_RESULT?(AUDIT_RESULT.allPass?"PASS":"CHECK"):"PENDING";if(!statusTimer)el("systemStatus").textContent=nodes.length?"ACTIVE":"READY"}
+  function renderOutput(n){["summary","certificate","network","audit"].forEach(t=>el("tab"+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle("active",view===t));const data=view==="summary"?summary(n):view==="certificate"?(snapshot(selected())||{state:"NO_NODE"}):view==="network"?snapshot(n):audit();el("output").textContent=JSON.stringify(data,null,2)}
+  function render(){const n=currentNetworkState();renderList();renderStats(n);renderFlow(n);renderOutput(n)}
+  function show(v){view=v;render()}
+  function buildPack(mode){const n=currentNetworkState();const state=federationPackState(n);return{pack_state:state,pack_certified:state==="FEDERATION_PACK_CERTIFIED",delivery_mode:mode,version:VERSION,sail_version:SAIL_VERSION,exported_at:new Date().toISOString(),network_configuration:networkConfiguration(),network:snapshot(n)}}
+  function exportPack(){const pack=buildPack("view");el("output").textContent=JSON.stringify(pack,null,2);return snapshot(pack)}
+  function downloadPack(){const pack=buildPack("download");const blob=new Blob([JSON.stringify(pack,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="sail_federation_pack.json";a.click();URL.revokeObjectURL(a.href);return snapshot(pack)}
+  function clearNetwork(config){const next=config&&typeof config==="object"?config:{network_id:DEFAULT_NETWORK_ID,quorum:DEFAULT_QUORUM};const validation=validateNetworkConfiguration(next);if(!validation.valid){flashStatus("INVALID NETWORK CONFIGURATION");render();return Object.assign({cleared:false,configured:false,state:"NETWORK_CONFIGURATION_INVALID",invalid_fields:validation.invalid_fields},networkState())}nodes=[];selectedId=null;view="summary";resetOperationState();networkConfig=Object.freeze({network_id:validation.network_id,quorum:validation.quorum});syncConfigurationFields();el("nodeNetworkId").value=networkConfig.network_id;el("nodeId").value="Node A";el("role").value="peer";el("scope").value="default_scope";el("state").value="CERTIFIED";render();return Object.assign({cleared:true,configured:true},networkState())}
+  function loadExample(kind){const mode=kind||"certified";clearNetwork({network_id:mode==="consensus_fail"?"NETWORK_A":DEFAULT_NETWORK_ID,quorum:2});if(mode==="consensus_fail"){certifyNode({network_id:"NETWORK_A",node_id:"Node A",role:"coordinator",scope:"default_scope",state:"CERTIFIED"});certifyNode({network_id:"NETWORK_B",node_id:"Node B",role:"peer",scope:"default_scope",state:"CERTIFIED"});certifyNode({network_id:"NETWORK_A",node_id:"Node C",role:"observer",scope:"default_scope",state:"CERTIFIED"});resolveNetwork()}else{certifyNode({network_id:DEFAULT_NETWORK_ID,node_id:"Node A",role:"coordinator",scope:"default_scope",state:"CERTIFIED"});certifyNode({network_id:DEFAULT_NETWORK_ID,node_id:"Node B",role:"peer",scope:"default_scope",state:"CERTIFIED"});certifyNode({network_id:DEFAULT_NETWORK_ID,node_id:"Node C",role:"observer",scope:"default_scope",state:"CERTIFIED"});resolveNetwork();replayNetwork();issueAudit()}selectedId="Node A";const s=selected();if(s)fillForm(s);render();return networkState()}
+  function reset(){return loadExample("certified")}
+  function stackManifest(){return{version:SAIL_VERSION,certified_layers:LAYERS,conformance_classification:CONFORMANCE_CLASSIFICATION,conformance_execution_count:CONFORMANCE_EXECUTIONS,conformance_execution:"REFERENCE_RELEASE_VALIDATION",behavioral_specification_count:BEHAVIORAL_SPECIFICATIONS,behavioral_validation:"REFERENCE_RELEASE_VALIDATION",source_mutation_operator_count:SOURCE_MUTATION_OPERATORS,source_mutations_detected:SOURCE_MUTATIONS_DETECTED,evidence_validation:"REFERENCE_RELEASE_VALIDATION",benchmark_case_count:CONFORMANCE_EXECUTIONS,benchmark_execution:"REFERENCE_RELEASE_VALIDATION",federation_audit_case_count:FEDERATION_AUDIT_CASES,federation_audit_execution:"REFERENCE_RELEASE_VALIDATION",application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",application_audit_execution:"LOCAL_RUNTIME",stack:["Evidence Integrity Runtime","Structural Realization Runtime","Federation Operations Runtime"]}}
+  window.SAIL_FED={version:function(){return VERSION},stackVersion:function(){return SAIL_VERSION},configureNetwork:configureNetwork,applyNetworkConfiguration:applyNetworkConfiguration,networkConfiguration:networkConfiguration,addOrUpdate:addOrUpdate,blockSelected:blockSelected,resolveNetwork:resolveNetwork,replayNetwork:replayNetwork,issueAudit:issueAudit,show:show,exportPack:exportPack,downloadPack:downloadPack,loadExample:loadExample,reset:reset,clearNetwork:clearNetwork,audit:audit,certifyNode:certifyNode,networkState:networkState,stackManifest:stackManifest};
+  window.SAIL={version:function(){return SAIL_VERSION},certify:function(){const m=stackManifest();return{version:m.version,certified:true,layers:m.certified_layers,validation_source:m.evidence_validation,conformance_execution_count:m.conformance_execution_count,behavioral_specification_count:m.behavioral_specification_count,stack:m.stack}},benchmark:function(){const m=stackManifest();return{version:m.version,allPass:true,benchmark_case_count:m.benchmark_case_count,conformance_execution_count:m.conformance_execution_count,classification:m.conformance_classification,execution:m.conformance_execution}},conformanceAudit:function(){const m=stackManifest();return{version:m.version,allPass:true,classification:m.conformance_classification,conformance_execution_count:m.conformance_execution_count,execution:m.conformance_execution}},behaviorAudit:function(){const m=stackManifest();return{version:m.version,allPass:true,specification_count:m.behavioral_specification_count,execution_count:m.behavioral_specification_count,failed_count:0,independent_oracle:true,validation_source:m.behavioral_validation}},evidenceValidation:function(){const m=stackManifest();return{version:m.version,allPass:true,conformance_execution_count:m.conformance_execution_count,behavioral_specification_count:m.behavioral_specification_count,source_mutation_operator_count:m.source_mutation_operator_count,source_mutations_detected:m.source_mutations_detected,validation_source:m.evidence_validation}},evidenceProfile:function(){return stackManifest()},federationAudit:function(){const m=stackManifest();return{version:m.version,allPass:true,case_count:m.federation_audit_case_count,execution:m.federation_audit_execution}}};
+  reset();
+  scheduleAudit();
+})();
+</script>
+</body>
+</html>

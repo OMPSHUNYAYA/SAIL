@@ -1,0 +1,2321 @@
+SAIL Requirements Management System Validation
+SAIL Requirements Management System v1.1.2
+Built on SAIL v5.9.0 Evidence Integrity Runtime
+
+==================================================
+APPLICATION VALIDATION
+==================================================
+
+[
+  SAIL_REQ.version(),
+  SAIL_REQ.stackVersion(),
+  SAIL_REQ.audit().allPass,
+  SAIL_REQ.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected:
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  12000,
+  37,
+  347400
+]
+
+==================================================
+CORE EVIDENCE PROFILE
+==================================================
+
+(() => {
+  const manifest = SAIL_REQ.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version:manifest.version,
+    conformance_classification:
+      conformance.classification,
+    conformance_execution_count:
+      conformance.conformance_execution_count,
+    behavioral_specification_count:
+      behavior.specification_count,
+    behavioral_failures:
+      behavior.failed_count,
+    source_mutation_operators:
+      evidence.source_mutation_operator_count,
+    source_mutations_detected:
+      evidence.source_mutations_detected,
+    evidence_all_pass:
+      evidence.allPass
+  };
+})()
+
+Expected:
+
+{
+  version:"5.9.0",
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  behavioral_failures:0,
+  source_mutation_operators:5,
+  source_mutations_detected:5,
+  evidence_all_pass:true
+}
+
+==================================================
+DETERMINISTIC STRUCTURAL AND OPERATIONAL IDENTITY
+==================================================
+
+(() => {
+  const input = {
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  };
+
+  const first = SAIL_REQ.certify(input);
+  const second = SAIL_REQ.certify(input);
+
+  const firstNumber = Number(
+    first.record_id.replace("REQREC-","")
+  );
+
+  const secondNumber = Number(
+    second.record_id.replace("REQREC-","")
+  );
+
+  return {
+    same_requirement_id:
+      first.requirement_id === second.requirement_id,
+    same_requirement_certificate:
+      first.requirement_certificate ===
+      second.requirement_certificate,
+    same_policy_certificate:
+      first.policy_certificate ===
+      second.policy_certificate,
+    same_trace_certificate:
+      first.trace_certificate ===
+      second.trace_certificate,
+    different_record_id:
+      first.record_id !== second.record_id,
+    first_record_format_valid:
+      /^REQREC-\d{12}$/.test(first.record_id),
+    second_record_format_valid:
+      /^REQREC-\d{12}$/.test(second.record_id),
+    monotonic_increment:
+      secondNumber === firstNumber + 1
+  };
+})()
+
+Expected:
+
+{
+  same_requirement_id:true,
+  same_requirement_certificate:true,
+  same_policy_certificate:true,
+  same_trace_certificate:true,
+  different_record_id:true,
+  first_record_format_valid:true,
+  second_record_format_valid:true,
+  monotonic_increment:true
+}
+
+Structural identity invariant:
+
+same requirement structure -> same requirement identity and certificates
+
+Operational identity invariant:
+
+next session-local record number = previous record number + 1
+
+==================================================
+REQUIREMENT CERTIFICATION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  return {
+    certified:result.certified,
+    policy_bound:result.policy_bound,
+    trace_certified:result.trace_certified,
+    certification_state:result.certification_state,
+    policy_state:result.policy_state,
+    trace_state:result.trace_state,
+    approval_state:result.approval_state,
+    realization_state:result.realization_state,
+    incomplete_fields:result.incomplete_fields,
+    invalid_fields:result.invalid_fields,
+    requirement_certificate_present:
+      result.requirement_certificate.startsWith("REQCERT-"),
+    policy_certificate_present:
+      result.policy_certificate.startsWith("POLICY-"),
+    trace_certificate_present:
+      result.trace_certificate.startsWith("TRACE-")
+  };
+})()
+
+Expected:
+
+{
+  certified:true,
+  policy_bound:true,
+  trace_certified:true,
+  certification_state:"REQUIREMENT_CERTIFIED",
+  policy_state:"POLICY_BOUND",
+  trace_state:"TRACE_CERTIFIED",
+  approval_state:"PENDING",
+  realization_state:"REALIZATION_BLOCKED_APPROVAL_REQUIRED",
+  incomplete_fields:[],
+  invalid_fields:[],
+  requirement_certificate_present:true,
+  policy_certificate_present:true,
+  trace_certificate_present:true
+}
+
+==================================================
+ACTOR-ACTION-OBJECT DECOMPOSITION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Review Access",
+    statement:"Requirement: admin can review access.",
+    actor:"admin",
+    action:"review",
+    object:"access",
+    priority:"CRITICAL",
+    policy:"security_review",
+    measurement:"Review receipt generated"
+  });
+
+  return result.actor_action_object;
+})()
+
+Expected:
+
+{
+  actor:"admin",
+  action:"review",
+  object:"access",
+  expression:"As admin, perform review on access"
+}
+
+Structural grammar:
+
+actor + action + object
+
+==================================================
+INCOMPLETE REQUIREMENT FAIL-CLOSED ADMISSION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  return {
+    certified:result.certified,
+    policy_bound:result.policy_bound,
+    trace_certified:result.trace_certified,
+    certification_state:result.certification_state,
+    policy_state:result.policy_state,
+    trace_state:result.trace_state,
+    approval_state:result.approval_state,
+    realization_state:result.realization_state,
+    incomplete_fields:result.incomplete_fields,
+    invalid_fields:result.invalid_fields,
+    requirement_certificate:result.requirement_certificate,
+    policy_certificate:result.policy_certificate,
+    trace_certificate:result.trace_certificate
+  };
+})()
+
+Expected:
+
+{
+  certified:false,
+  policy_bound:false,
+  trace_certified:false,
+  certification_state:"REQUIREMENT_INCOMPLETE",
+  policy_state:"POLICY_BLOCKED_REQUIREMENT_REQUIRED",
+  trace_state:"TRACE_BLOCKED_REQUIREMENT_REQUIRED",
+  approval_state:"APPROVAL_BLOCKED_REQUIREMENT_REQUIRED",
+  realization_state:"REALIZATION_BLOCKED_REQUIREMENT_REQUIRED",
+  incomplete_fields:["object"],
+  invalid_fields:[],
+  requirement_certificate:null,
+  policy_certificate:null,
+  trace_certificate:null
+}
+
+==================================================
+INVALID PRIORITY REJECTION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"URGENT",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  return {
+    priority:result.priority,
+    certified:result.certified,
+    invalid_fields:result.invalid_fields,
+    certification_state:result.certification_state,
+    requirement_certificate:result.requirement_certificate,
+    policy_certificate:result.policy_certificate,
+    trace_certificate:result.trace_certificate
+  };
+})()
+
+Expected:
+
+{
+  priority:"URGENT",
+  certified:false,
+  invalid_fields:["priority"],
+  certification_state:"REQUIREMENT_INCOMPLETE",
+  requirement_certificate:null,
+  policy_certificate:null,
+  trace_certificate:null
+}
+
+Accepted priorities:
+
+LOW, MEDIUM, HIGH, CRITICAL
+
+==================================================
+INVALID POLICY REJECTION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"made_up_policy",
+    measurement:"Report file generated"
+  });
+
+  return {
+    certified:result.certified,
+    policy_bound:result.policy_bound,
+    trace_certified:result.trace_certified,
+    invalid_fields:result.invalid_fields,
+    policy_state:result.policy_state,
+    trace_state:result.trace_state,
+    policy_certificate:result.policy_certificate,
+    trace_certificate:result.trace_certificate
+  };
+})()
+
+Expected:
+
+{
+  certified:true,
+  policy_bound:false,
+  trace_certified:false,
+  invalid_fields:["policy"],
+  policy_state:"POLICY_INVALID",
+  trace_state:"TRACE_BLOCKED_POLICY_REQUIRED",
+  policy_certificate:null,
+  trace_certificate:null
+}
+
+Accepted policies:
+
+standard_review, security_review, audit_review, release_gate
+
+==================================================
+MISSING POLICY GUARD
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"",
+    measurement:"Report file generated"
+  });
+
+  const approval = SAIL_REQ.approve(result);
+  const realization = SAIL_REQ.realize(result);
+
+  return {
+    certified:result.certified,
+    policy_bound:result.policy_bound,
+    trace_certified:result.trace_certified,
+    policy_state:result.policy_state,
+    trace_state:result.trace_state,
+    approval_state:approval.approval_state,
+    realization_state:realization.realization_state,
+    policy_missing_fields:result.policy_missing_fields,
+    policy_certificate:result.policy_certificate,
+    trace_certificate:result.trace_certificate
+  };
+})()
+
+Expected:
+
+{
+  certified:true,
+  policy_bound:false,
+  trace_certified:false,
+  policy_state:"POLICY_WAITING_POLICY_REQUIRED",
+  trace_state:"TRACE_BLOCKED_POLICY_REQUIRED",
+  approval_state:"APPROVAL_BLOCKED_POLICY_REQUIRED",
+  realization_state:"REALIZATION_BLOCKED_POLICY_REQUIRED",
+  policy_missing_fields:["policy"],
+  policy_certificate:null,
+  trace_certificate:null
+}
+
+==================================================
+MISSING MEASUREMENT GUARD
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:""
+  });
+
+  const approval = SAIL_REQ.approve(result);
+  const realization = SAIL_REQ.realize(result);
+
+  return {
+    certified:result.certified,
+    policy_bound:result.policy_bound,
+    trace_certified:result.trace_certified,
+    trace_state:result.trace_state,
+    approval_state:approval.approval_state,
+    realization_state:realization.realization_state,
+    trace_missing_fields:result.trace_missing_fields,
+    trace_certificate:result.trace_certificate
+  };
+})()
+
+Expected:
+
+{
+  certified:true,
+  policy_bound:true,
+  trace_certified:false,
+  trace_state:"TRACE_WAITING_MEASUREMENT_REQUIRED",
+  approval_state:"APPROVAL_BLOCKED_TRACE_REQUIRED",
+  realization_state:"REALIZATION_BLOCKED_TRACE_REQUIRED",
+  trace_missing_fields:["measurement"],
+  trace_certificate:null
+}
+
+==================================================
+APPROVAL CERTIFICATION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.approve({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  return {
+    approved:result.approved,
+    realized:result.realized,
+    approval_state:result.approval_state,
+    realization_state:result.realization_state,
+    approval_certificate_present:
+      result.approval_certificate.startsWith("APPROVAL-"),
+    realization_certificate:result.realization_certificate,
+    integrity:SAIL_REQ.integrity(result)
+  };
+})()
+
+Expected:
+
+{
+  approved:true,
+  realized:false,
+  approval_state:"APPROVED",
+  realization_state:"WAITING",
+  approval_certificate_present:true,
+  realization_certificate:null,
+  integrity:{
+    valid:true,
+    certified:false,
+    reason:"REALIZATION_NOT_CERTIFIED",
+    requirement_certified:true,
+    policy_certified:true,
+    trace_certified:true,
+    approval_certified:true,
+    realization_certified:false
+  }
+}
+
+==================================================
+REALIZATION APPROVAL PRECONDITION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.realize({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  return {
+    approved:result.approved,
+    realized:result.realized,
+    realization_state:result.realization_state,
+    realization_certificate:result.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  approved:false,
+  realized:false,
+  realization_state:"REALIZATION_BLOCKED_APPROVAL_REQUIRED",
+  realization_certificate:null
+}
+
+==================================================
+REALIZATION CERTIFICATION
+==================================================
+
+(() => {
+  const approved = SAIL_REQ.approve({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  const realized = SAIL_REQ.realize(approved);
+
+  return {
+    approved:realized.approved,
+    realized:realized.realized,
+    approval_state:realized.approval_state,
+    realization_state:realized.realization_state,
+    approval_certificate_present:
+      realized.approval_certificate.startsWith("APPROVAL-"),
+    realization_certificate_present:
+      realized.realization_certificate.startsWith("REAL-"),
+    integrity:SAIL_REQ.integrity(realized)
+  };
+})()
+
+Expected:
+
+{
+  approved:true,
+  realized:true,
+  approval_state:"APPROVED",
+  realization_state:"REALIZED",
+  approval_certificate_present:true,
+  realization_certificate_present:true,
+  integrity:{
+    valid:true,
+    certified:true,
+    reason:null,
+    requirement_certified:true,
+    policy_certified:true,
+    trace_certified:true,
+    approval_certified:true,
+    realization_certified:true
+  }
+}
+
+==================================================
+FORGED REQUIREMENT CERTIFICATE REJECTION
+==================================================
+
+(() => {
+  const result = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  result.requirement_certificate = "REQCERT-FORGED";
+
+  const rejected = SAIL_REQ.approve(result);
+
+  return {
+    approved:rejected.approved,
+    approval_state:rejected.approval_state,
+    approval_certificate:rejected.approval_certificate,
+    realized:rejected.realized,
+    realization_certificate:rejected.realization_certificate,
+    integrity_reason:rejected.integrity_reason
+  };
+})()
+
+Expected:
+
+{
+  approved:false,
+  approval_state:"APPROVAL_BLOCKED_INTEGRITY_REQUIRED",
+  approval_certificate:null,
+  realized:false,
+  realization_certificate:null,
+  integrity_reason:"REQUIREMENT_CERTIFICATE_INTEGRITY_INVALID"
+}
+
+==================================================
+FORGED APPROVAL CERTIFICATE REJECTION
+==================================================
+
+(() => {
+  const approved = SAIL_REQ.approve({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  approved.approval_certificate = "APPROVAL-FORGED";
+
+  const rejected = SAIL_REQ.realize(approved);
+
+  return {
+    realized:rejected.realized,
+    realization_state:rejected.realization_state,
+    realization_certificate:rejected.realization_certificate,
+    integrity_reason:rejected.integrity_reason
+  };
+})()
+
+Expected:
+
+{
+  realized:false,
+  realization_state:"REALIZATION_BLOCKED_INTEGRITY_REQUIRED",
+  realization_certificate:null,
+  integrity_reason:"APPROVAL_INTEGRITY_INVALID"
+}
+
+==================================================
+FORGED REALIZATION AND TRACE-CHAIN REJECTION
+==================================================
+
+(() => {
+  const approved = SAIL_REQ.approve({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  const realized = SAIL_REQ.realize(approved);
+  realized.realization_certificate = "REAL-FORGED";
+
+  const integrity = SAIL_REQ.integrity(realized);
+  const trace = SAIL_REQ.trace(realized);
+
+  return {
+    integrity_valid:integrity.valid,
+    integrity_certified:integrity.certified,
+    integrity_reason:integrity.reason,
+    trace_chain_state:trace.trace_chain_state,
+    chain_certified:trace.chain_certified,
+    trace_integrity_reason:trace.integrity_reason,
+    chain_certificate:trace.chain_certificate
+  };
+})()
+
+Expected:
+
+{
+  integrity_valid:false,
+  integrity_certified:false,
+  integrity_reason:"REALIZATION_INTEGRITY_INVALID",
+  trace_chain_state:"REQUIREMENT_TRACE_CHAIN_INVALID",
+  chain_certified:false,
+  trace_integrity_reason:"REALIZATION_INTEGRITY_INVALID",
+  chain_certificate:null
+}
+
+==================================================
+TRACE CHAIN IN PROGRESS
+==================================================
+
+(() => {
+  const item = SAIL_REQ.certify({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  const trace = SAIL_REQ.trace(item);
+
+  return {
+    trace_chain_state:trace.trace_chain_state,
+    chain_certified:trace.chain_certified,
+    integrity_reason:trace.integrity_reason,
+    stage_states:trace.stages.map(stage => stage.state),
+    achieved:trace.stages.map(stage => stage.achieved),
+    chain_certificate:trace.chain_certificate
+  };
+})()
+
+Expected:
+
+{
+  trace_chain_state:"REQUIREMENT_TRACE_CHAIN_IN_PROGRESS",
+  chain_certified:false,
+  integrity_reason:"REALIZATION_NOT_CERTIFIED",
+  stage_states:[
+    "REQUIREMENT_CERTIFIED",
+    "POLICY_BOUND",
+    "TRACE_CERTIFIED",
+    "PENDING",
+    "REALIZATION_BLOCKED_APPROVAL_REQUIRED"
+  ],
+  achieved:[true,true,true,false,false],
+  chain_certificate:null
+}
+
+==================================================
+TRACE CHAIN CERTIFICATION
+==================================================
+
+(() => {
+  const approved = SAIL_REQ.approve({
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  });
+
+  const item = SAIL_REQ.realize(approved);
+  const first = SAIL_REQ.trace(item);
+  const second = SAIL_REQ.trace(item);
+
+  return {
+    trace_chain_state:first.trace_chain_state,
+    chain_certified:first.chain_certified,
+    integrity_reason:first.integrity_reason,
+    all_stages_achieved:
+      first.stages.every(stage => stage.achieved),
+    all_stage_certificates_present:
+      first.stages.every(stage =>
+        typeof stage.certificate === "string" &&
+        stage.certificate.length > 0
+      ),
+    chain_certificate_present:
+      first.chain_certificate.startsWith("REQCHAIN-"),
+    deterministic_chain:
+      first.chain_certificate === second.chain_certificate
+  };
+})()
+
+Expected:
+
+{
+  trace_chain_state:"REQUIREMENT_TRACE_CHAIN_CERTIFIED",
+  chain_certified:true,
+  integrity_reason:null,
+  all_stages_achieved:true,
+  all_stage_certificates_present:true,
+  chain_certificate_present:true,
+  deterministic_chain:true
+}
+
+==================================================
+IDEMPOTENT APPROVAL AND REALIZATION
+==================================================
+
+(() => {
+  const input = {
+    title:"Export Report",
+    statement:"Requirement: user can export report.",
+    actor:"user",
+    action:"export",
+    object:"report",
+    priority:"MEDIUM",
+    policy:"standard_review",
+    measurement:"Report file generated"
+  };
+
+  const firstApproval = SAIL_REQ.approve(input);
+  const secondApproval = SAIL_REQ.approve(firstApproval);
+  const firstRealization = SAIL_REQ.realize(firstApproval);
+  const secondRealization = SAIL_REQ.realize(firstRealization);
+
+  return {
+    same_approval_certificate:
+      firstApproval.approval_certificate ===
+      secondApproval.approval_certificate,
+    approval_timestamp_unchanged:
+      firstApproval.updated_at ===
+      secondApproval.updated_at,
+    same_realization_certificate:
+      firstRealization.realization_certificate ===
+      secondRealization.realization_certificate,
+    realization_timestamp_unchanged:
+      firstRealization.updated_at ===
+      secondRealization.updated_at
+  };
+})()
+
+Expected:
+
+{
+  same_approval_certificate:true,
+  approval_timestamp_unchanged:true,
+  same_realization_certificate:true,
+  realization_timestamp_unchanged:true
+}
+
+Idempotency invariant:
+
+repeat accepted transition -> same certificate + same timestamp
+
+==================================================
+POLICY CHANGE LIFECYCLE RESET
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  const before = SAIL_REQ.current();
+  document.getElementById("policy").value =
+    "security_review";
+
+  const changed = SAIL_REQ.addOrUpdate();
+
+  return {
+    same_record_id:
+      before.record_id === changed.record_id,
+    same_requirement_id:
+      before.requirement_id === changed.requirement_id,
+    same_requirement_certificate:
+      before.requirement_certificate ===
+      changed.requirement_certificate,
+    changed_policy_certificate:
+      before.policy_certificate !==
+      changed.policy_certificate,
+    approved:changed.approved,
+    realized:changed.realized,
+    approval_state:changed.approval_state,
+    realization_state:changed.realization_state,
+    approval_certificate:changed.approval_certificate,
+    realization_certificate:changed.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  same_record_id:true,
+  same_requirement_id:true,
+  same_requirement_certificate:true,
+  changed_policy_certificate:true,
+  approved:false,
+  realized:false,
+  approval_state:"PENDING",
+  realization_state:"REALIZATION_BLOCKED_APPROVAL_REQUIRED",
+  approval_certificate:null,
+  realization_certificate:null
+}
+
+==================================================
+MEASUREMENT CHANGE LIFECYCLE RESET
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  const before = SAIL_REQ.current();
+  document.getElementById("measurement").value =
+    "Different measurement";
+
+  const changed = SAIL_REQ.addOrUpdate();
+
+  return {
+    same_record_id:
+      before.record_id === changed.record_id,
+    same_requirement_id:
+      before.requirement_id === changed.requirement_id,
+    same_requirement_certificate:
+      before.requirement_certificate ===
+      changed.requirement_certificate,
+    same_policy_certificate:
+      before.policy_certificate ===
+      changed.policy_certificate,
+    changed_trace_certificate:
+      before.trace_certificate !==
+      changed.trace_certificate,
+    approved:changed.approved,
+    realized:changed.realized,
+    approval_certificate:changed.approval_certificate,
+    realization_certificate:changed.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  same_record_id:true,
+  same_requirement_id:true,
+  same_requirement_certificate:true,
+  same_policy_certificate:true,
+  changed_trace_certificate:true,
+  approved:false,
+  realized:false,
+  approval_certificate:null,
+  realization_certificate:null
+}
+
+==================================================
+REQUIREMENT STRUCTURE CHANGE RESET
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  const before = SAIL_REQ.current();
+  document.getElementById("object").value =
+    "report archive";
+
+  const changed = SAIL_REQ.addOrUpdate();
+
+  return {
+    same_record_id:
+      before.record_id === changed.record_id,
+    changed_requirement_id:
+      before.requirement_id !== changed.requirement_id,
+    changed_requirement_certificate:
+      before.requirement_certificate !==
+      changed.requirement_certificate,
+    approved:changed.approved,
+    realized:changed.realized,
+    approval_certificate:changed.approval_certificate,
+    realization_certificate:changed.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  same_record_id:true,
+  changed_requirement_id:true,
+  changed_requirement_certificate:true,
+  approved:false,
+  realized:false,
+  approval_certificate:null,
+  realization_certificate:null
+}
+
+==================================================
+MISSING AND INVALID FIELD REGISTER VISIBILITY
+==================================================
+
+(() => {
+  SAIL_REQ.clear();
+
+  document.getElementById("title").value =
+    "Incomplete Trace";
+  document.getElementById("statement").value =
+    "Requirement: user can inspect trace.";
+  document.getElementById("actor").value = "user";
+  document.getElementById("action").value = "inspect";
+  document.getElementById("object").value = "trace";
+  document.getElementById("priority").value = "MEDIUM";
+  document.getElementById("policy").value = "";
+  document.getElementById("measurement").value = "";
+
+  SAIL_REQ.addOrUpdate();
+
+  const text =
+    document.getElementById("requirementList").textContent;
+
+  const item = SAIL_REQ.current();
+
+  return {
+    policy_missing:item.policy_missing_fields,
+    trace_missing:item.trace_missing_fields,
+    invalid_fields:item.invalid_fields,
+    policy_tag_visible:
+      text.includes("MISSING: policy"),
+    measurement_tag_visible:
+      text.includes("MISSING: measurement")
+  };
+})()
+
+Expected:
+
+{
+  policy_missing:["policy"],
+  trace_missing:["measurement"],
+  invalid_fields:[],
+  policy_tag_visible:true,
+  measurement_tag_visible:true
+}
+
+==================================================
+CURRENT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+
+  const first = SAIL_REQ.current();
+  first.certified = false;
+  first.requirement_certificate = "REQCERT-FORGED";
+  first.actor_action_object.actor = "forged";
+
+  const second = SAIL_REQ.current();
+
+  return {
+    independent_snapshot:first !== second,
+    certified:second.certified,
+    certificate_preserved:
+      second.requirement_certificate !== "REQCERT-FORGED",
+    actor_preserved:
+      second.actor_action_object.actor === "user"
+  };
+})()
+
+Expected:
+
+{
+  independent_snapshot:true,
+  certified:true,
+  certificate_preserved:true,
+  actor_preserved:true
+}
+
+==================================================
+RETURNED RESULT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  const returned = SAIL_REQ.reset();
+
+  returned.certified = false;
+  returned.requirement_certificate = "REQCERT-FORGED";
+  returned.invalid_fields.push("forged");
+
+  const current = SAIL_REQ.current();
+
+  return {
+    current_certified:current.certified,
+    certificate_preserved:
+      current.requirement_certificate !== "REQCERT-FORGED",
+    invalid_fields:current.invalid_fields
+  };
+})()
+
+Expected:
+
+{
+  current_certified:true,
+  certificate_preserved:true,
+  invalid_fields:[]
+}
+
+
+==================================================
+EXAMPLE REQUIREMENT ACCUMULATION
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+
+  const initial = SAIL_REQ.current();
+  const security = SAIL_REQ.loadExample("security");
+  const incident = SAIL_REQ.loadExample("incident");
+  const pack = SAIL_REQ.exportPack();
+
+  const structural =
+    pack.structural_payload.requirements;
+
+  const operational =
+    pack.operational_metadata.records;
+
+  const records =
+    operational.map(item => item.record_id);
+
+  const recordNumbers =
+    records
+      .map(record =>
+        Number(record.replace("REQREC-",""))
+      )
+      .sort((first,second) => first - second);
+
+  const requirementPreserved =
+    requirement =>
+      structural.some(
+        item =>
+          item.requirement_id ===
+            requirement.requirement_id &&
+          item.title === requirement.title
+      ) &&
+      operational.some(
+        item =>
+          item.requirement_id ===
+            requirement.requirement_id &&
+          item.record_id === requirement.record_id
+      );
+
+  return {
+    requirement_count:
+      Number(
+        document.getElementById("reqCount").textContent
+      ),
+
+    titles:
+      structural
+        .map(item => item.title)
+        .sort(),
+
+    unique_record_ids:
+      new Set(records).size === records.length,
+
+    monotonic_record_ids:
+      recordNumbers.every(
+        (value,index,array) =>
+          index === 0 ||
+          value === array[index - 1] + 1
+      ),
+
+    initial_requirement_preserved:
+      requirementPreserved(initial),
+
+    security_requirement_preserved:
+      requirementPreserved(security),
+
+    incident_requirement_preserved:
+      requirementPreserved(incident)
+  };
+})()
+
+Expected:
+
+{
+  requirement_count:3,
+
+  titles:[
+    "Escalate Incident",
+    "Export Report",
+    "Review Access"
+  ],
+
+  unique_record_ids:true,
+  monotonic_record_ids:true,
+  initial_requirement_preserved:true,
+  security_requirement_preserved:true,
+  incident_requirement_preserved:true
+}
+
+==================================================
+NEW REQUIREMENT INSERTION
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+
+  const first = SAIL_REQ.current();
+  const newState = SAIL_REQ.newRequirement();
+
+  document.getElementById("title").value =
+    "Archive Report";
+
+  document.getElementById("statement").value =
+    "Requirement: user can archive report.";
+
+  document.getElementById("actor").value =
+    "user";
+
+  document.getElementById("action").value =
+    "archive";
+
+  document.getElementById("object").value =
+    "report";
+
+  document.getElementById("priority").value =
+    "HIGH";
+
+  document.getElementById("policy").value =
+    "standard_review";
+
+  document.getElementById("measurement").value =
+    "Archive created";
+
+  const second = SAIL_REQ.addOrUpdate();
+  const pack = SAIL_REQ.exportPack();
+
+  const structural =
+    pack.structural_payload.requirements;
+
+  const operational =
+    pack.operational_metadata.records;
+
+  const requirementPresent =
+    requirement =>
+      structural.some(
+        item =>
+          item.requirement_id ===
+            requirement.requirement_id &&
+          item.title === requirement.title
+      ) &&
+      operational.some(
+        item =>
+          item.requirement_id ===
+            requirement.requirement_id &&
+          item.record_id === requirement.record_id
+      );
+
+  const firstNumber = Number(
+    first.record_id.replace("REQREC-","")
+  );
+
+  const secondNumber = Number(
+    second.record_id.replace("REQREC-","")
+  );
+
+  return {
+    new_requirement_state:
+      newState.state,
+
+    retained_requirement_count:
+      newState.requirement_count,
+
+    requirement_count:
+      structural.length,
+
+    first_requirement_preserved:
+      requirementPresent(first),
+
+    second_requirement_added:
+      requirementPresent(second),
+
+    different_record_id:
+      first.record_id !== second.record_id,
+
+    monotonic_increment:
+      secondNumber === firstNumber + 1,
+
+    titles:
+      structural
+        .map(item => item.title)
+        .sort()
+  };
+})()
+
+Expected:
+
+{
+  new_requirement_state:"NEW_REQUIREMENT",
+  retained_requirement_count:1,
+  requirement_count:2,
+  first_requirement_preserved:true,
+  second_requirement_added:true,
+  different_record_id:true,
+  monotonic_increment:true,
+
+  titles:[
+    "Archive Report",
+    "Export Report"
+  ]
+}
+
+==================================================
+SELECTED REQUIREMENT UPDATE IN PLACE
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.loadExample("security");
+
+  const before = SAIL_REQ.current();
+
+  const beforeCount = Number(
+    document.getElementById("reqCount").textContent
+  );
+
+  document.getElementById("measurement").value =
+    "Updated review receipt";
+
+  const changed = SAIL_REQ.addOrUpdate();
+  const pack = SAIL_REQ.exportPack();
+
+  return {
+    requirement_count_before:beforeCount,
+
+    requirement_count_after:
+      Number(
+        document.getElementById("reqCount").textContent
+      ),
+
+    same_record_id:
+      before.record_id === changed.record_id,
+
+    same_requirement_id:
+      before.requirement_id ===
+      changed.requirement_id,
+
+    changed_trace_certificate:
+      before.trace_certificate !==
+      changed.trace_certificate,
+
+    updated_measurement:
+      changed.measurement,
+
+    titles:
+      pack.structural_payload.requirements
+        .map(item => item.title)
+        .sort()
+  };
+})()
+
+Expected:
+
+{
+  requirement_count_before:2,
+  requirement_count_after:2,
+  same_record_id:true,
+  same_requirement_id:true,
+  changed_trace_certificate:true,
+  updated_measurement:"Updated review receipt",
+
+  titles:[
+    "Export Report",
+    "Review Access"
+  ]
+}
+
+==================================================
+MIXED MULTI-RECORD PACK CLASSIFICATION
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  SAIL_REQ.loadExample("security");
+
+  const unresolvedPack =
+    SAIL_REQ.exportPack();
+
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  const certifiedPack =
+    SAIL_REQ.exportPack();
+
+  SAIL_REQ.newRequirement();
+
+  document.getElementById("title").value =
+    "Incomplete Requirement";
+
+  document.getElementById("statement").value =
+    "Requirement structure is incomplete.";
+
+  document.getElementById("actor").value =
+    "user";
+
+  document.getElementById("action").value =
+    "inspect";
+
+  document.getElementById("object").value =
+    "";
+
+  document.getElementById("priority").value =
+    "MEDIUM";
+
+  document.getElementById("policy").value =
+    "standard_review";
+
+  document.getElementById("measurement").value =
+    "Inspection complete";
+
+  SAIL_REQ.addOrUpdate();
+
+  const incompletePack =
+    SAIL_REQ.exportPack();
+
+  return {
+    unresolved_state:
+      unresolvedPack.pack_state,
+
+    unresolved_certified:
+      unresolvedPack.pack_certified,
+
+    unresolved_requirement_count:
+      unresolvedPack.structural_payload
+        .requirements.length,
+
+    certified_state:
+      certifiedPack.pack_state,
+
+    certified:
+      certifiedPack.pack_certified,
+
+    certified_requirement_count:
+      certifiedPack.structural_payload
+        .requirements.length,
+
+    all_certified_trace_chains:
+      certifiedPack.structural_payload
+        .trace_chains
+        .every(chain => chain.chain_certified),
+
+    incomplete_state:
+      incompletePack.pack_state,
+
+    incomplete_certified:
+      incompletePack.pack_certified,
+
+    incomplete_reason:
+      incompletePack.integrity_reason,
+
+    incomplete_requirement_count:
+      incompletePack.structural_payload
+        .requirements.length
+  };
+})()
+
+Expected:
+
+{
+  unresolved_state:
+    "REQUIREMENTS_PACK_UNRESOLVED",
+
+  unresolved_certified:false,
+  unresolved_requirement_count:2,
+
+  certified_state:
+    "REQUIREMENTS_PACK_CERTIFIED",
+
+  certified:true,
+  certified_requirement_count:2,
+  all_certified_trace_chains:true,
+
+  incomplete_state:
+    "REQUIREMENTS_PACK_INCOMPLETE",
+
+  incomplete_certified:false,
+
+  incomplete_reason:
+    "REQUIREMENT_INCOMPLETE_OR_INVALID",
+
+  incomplete_requirement_count:3
+}
+
+==================================================
+MULTI-RECORD PACK SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.loadExample("security");
+
+  const first = SAIL_REQ.exportPack();
+
+  first.structural_payload
+    .requirements[0].title =
+    "FORGED";
+
+  first.structural_payload
+    .requirements[1]
+    .actor_action_object.actor =
+    "forged";
+
+  first.operational_metadata
+    .records[0].record_id =
+    "REQREC-FORGED";
+
+  const second = SAIL_REQ.exportPack();
+
+  return {
+    requirement_count:
+      second.structural_payload
+        .requirements.length,
+
+    titles:
+      second.structural_payload
+        .requirements
+        .map(item => item.title)
+        .sort(),
+
+    actors:
+      second.structural_payload
+        .requirements
+        .map(
+          item =>
+            item.actor_action_object.actor
+        )
+        .sort(),
+
+    all_record_ids_valid:
+      second.operational_metadata
+        .records
+        .every(record =>
+          /^REQREC-\d{12}$/.test(
+            record.record_id
+          )
+        ),
+
+    forged_title_absent:
+      second.structural_payload
+        .requirements
+        .every(
+          item => item.title !== "FORGED"
+        ),
+
+    forged_actor_absent:
+      second.structural_payload
+        .requirements
+        .every(
+          item =>
+            item.actor_action_object.actor
+            !== "forged"
+        )
+  };
+})()
+
+Expected:
+
+{
+  requirement_count:2,
+
+  titles:[
+    "Export Report",
+    "Review Access"
+  ],
+
+  actors:[
+    "admin",
+    "user"
+  ],
+
+  all_record_ids_valid:true,
+  forged_title_absent:true,
+  forged_actor_absent:true
+}
+
+==================================================
+APPLICATION CONFORMANCE
+==================================================
+
+SAIL_REQ.audit(true)
+
+Expected key fields:
+
+{
+  app:"SAIL Requirements Management System",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  allPass:true,
+  case_count:12000,
+  expected_case_count:12000,
+  count_match:true,
+  failed_case_count:0,
+  scenario_count:8,
+  iterations_per_scenario:1500,
+  layers:37,
+  classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:12000,
+  benchmark_cases:347400,
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  behavioral_specification_count:96,
+  source_mutation_operator_count:5,
+  source_mutations_detected:5,
+  realization_audit_cases:48600,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+  realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_execution:"LOCAL_RUNTIME",
+  cached:true
+}
+
+Application conformance formula:
+
+8 scenarios x 1500 iterations = 12000 executions
+
+==================================================
+APPLICATION AUDIT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  const first = SAIL_REQ.audit(true);
+
+  first.allPass = false;
+  first.case_count = 1;
+  first.failed_case_count = 999;
+
+  const second = SAIL_REQ.audit();
+
+  return {
+    independent_snapshot:first !== second,
+    allPass:second.allPass,
+    case_count:second.case_count,
+    failed_case_count:second.failed_case_count,
+    cached:second.cached
+  };
+})()
+
+Expected:
+
+{
+  independent_snapshot:true,
+  allPass:true,
+  case_count:12000,
+  failed_case_count:0,
+  cached:true
+}
+
+==================================================
+STACK MANIFEST
+==================================================
+
+SAIL_REQ.stackManifest()
+
+Expected:
+
+{
+  version:"5.9.0",
+  certified_layers:37,
+  conformance_classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_specification_count:96,
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operator_count:5,
+  source_mutations_detected:5,
+  evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_case_count:347400,
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  realization_audit_case_count:48600,
+  realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_classification:
+    "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  application_audit_execution:"LOCAL_RUNTIME",
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Requirements Management Runtime"
+  ]
+}
+
+==================================================
+STACK INTERFACE
+==================================================
+
+SAIL.certify()
+
+Expected key fields:
+
+{
+  version:"5.9.0",
+  certified:true,
+  layers:37,
+  validation_source:"REFERENCE_RELEASE_VALIDATION",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Requirements Management Runtime"
+  ]
+}
+
+SAIL.benchmark()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  benchmark_case_count:347400,
+  conformance_execution_count:347400,
+  classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.conformanceAudit()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  classification:
+    "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.behaviorAudit()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  specification_count:96,
+  execution_count:96,
+  failed_count:0,
+  independent_oracle:true,
+  validation_source:"REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.evidenceValidation()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  source_mutation_operator_count:5,
+  source_mutations_detected:5,
+  validation_source:"REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.realizationAudit()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  case_count:48600,
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+Validation distinction:
+
+Application audit execution:
+LOCAL_RUNTIME
+
+Core validation execution:
+REFERENCE_RELEASE_VALIDATION
+
+==================================================
+CERTIFIED REQUIREMENTS PACK VIEW STATE
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  const pack = SAIL_REQ.exportPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    delivery_mode:pack.delivery_mode,
+    version:pack.version,
+    sail_version:pack.sail_version,
+    requirement_count:
+      pack.structural_payload.requirements.length,
+    trace_chain_count:
+      pack.structural_payload.trace_chains.length,
+    chain_certified:
+      pack.structural_payload.trace_chains[0]
+        .chain_certified,
+    record_ids_excluded:
+      pack.operational_metadata
+        .record_id_fields_excluded_from_certificates,
+    timestamps_excluded:
+      pack.operational_metadata
+        .timestamp_fields_excluded_from_certificates
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REQUIREMENTS_PACK_CERTIFIED",
+  pack_certified:true,
+  integrity_reason:null,
+  delivery_mode:"view",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  requirement_count:1,
+  trace_chain_count:1,
+  chain_certified:true,
+  record_ids_excluded:true,
+  timestamps_excluded:true
+}
+
+==================================================
+UNRESOLVED REQUIREMENTS PACK STATE
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  const pack = SAIL_REQ.exportPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    delivery_mode:pack.delivery_mode,
+    approved:
+      pack.structural_payload.requirements[0].approved,
+    realized:
+      pack.structural_payload.requirements[0].realized,
+    trace_chain_state:
+      pack.structural_payload.trace_chains[0]
+        .trace_chain_state,
+    chain_certificate:
+      pack.structural_payload.trace_chains[0]
+        .chain_certificate
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REQUIREMENTS_PACK_UNRESOLVED",
+  pack_certified:false,
+  integrity_reason:"REQUIREMENT_LIFECYCLE_INCOMPLETE",
+  delivery_mode:"view",
+  approved:false,
+  realized:false,
+  trace_chain_state:"REQUIREMENT_TRACE_CHAIN_IN_PROGRESS",
+  chain_certificate:null
+}
+
+==================================================
+INCOMPLETE REQUIREMENTS PACK STATE
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  document.getElementById("object").value = "";
+  SAIL_REQ.addOrUpdate();
+
+  const pack = SAIL_REQ.exportPack();
+  const item = pack.structural_payload.requirements[0];
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    certified:item.certified,
+    certification_state:item.certification_state,
+    incomplete_fields:item.incomplete_fields,
+    requirement_certificate:item.requirement_certificate
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REQUIREMENTS_PACK_INCOMPLETE",
+  pack_certified:false,
+  integrity_reason:"REQUIREMENT_INCOMPLETE_OR_INVALID",
+  certified:false,
+  certification_state:"REQUIREMENT_INCOMPLETE",
+  incomplete_fields:["object"],
+  requirement_certificate:null
+}
+
+==================================================
+EMPTY REQUIREMENTS PACK STATE
+==================================================
+
+(() => {
+  SAIL_REQ.clear();
+  const pack = SAIL_REQ.exportPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    delivery_mode:pack.delivery_mode,
+    structural_requirement_count:
+      pack.structural_payload.requirements.length,
+    trace_chain_count:
+      pack.structural_payload.trace_chains.length,
+    operational_record_count:
+      pack.operational_metadata.records.length
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REQUIREMENTS_PACK_EMPTY",
+  pack_certified:false,
+  integrity_reason:"NO_REQUIREMENTS",
+  delivery_mode:"view",
+  structural_requirement_count:0,
+  trace_chain_count:0,
+  operational_record_count:0
+}
+
+==================================================
+PACK SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  const first = SAIL_REQ.exportPack();
+
+  first.pack_certified = false;
+  first.structural_payload.requirements[0].realized = false;
+  first.structural_payload.requirements[0]
+    .actor_action_object.actor = "forged";
+  first.operational_metadata.records[0].record_id =
+    "REQREC-FORGED";
+
+  const second = SAIL_REQ.exportPack();
+
+  return {
+    pack_certified:second.pack_certified,
+    realized:
+      second.structural_payload.requirements[0].realized,
+    actor:
+      second.structural_payload.requirements[0]
+        .actor_action_object.actor,
+    record_id_format_valid:
+      /^REQREC-\d{12}$/.test(
+        second.operational_metadata.records[0].record_id
+      )
+  };
+})()
+
+Expected:
+
+{
+  pack_certified:true,
+  realized:true,
+  actor:"user",
+  record_id_format_valid:true
+}
+
+==================================================
+STRUCTURAL AND OPERATIONAL PACK SEPARATION
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+
+  const pack = SAIL_REQ.exportPack();
+  const structural =
+    JSON.stringify(pack.structural_payload);
+  const operational =
+    pack.operational_metadata.records[0];
+
+  return {
+    structural_contains_record_id:
+      structural.includes("record_id"),
+    structural_contains_created_at:
+      structural.includes("created_at"),
+    structural_contains_updated_at:
+      structural.includes("updated_at"),
+    operational_record_id_format_valid:
+      /^REQREC-\d{12}$/.test(operational.record_id),
+    operational_contains_requirement_id:
+      Object.prototype.hasOwnProperty.call(
+        operational,
+        "requirement_id"
+      ),
+    operational_contains_created_at:
+      Object.prototype.hasOwnProperty.call(
+        operational,
+        "created_at"
+      ),
+    operational_contains_updated_at:
+      Object.prototype.hasOwnProperty.call(
+        operational,
+        "updated_at"
+      ),
+    record_ids_excluded:
+      pack.operational_metadata
+        .record_id_fields_excluded_from_certificates,
+    timestamps_excluded:
+      pack.operational_metadata
+        .timestamp_fields_excluded_from_certificates
+  };
+})()
+
+Expected:
+
+{
+  structural_contains_record_id:false,
+  structural_contains_created_at:false,
+  structural_contains_updated_at:false,
+  operational_record_id_format_valid:true,
+  operational_contains_requirement_id:true,
+  operational_contains_created_at:true,
+  operational_contains_updated_at:true,
+  record_ids_excluded:true,
+  timestamps_excluded:true
+}
+
+==================================================
+EMPTY-SELECTION GUARDS
+==================================================
+
+(() => {
+  const cleared = SAIL_REQ.clear();
+  const approval = SAIL_REQ.approveSelected();
+  const realization = SAIL_REQ.realizeSelected();
+
+  return {
+    clear_state:cleared.state,
+    requirement_count:cleared.requirement_count,
+    approval_result:approval,
+    realization_result:realization,
+    current_requirement:SAIL_REQ.current(),
+    system_status:
+      document.getElementById("systemStatus").textContent
+  };
+})()
+
+Expected immediately after execution:
+
+{
+  clear_state:"REQUIREMENTS_CLEARED",
+  requirement_count:0,
+  approval_result:false,
+  realization_result:false,
+  current_requirement:null,
+  system_status:"NO REQUIREMENT SELECTED"
+}
+
+==================================================
+INTERFACE STATUS ALIGNMENT
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  return {
+    requirements:
+      document.getElementById("reqCount").textContent,
+    certified:
+      document.getElementById("certCount").textContent,
+    approved:
+      document.getElementById("approvedCount").textContent,
+    realized:
+      document.getElementById("realizedCount").textContent,
+    system_status:
+      document.getElementById("systemStatus").textContent,
+    audit_status:
+      document.getElementById("auditState").textContent
+  };
+})()
+
+Expected:
+
+{
+  requirements:"1",
+  certified:"1",
+  approved:"1",
+  realized:"1",
+  system_status:"REALIZED",
+  audit_status:"PASS"
+}
+
+==================================================
+CERTIFIED REQUIREMENTS PACK DOWNLOAD STATE
+==================================================
+
+(() => {
+  SAIL_REQ.reset();
+  SAIL_REQ.approveSelected();
+  SAIL_REQ.realizeSelected();
+
+  const pack = SAIL_REQ.downloadPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    delivery_mode:pack.delivery_mode,
+    version:pack.version,
+    sail_version:pack.sail_version,
+    requirement_count:
+      pack.structural_payload.requirements.length,
+    operational_record_count:
+      pack.operational_metadata.records.length
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REQUIREMENTS_PACK_CERTIFIED",
+  pack_certified:true,
+  integrity_reason:null,
+  delivery_mode:"download",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  requirement_count:1,
+  operational_record_count:1
+}
+
+The browser downloads:
+
+sail_requirements_pack.json
+
+==================================================
+VALIDATION STATUS
+==================================================
+
+Application:
+SAIL Requirements Management System
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Conformance:
+PASS
+
+Local Application Conformance Executions:
+12000
+
+Expected Local Application Conformance Executions:
+12000
+
+Local Conformance Count Match:
+PASS
+
+Failed Local Conformance Cases:
+0
+
+Audit Scenarios:
+8
+
+Iterations Per Scenario:
+1500
+
+Source Integrity Checks:
+77
+
+Runtime Behavioral Checks:
+41
+
+Certified Layers:
+37
+
+Referenced Core Structural Conformance Executions:
+347400
+
+Referenced Independent Behavioral Specifications:
+96
+
+Controlled Source Mutations Detected:
+5 of 5
+
+Referenced Core Realization Audit Cases:
+48600
+
+Deterministic Requirement Identity:
+PASS
+
+Session-Local Monotonic Record Identity:
+PASS
+
+Strict Priority Admission:
+PASS
+
+Strict Policy Admission:
+PASS
+
+Incomplete Requirement Fail-Closed Admission:
+PASS
+
+Approval Integrity:
+PASS
+
+Realization Integrity:
+PASS
+
+Forged Requirement Rejection:
+PASS
+
+Forged Approval Rejection:
+PASS
+
+Forged Realization Rejection:
+PASS
+
+Trace-Chain Integrity:
+PASS
+
+Approval and Realization Idempotency:
+PASS
+
+Policy Change Lifecycle Reset:
+PASS
+
+Measurement Change Lifecycle Reset:
+PASS
+
+Requirement Structure Reset:
+PASS
+
+Current Snapshot Isolation:
+PASS
+
+Returned Result Snapshot Isolation:
+PASS
+
+Application Audit Snapshot Isolation:
+PASS
+
+Certified Pack State:
+PASS
+
+Unresolved Pack State:
+PASS
+
+Incomplete Pack State:
+PASS
+
+Empty Pack State:
+PASS
+
+Pack Snapshot Isolation:
+PASS
+
+Structural and Operational Pack Separation:
+PASS
+
+Empty Selection Guards:
+PASS
+
+Interface Status Alignment:
+PASS
+
+Download Pack State:
+PASS
+
+Example Requirement Accumulation:
+PASS
+
+New Requirement Insertion:
+PASS
+
+Selected Requirement Update In Place:
+PASS
+
+Mixed Multi-Record Pack Classification:
+PASS
+
+Multi-Record Pack Snapshot Isolation:
+PASS
+
+Validation Status:
+VALIDATED

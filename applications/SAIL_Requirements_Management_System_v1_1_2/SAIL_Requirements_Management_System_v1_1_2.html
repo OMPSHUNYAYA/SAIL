@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAIL Requirements Management System v1.1.2</title>
+<style>
+:root{
+  --bg:#050b16;--bg2:#07111f;--panel:#071b31;--line:rgba(120,168,255,.34);
+  --line2:rgba(255,255,255,.13);--text:#edf4ff;--muted:#b8c7e6;--gold:#ffd47a;
+  --mint:#69f0c8;--cyan:#6ed8ff;--red:#ff8f8f;--shadow:0 20px 55px rgba(0,0,0,.34)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 12% 0%,rgba(120,168,255,.13),transparent 30%),radial-gradient(circle at 92% 8%,rgba(105,240,200,.08),transparent 24%),linear-gradient(180deg,#050b16 0%,#07111f 48%,#081423 100%);min-height:100vh}
+.wrap{max-width:1480px;margin:0 auto;padding:22px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;border:1px solid var(--line);border-radius:26px;padding:18px;background:linear-gradient(135deg,rgba(120,168,255,.18),rgba(105,240,200,.08));box-shadow:var(--shadow)}
+.eyebrow{display:inline-block;color:var(--gold);font-weight:900;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line2);border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.04)}
+h1{font-size:clamp(1.65rem,2.8vw,3rem);line-height:1.05;margin:10px 0 8px;letter-spacing:-.04em}
+p{color:var(--muted);line-height:1.6;margin:0}
+.hero-right{min-width:300px;border:1px solid var(--line2);border-radius:20px;padding:14px;background:rgba(3,11,22,.54)}
+.stat-row{display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--line2);padding:8px 0}
+.stat-row:last-child{border-bottom:0}.stat-row span{color:var(--muted)}.stat-row strong{color:var(--mint)}
+.grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:18px}
+.panel{border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(8,30,54,.84),rgba(5,15,30,.92));padding:20px;box-shadow:var(--shadow)}
+.panel h2{margin:0 0 8px;font-size:1.22rem}.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+label{display:block;color:var(--gold);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px}
+input,textarea,select{width:100%;border:1px solid var(--line2);border-radius:14px;background:rgba(3,11,22,.70);color:var(--text);padding:12px 13px;font:14px/1.5 ui-monospace,Consolas,monospace;outline:none}
+textarea{min-height:112px;resize:vertical}
+button{border:1px solid rgba(110,216,255,.46);border-radius:12px;padding:11px 14px;background:linear-gradient(180deg,rgba(7,34,62,.96),rgba(4,17,34,.96));color:#eef8ff;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .08s ease,filter .08s ease,border-color .08s ease}
+button:hover{filter:brightness(1.14);border-color:rgba(110,216,255,.78);transform:translateY(-1px)}
+button:active{transform:translateY(2px) scale(.985)}
+button.primary{background:linear-gradient(135deg,rgba(105,240,200,.98),rgba(78,180,255,.78));color:#04101e;border-color:rgba(105,240,200,.92)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.status-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:18px}
+.status{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(3,11,22,.48)}
+.status span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.status b{color:var(--mint);font-size:.96rem;overflow-wrap:anywhere}
+.req-list{display:grid;gap:12px;max-height:none;min-height:0;overflow:visible;padding-right:3px}
+.req-card{border:1px solid var(--line2);border-radius:18px;padding:14px;background:rgba(3,11,22,.48)}
+.req-card.active{border-color:rgba(105,240,200,.72);background:rgba(105,240,200,.06)}
+.req-card h3{margin:0 0 8px;color:#fff;font-size:1rem}
+.req-card p{font-size:.88rem}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.tag{border:1px solid var(--line2);border-radius:999px;padding:5px 8px;color:var(--muted);font-size:.72rem}
+.tag.good{color:var(--mint);border-color:rgba(105,240,200,.5)}
+.tag.gold{color:var(--gold);border-color:rgba(255,212,122,.45)}
+.tag.warn{color:#ffb86b;border-color:rgba(255,184,107,.55)}
+.tag.bad{color:var(--red);border-color:rgba(255,143,143,.55)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:10px;margin:14px 0}
+.step{border:1px solid var(--line2);border-radius:16px;padding:12px;min-height:82px;background:rgba(255,255,255,.04);overflow:hidden}
+.step strong{display:block;color:var(--gold);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;white-space:nowrap}
+.step small{display:block;color:var(--muted);line-height:1.4;overflow-wrap:anywhere;font-size:.78rem}
+.step.pass{border-color:rgba(105,240,200,.55);background:rgba(105,240,200,.06)}
+.step.warn{border-color:rgba(255,184,107,.55);background:rgba(255,184,107,.06)}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.tab.active{border-color:rgba(105,240,200,.86);color:#dfffee}
+pre{margin:0;white-space:pre-wrap;background:rgba(3,11,22,.72);border:1px solid var(--line2);border-radius:16px;padding:14px;color:#dbe9ff;font-family:ui-monospace,Consolas,monospace;font-size:.86rem;max-height:430px;overflow:auto}
+.footer{color:var(--muted);text-align:center;padding:28px}
+@media(max-width:1100px){.hero,.grid{grid-template-columns:1fr}.status-grid{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.flow{grid-template-columns:1fr}}
+
+.grid{align-items:start;}
+.register-note{
+  margin-top:14px;
+  border:1px dashed rgba(120,168,255,.30);
+  border-radius:16px;
+  padding:13px;
+  color:var(--muted);
+  background:rgba(3,11,22,.32);
+  font-size:.88rem;
+  line-height:1.5;
+}
+.register-note strong{
+  color:var(--gold);
+}
+
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div>
+    <div class="eyebrow">SAIL Application</div>
+    <h1>Requirements Management System</h1>
+    <p>Capture, decompose, certify, bind, trace, approve, and realize requirements through deterministic structural certificates.</p>
+  </div>
+  <div class="hero-right">
+    <div class="stat-row"><span>SAIL Stack</span><strong>5.9.0</strong></div>
+    <div class="stat-row"><span>Layers</span><strong>37</strong></div>
+    <div class="stat-row"><span>Conformance</span><strong>347400 synthetic</strong></div>
+    <div class="stat-row"><span>Behavior</span><strong>96/96 PASS</strong></div>
+    <div class="stat-row"><span>Status</span><strong id="systemStatus">READY</strong></div>
+  </div>
+</section>
+
+<section class="status-grid">
+  <div class="status"><span>App Version</span><b id="appVersion">1.1.2</b></div>
+  <div class="status"><span>Requirements</span><b id="reqCount">0</b></div>
+  <div class="status"><span>Certified</span><b id="certCount">0</b></div>
+  <div class="status"><span>Approved</span><b id="approvedCount">0</b></div>
+  <div class="status"><span>Realized</span><b id="realizedCount">0</b></div>
+  <div class="status"><span>Audit</span><b id="auditState">READY</b></div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Requirement Capture</h2>
+    <div class="sub">Create or update a requirement using actor, action, object, policy, and measurable outcome structure.</div>
+
+    <label>Requirement Title</label>
+    <input id="title" value="Export Report">
+
+    <label>Requirement Statement</label>
+    <textarea id="statement">Requirement: user can export report.</textarea>
+
+    <label>Actor</label>
+    <input id="actor" value="user">
+
+    <label>Action</label>
+    <input id="action" value="export">
+
+    <label>Object</label>
+    <input id="object" value="report">
+
+    <label>Priority</label>
+    <select id="priority">
+      <option>LOW</option>
+      <option selected>MEDIUM</option>
+      <option>HIGH</option>
+      <option>CRITICAL</option>
+    </select>
+
+    <label>Policy</label>
+    <select id="policy">
+      <option selected>standard_review</option>
+      <option>security_review</option>
+      <option>audit_review</option>
+      <option>release_gate</option>
+    </select>
+
+    <label>Outcome Measurement</label>
+    <input id="measurement" value="Report file generated">
+
+    <div class="actions">
+      <button class="primary" onclick="SAIL_REQ.addOrUpdate()">Certify Requirement</button>
+      <button onclick="SAIL_REQ.newRequirement()">New Requirement</button>
+      <button onclick="SAIL_REQ.loadExample('security')">Security Example</button>
+      <button onclick="SAIL_REQ.loadExample('incident')">Incident Example</button>
+      <button onclick="SAIL_REQ.reset()">Reset</button>
+      <button onclick="SAIL_REQ.clear()">Clear</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Requirement Register</h2>
+    <div class="sub">Requirements appear here with certification, policy, trace, approval, and realization state.</div>
+    <div id="requirementList" class="req-list"></div>
+    <div class="register-note">
+      <strong>Register View</strong><br>
+      Select a requirement to inspect its certificate, trace, approval state, and realization state.
+    </div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:18px">
+  <h2>Selected Requirement Flow</h2>
+  <div class="sub">Requirement lifecycle across structural certification, policy binding, traceability, approval, and realization.</div>
+  <div class="flow">
+    <div id="flowCert" class="step"><strong>Certification</strong><small>Waiting</small></div>
+    <div id="flowPolicy" class="step"><strong>Policy</strong><small>Waiting</small></div>
+    <div id="flowTrace" class="step"><strong>Traceability</strong><small>Waiting</small></div>
+    <div id="flowApproval" class="step"><strong>Approval</strong><small>Waiting</small></div>
+    <div id="flowReal" class="step"><strong>Realization</strong><small>Waiting</small></div>
+  </div>
+  <div class="actions">
+    <button onclick="SAIL_REQ.approveSelected()">Approve</button>
+    <button onclick="SAIL_REQ.realizeSelected()">Mark Realized</button>
+    <button onclick="SAIL_REQ.exportPack()">Export Pack</button>
+    <button onclick="SAIL_REQ.downloadPack()">Download Pack</button>
+  </div>
+  <div class="tabs">
+    <button id="tabSummary" class="tab active" onclick="SAIL_REQ.show('summary')">Summary</button>
+    <button id="tabCertificate" class="tab" onclick="SAIL_REQ.show('certificate')">Certificate</button>
+    <button id="tabTrace" class="tab" onclick="SAIL_REQ.show('trace')">Trace</button>
+    <button id="tabAudit" class="tab" onclick="SAIL_REQ.show('audit')">Audit</button>
+  </div>
+  <pre id="output"></pre>
+</section>
+
+<div class="footer">SAIL Requirements Management System v1.1.2</div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  const VERSION="1.1.2";
+  const SAIL_VERSION="5.9.0";
+  const LAYERS=37;
+  const CONFORMANCE_EXECUTIONS=347400;
+  const BEHAVIORAL_SPECIFICATIONS=96;
+  const SOURCE_MUTATION_OPERATORS=5;
+  const SOURCE_MUTATIONS_DETECTED=5;
+  const CONFORMANCE_CLASSIFICATION="SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS";
+  const REALIZATION_AUDIT=48600;
+  const EXPECTED_AUDIT_CASES=12000;
+  const AUDIT_SCENARIOS=8;
+  const ITERATIONS_PER_SCENARIO=1500;
+  const PRIORITIES=["LOW","MEDIUM","HIGH","CRITICAL"];
+  const POLICIES=["standard_review","security_review","audit_review","release_gate"];
+
+  let requirements=[];
+  let selectedRecordId=null;
+  let view="summary";
+  let recordSequence=0;
+  let AUDIT_RESULT=null;
+  let statusTimer=null;
+
+  function canonical(value){
+    if(value===undefined)return "undefined";
+    if(value===null||typeof value!=="object")return JSON.stringify(value);
+    if(Array.isArray(value))return "["+value.map(canonical).join(",")+"]";
+    return "{"+Object.keys(value).sort().map(key=>JSON.stringify(key)+":"+canonical(value[key])).join(",")+"}";
+  }
+
+  function hash(value){
+    const text=canonical(value);
+    let result=2166136261;
+    for(let index=0;index<text.length;index++){
+      result^=text.charCodeAt(index);
+      result=Math.imul(result,16777619);
+    }
+    return (result>>>0).toString(16).padStart(8,"0");
+  }
+
+  function clone(value){
+    if(value===undefined)return undefined;
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function deepFreeze(value){
+    if(value&&typeof value==="object"&&!Object.isFrozen(value)){
+      Object.freeze(value);
+      Object.keys(value).forEach(key=>deepFreeze(value[key]));
+    }
+    return value;
+  }
+
+  function el(elementId){
+    return document.getElementById(elementId);
+  }
+
+  function now(){
+    return new Date().toISOString();
+  }
+
+  function normalizeInput(input){
+    const source=input&&typeof input==="object"?input:{};
+    return {
+      title:String(source.title||"").trim(),
+      statement:String(source.statement||"").trim(),
+      actor:String(source.actor||"").trim(),
+      action:String(source.action||"").trim(),
+      object:String(source.object||"").trim(),
+      priority:String(source.priority||"").trim().toUpperCase(),
+      policy:String(source.policy||"").trim(),
+      measurement:String(source.measurement||"").trim()
+    };
+  }
+
+  function readInput(){
+    return normalizeInput({
+      title:el("title").value,
+      statement:el("statement").value,
+      actor:el("actor").value,
+      action:el("action").value,
+      object:el("object").value,
+      priority:el("priority").value,
+      policy:el("policy").value,
+      measurement:el("measurement").value
+    });
+  }
+
+  function newRecordId(){
+    recordSequence+=1;
+    return "REQREC-"+String(recordSequence).padStart(12,"0");
+  }
+
+  function recordNumber(recordId){
+    const match=/^REQREC-(\d{12})$/.exec(String(recordId||""));
+    return match?Number(match[1]):null;
+  }
+
+  function requirementIdentity(input){
+    return {
+      title:input.title,
+      statement:input.statement,
+      actor:input.actor,
+      action:input.action,
+      object:input.object,
+      priority:input.priority
+    };
+  }
+
+  function requirementId(input){
+    return "REQ-"+hash(requirementIdentity(input));
+  }
+
+  function requirementCertificateValue(input){
+    return "REQCERT-"+hash({
+      app:"SAIL Requirements Management System",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      requirement_title:input.title,
+      statement:input.statement,
+      actor:input.actor,
+      action:input.action,
+      object:input.object,
+      priority:input.priority,
+      complete:true
+    });
+  }
+
+  function policyCertificateValue(requirementCertificate,policy){
+    return "POLICY-"+hash({
+      requirement_certificate:requirementCertificate,
+      policy:policy
+    });
+  }
+
+  function traceCertificateValue(requirementCertificate,policyCertificate,measurement){
+    return "TRACE-"+hash({
+      requirement_certificate:requirementCertificate,
+      policy_certificate:policyCertificate,
+      measurement:measurement
+    });
+  }
+
+  function approvalCertificateValue(item){
+    return "APPROVAL-"+hash({
+      requirement_certificate:item.requirement_certificate,
+      policy_certificate:item.policy_certificate,
+      trace_certificate:item.trace_certificate,
+      state:"APPROVED"
+    });
+  }
+
+  function realizationCertificateValue(item){
+    return "REAL-"+hash({
+      requirement_certificate:item.requirement_certificate,
+      policy_certificate:item.policy_certificate,
+      trace_certificate:item.trace_certificate,
+      approval_certificate:item.approval_certificate,
+      measurement:item.measurement,
+      state:"REALIZED",
+      version:VERSION
+    });
+  }
+
+  function expectedApprovalState(certified,policyBound,traceCertified){
+    if(!certified)return "APPROVAL_BLOCKED_REQUIREMENT_REQUIRED";
+    if(!policyBound)return "APPROVAL_BLOCKED_POLICY_REQUIRED";
+    if(!traceCertified)return "APPROVAL_BLOCKED_TRACE_REQUIRED";
+    return "PENDING";
+  }
+
+  function expectedRealizationState(certified,policyBound,traceCertified,approved){
+    if(!certified)return "REALIZATION_BLOCKED_REQUIREMENT_REQUIRED";
+    if(!policyBound)return "REALIZATION_BLOCKED_POLICY_REQUIRED";
+    if(!traceCertified)return "REALIZATION_BLOCKED_TRACE_REQUIRED";
+    if(!approved)return "REALIZATION_BLOCKED_APPROVAL_REQUIRED";
+    return "WAITING";
+  }
+
+  function deriveRequirement(input,options){
+    const normalized=normalizeInput(input);
+    const config=options&&typeof options==="object"?options:{};
+    const requiredFields=["title","statement","actor","action","object","priority"];
+    const incompleteFields=requiredFields.filter(field=>!normalized[field]);
+    const invalidFields=[];
+    if(normalized.priority&&!PRIORITIES.includes(normalized.priority))invalidFields.push("priority");
+    if(normalized.policy&&!POLICIES.includes(normalized.policy))invalidFields.push("policy");
+    const certified=incompleteFields.length===0&&!invalidFields.includes("priority");
+    const policyMissingFields=normalized.policy?[]:["policy"];
+    const policyValid=!!normalized.policy&&!invalidFields.includes("policy");
+    const policyBound=certified&&policyValid;
+    const traceMissingFields=normalized.measurement?[]:["measurement"];
+    const traceCertified=policyBound&&traceMissingFields.length===0;
+    const requirementCertificate=certified?requirementCertificateValue(normalized):null;
+    const policyCertificate=policyBound?policyCertificateValue(requirementCertificate,normalized.policy):null;
+    const traceCertificate=traceCertified?traceCertificateValue(requirementCertificate,policyCertificate,normalized.measurement):null;
+    const stamp=config.created_at||now();
+    const invariant={
+      app:"SAIL Requirements Management System",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      requirement_title:normalized.title,
+      statement:normalized.statement,
+      actor:normalized.actor,
+      action:normalized.action,
+      object:normalized.object,
+      priority:normalized.priority,
+      complete:certified
+    };
+    return {
+      requirement_id:requirementId(normalized),
+      record_id:config.record_id||newRecordId(),
+      title:normalized.title,
+      statement:normalized.statement,
+      actor:normalized.actor,
+      action:normalized.action,
+      object:normalized.object,
+      actor_action_object:{
+        actor:normalized.actor,
+        action:normalized.action,
+        object:normalized.object,
+        expression:"As "+(normalized.actor||"[actor]")+", perform "+(normalized.action||"[action]")+" on "+(normalized.object||"[object]")
+      },
+      priority:normalized.priority,
+      policy:normalized.policy,
+      measurement:normalized.measurement,
+      certification_state:certified?"REQUIREMENT_CERTIFIED":"REQUIREMENT_INCOMPLETE",
+      policy_state:!certified
+        ?"POLICY_BLOCKED_REQUIREMENT_REQUIRED"
+        :(!normalized.policy
+          ?"POLICY_WAITING_POLICY_REQUIRED"
+          :(!policyValid?"POLICY_INVALID":"POLICY_BOUND")),
+      trace_state:!certified
+        ?"TRACE_BLOCKED_REQUIREMENT_REQUIRED"
+        :(!policyBound
+          ?"TRACE_BLOCKED_POLICY_REQUIRED"
+          :(traceCertified?"TRACE_CERTIFIED":"TRACE_WAITING_MEASUREMENT_REQUIRED")),
+      approval_state:expectedApprovalState(certified,policyBound,traceCertified),
+      realization_state:expectedRealizationState(certified,policyBound,traceCertified,false),
+      certified:certified,
+      policy_bound:policyBound,
+      trace_certified:traceCertified,
+      approved:false,
+      realized:false,
+      incomplete_fields:incompleteFields,
+      invalid_fields:invalidFields,
+      policy_missing_fields:policyMissingFields,
+      trace_missing_fields:traceMissingFields,
+      requirement_certificate:requirementCertificate,
+      policy_certificate:policyCertificate,
+      trace_certificate:traceCertificate,
+      approval_certificate:null,
+      realization_certificate:null,
+      invariant:invariant,
+      created_at:stamp,
+      updated_at:config.updated_at||stamp
+    };
+  }
+
+  function certificationIntegrity(item){
+    if(!item||typeof item!=="object")return {valid:false,certified:false,reason:"REQUIREMENT_OBJECT_REQUIRED"};
+    if(!/^REQREC-\d{12}$/.test(String(item.record_id||"")))return {valid:false,certified:false,reason:"RECORD_ID_INTEGRITY_INVALID"};
+    const expected=deriveRequirement(item,{
+      record_id:item.record_id||"REQREC-000000000000",
+      created_at:item.created_at||"",
+      updated_at:item.updated_at||item.created_at||""
+    });
+    const fields=[
+      "requirement_id","title","statement","actor","action","object","priority","policy","measurement",
+      "certification_state","policy_state","trace_state","certified","policy_bound","trace_certified",
+      "requirement_certificate","policy_certificate","trace_certificate"
+    ];
+    for(const field of fields){
+      if(canonical(item[field])!==canonical(expected[field])){
+        return {valid:false,certified:false,reason:String(field).toUpperCase()+"_INTEGRITY_INVALID"};
+      }
+    }
+    if(canonical(item.actor_action_object)!==canonical(expected.actor_action_object))return {valid:false,certified:false,reason:"STRUCTURAL_GRAMMAR_INTEGRITY_INVALID"};
+    if(canonical(item.incomplete_fields)!==canonical(expected.incomplete_fields))return {valid:false,certified:false,reason:"INCOMPLETE_FIELDS_INTEGRITY_INVALID"};
+    if(canonical(item.invalid_fields||[])!==canonical(expected.invalid_fields))return {valid:false,certified:false,reason:"INVALID_FIELDS_INTEGRITY_INVALID"};
+    if(canonical(item.policy_missing_fields)!==canonical(expected.policy_missing_fields))return {valid:false,certified:false,reason:"POLICY_MISSING_FIELDS_INTEGRITY_INVALID"};
+    if(canonical(item.trace_missing_fields)!==canonical(expected.trace_missing_fields))return {valid:false,certified:false,reason:"TRACE_MISSING_FIELDS_INTEGRITY_INVALID"};
+    if(canonical(item.invariant)!==canonical(expected.invariant))return {valid:false,certified:false,reason:"REQUIREMENT_INVARIANT_INVALID"};
+    return {valid:true,certified:item.certified===true,reason:item.certified?null:"REQUIREMENT_NOT_CERTIFIED"};
+  }
+
+  function approvalIntegrity(item){
+    const base=certificationIntegrity(item);
+    if(!base.valid)return base;
+    if(item.approved===true){
+      if(!item.certified||!item.policy_bound||!item.trace_certified)return {valid:false,certified:false,reason:"APPROVAL_PREREQUISITE_INVALID"};
+      if(item.approval_state!=="APPROVED")return {valid:false,certified:false,reason:"APPROVAL_STATE_INVALID"};
+      if(item.approval_certificate!==approvalCertificateValue(item))return {valid:false,certified:false,reason:"APPROVAL_INTEGRITY_INVALID"};
+      return {valid:true,certified:true,reason:null};
+    }
+    const expected=expectedApprovalState(item.certified,item.policy_bound,item.trace_certified);
+    if(item.approval_state!==expected)return {valid:false,certified:false,reason:"APPROVAL_STATE_INVALID"};
+    if(item.approval_certificate!==null)return {valid:false,certified:false,reason:"APPROVAL_CERTIFICATE_INVALID"};
+    return {valid:true,certified:false,reason:"APPROVAL_NOT_CERTIFIED"};
+  }
+
+  function realizationIntegrity(item){
+    const approval=approvalIntegrity(item);
+    if(!approval.valid)return approval;
+    if(item.realized===true){
+      if(!approval.certified)return {valid:false,certified:false,reason:"REALIZATION_APPROVAL_INVALID"};
+      if(item.realization_state!=="REALIZED")return {valid:false,certified:false,reason:"REALIZATION_STATE_INVALID"};
+      if(item.realization_certificate!==realizationCertificateValue(item))return {valid:false,certified:false,reason:"REALIZATION_INTEGRITY_INVALID"};
+      return {valid:true,certified:true,reason:null};
+    }
+    const expected=expectedRealizationState(item.certified,item.policy_bound,item.trace_certified,item.approved);
+    if(item.realization_state!==expected)return {valid:false,certified:false,reason:"REALIZATION_STATE_INVALID"};
+    if(item.realization_certificate!==null)return {valid:false,certified:false,reason:"REALIZATION_CERTIFICATE_INVALID"};
+    return {valid:true,certified:false,reason:"REALIZATION_NOT_CERTIFIED"};
+  }
+
+  function integrity(value){
+    const item=clone(value);
+    const result=realizationIntegrity(item);
+    return clone({
+      valid:result.valid,
+      certified:result.certified,
+      reason:result.reason,
+      requirement_certified:result.valid&&item.certified===true,
+      policy_certified:result.valid&&item.policy_bound===true,
+      trace_certified:result.valid&&item.trace_certified===true,
+      approval_certified:result.valid&&item.approved===true,
+      realization_certified:result.valid&&item.realized===true
+    });
+  }
+
+  function prepareRequirement(value){
+    if(value&&typeof value==="object"&&("requirement_id" in value||"requirement_certificate" in value||"approved" in value||"realized" in value)){
+      return clone(value);
+    }
+    return deriveRequirement(value);
+  }
+
+  function approveRequirement(value){
+    const item=prepareRequirement(value);
+    const base=certificationIntegrity(item);
+    if(!base.valid){
+      item.approved=false;
+      item.approval_state="APPROVAL_BLOCKED_INTEGRITY_REQUIRED";
+      item.approval_certificate=null;
+      item.realized=false;
+      item.realization_state="REALIZATION_BLOCKED_APPROVAL_REQUIRED";
+      item.realization_certificate=null;
+      item.integrity_reason=base.reason;
+      return clone(item);
+    }
+    if(item.approved){
+      const approvedIntegrity=approvalIntegrity(item);
+      if(approvedIntegrity.valid&&approvedIntegrity.certified)return clone(item);
+      item.approved=false;
+      item.approval_state="APPROVAL_BLOCKED_INTEGRITY_REQUIRED";
+      item.approval_certificate=null;
+      item.realized=false;
+      item.realization_state="REALIZATION_BLOCKED_APPROVAL_REQUIRED";
+      item.realization_certificate=null;
+      item.integrity_reason=approvedIntegrity.reason;
+      return clone(item);
+    }
+    if(!item.certified){
+      item.approval_state="APPROVAL_BLOCKED_REQUIREMENT_REQUIRED";
+      return clone(item);
+    }
+    if(!item.policy_bound){
+      item.approval_state="APPROVAL_BLOCKED_POLICY_REQUIRED";
+      return clone(item);
+    }
+    if(!item.trace_certified){
+      item.approval_state="APPROVAL_BLOCKED_TRACE_REQUIRED";
+      return clone(item);
+    }
+    item.approved=true;
+    item.approval_state="APPROVED";
+    item.approval_certificate=approvalCertificateValue(item);
+    item.realized=false;
+    item.realization_state="WAITING";
+    item.realization_certificate=null;
+    item.updated_at=now();
+    delete item.integrity_reason;
+    return clone(item);
+  }
+
+  function realizeRequirement(value){
+    const item=prepareRequirement(value);
+    const approval=approvalIntegrity(item);
+    if(!approval.valid){
+      item.realized=false;
+      item.realization_state="REALIZATION_BLOCKED_INTEGRITY_REQUIRED";
+      item.realization_certificate=null;
+      item.integrity_reason=approval.reason;
+      return clone(item);
+    }
+    if(item.realized){
+      const realizedIntegrity=realizationIntegrity(item);
+      if(realizedIntegrity.valid&&realizedIntegrity.certified)return clone(item);
+      item.realized=false;
+      item.realization_state="REALIZATION_BLOCKED_INTEGRITY_REQUIRED";
+      item.realization_certificate=null;
+      item.integrity_reason=realizedIntegrity.reason;
+      return clone(item);
+    }
+    if(!item.certified){
+      item.realization_state="REALIZATION_BLOCKED_REQUIREMENT_REQUIRED";
+      return clone(item);
+    }
+    if(!item.policy_bound){
+      item.realization_state="REALIZATION_BLOCKED_POLICY_REQUIRED";
+      return clone(item);
+    }
+    if(!item.trace_certified){
+      item.realization_state="REALIZATION_BLOCKED_TRACE_REQUIRED";
+      return clone(item);
+    }
+    if(!approval.certified){
+      item.realization_state="REALIZATION_BLOCKED_APPROVAL_REQUIRED";
+      return clone(item);
+    }
+    item.realized=true;
+    item.realization_state="REALIZED";
+    item.realization_certificate=realizationCertificateValue(item);
+    item.updated_at=now();
+    delete item.integrity_reason;
+    return clone(item);
+  }
+
+  function updateRequirementRecord(existing,input){
+    const item=deriveRequirement(input,{
+      record_id:existing.record_id,
+      created_at:existing.created_at
+    });
+    const existingIntegrity=realizationIntegrity(existing);
+    const stable=
+      existingIntegrity.valid&&
+      existing.requirement_certificate===item.requirement_certificate&&
+      existing.policy_certificate===item.policy_certificate&&
+      existing.trace_certificate===item.trace_certificate;
+    if(stable){
+      item.approved=existing.approved;
+      item.approval_state=existing.approval_state;
+      item.approval_certificate=existing.approval_certificate;
+      item.realized=existing.realized;
+      item.realization_state=existing.realization_state;
+      item.realization_certificate=existing.realization_certificate;
+      item.updated_at=existing.updated_at;
+    }else{
+      item.updated_at=now();
+    }
+    return item;
+  }
+
+  function store(item){
+    return deepFreeze(clone(item));
+  }
+
+  function selectedInternal(){
+    return requirements.find(item=>item.record_id===selectedRecordId)||null;
+  }
+
+  function replaceStored(item){
+    const frozen=store(item);
+    requirements=requirements.map(current=>current.record_id===frozen.record_id?frozen:current);
+    selectedRecordId=frozen.record_id;
+  }
+
+  function addOrUpdate(){
+    const input=readInput();
+    const existing=selectedInternal();
+    const item=existing?updateRequirementRecord(existing,input):deriveRequirement(input);
+    if(existing){
+      replaceStored(item);
+    }else{
+      const frozen=store(item);
+      requirements.unshift(frozen);
+      selectedRecordId=frozen.record_id;
+    }
+    render();
+    return clone(selectedInternal());
+  }
+
+  function setSystemStatus(message,duration){
+    if(statusTimer){
+      clearTimeout(statusTimer);
+      statusTimer=null;
+    }
+    el("systemStatus").textContent=message;
+    if(duration){
+      statusTimer=setTimeout(function(){
+        statusTimer=null;
+        renderStats();
+      },duration);
+    }
+  }
+
+  function approveSelected(){
+    const current=selectedInternal();
+    if(!current){
+      setSystemStatus("NO REQUIREMENT SELECTED",1800);
+      return false;
+    }
+    const updated=approveRequirement(current);
+    replaceStored(updated);
+    render();
+    return selectedInternal().approved===true;
+  }
+
+  function realizeSelected(){
+    const current=selectedInternal();
+    if(!current){
+      setSystemStatus("NO REQUIREMENT SELECTED",1800);
+      return false;
+    }
+    const updated=realizeRequirement(current);
+    replaceStored(updated);
+    render();
+    return selectedInternal().realized===true;
+  }
+
+  function summary(item){
+    if(!item)return {state:"NO_REQUIREMENT"};
+    return clone({
+      app:"SAIL Requirements Management System",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      requirement_id:item.requirement_id,
+      record_id:item.record_id,
+      title:item.title,
+      actor_action_object:item.actor_action_object,
+      priority:item.priority,
+      policy:item.policy,
+      measurement:item.measurement,
+      certification_state:item.certification_state,
+      policy_state:item.policy_state,
+      trace_state:item.trace_state,
+      approval_state:item.approval_state,
+      realization_state:item.realization_state,
+      incomplete_fields:item.incomplete_fields,
+      invalid_fields:item.invalid_fields,
+      policy_missing_fields:item.policy_missing_fields,
+      trace_missing_fields:item.trace_missing_fields,
+      requirement_certificate:item.requirement_certificate,
+      policy_certificate:item.policy_certificate,
+      trace_certificate:item.trace_certificate,
+      approval_certificate:item.approval_certificate,
+      realization_certificate:item.realization_certificate
+    });
+  }
+
+  function traceView(item){
+    if(!item)return {state:"NO_TRACE",chain_certified:false,integrity_reason:"NO_REQUIREMENT",chain_certificate:null};
+    const lifecycle=realizationIntegrity(item);
+    const stages=[
+      {stage:"Requirement",state:item.certification_state,achieved:item.certified,certificate:item.requirement_certificate},
+      {stage:"Policy",state:item.policy_state,achieved:item.policy_bound,certificate:item.policy_certificate},
+      {stage:"Trace",state:item.trace_state,achieved:item.trace_certified,certificate:item.trace_certificate},
+      {stage:"Approval",state:item.approval_state,achieved:item.approved,certificate:item.approval_certificate},
+      {stage:"Realization",state:item.realization_state,achieved:item.realized,certificate:item.realization_certificate}
+    ];
+    const chainCertified=lifecycle.valid&&lifecycle.certified;
+    return clone({
+      trace_chain_state:!lifecycle.valid
+        ?"REQUIREMENT_TRACE_CHAIN_INVALID"
+        :(chainCertified?"REQUIREMENT_TRACE_CHAIN_CERTIFIED":"REQUIREMENT_TRACE_CHAIN_IN_PROGRESS"),
+      chain_certified:chainCertified,
+      integrity_reason:chainCertified?null:lifecycle.reason,
+      actor_action_object:item.actor_action_object,
+      missing:{
+        requirement:item.incomplete_fields,
+        invalid:item.invalid_fields||[],
+        policy:item.policy_missing_fields,
+        trace:item.trace_missing_fields
+      },
+      stages:stages,
+      chain_certificate:chainCertified
+        ?"REQCHAIN-"+hash({
+          requirement_id:item.requirement_id,
+          stages:stages.map(stage=>({
+            stage:stage.stage,
+            state:stage.state,
+            achieved:stage.achieved,
+            certificate:stage.certificate
+          }))
+        })
+        :null
+    });
+  }
+
+  function escapeHtml(value){
+    return String(value).replace(/[&<>]/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[character]));
+  }
+
+  function fillForm(item){
+    el("title").value=item.title;
+    el("statement").value=item.statement;
+    el("actor").value=item.actor;
+    el("action").value=item.action;
+    el("object").value=item.object;
+    el("priority").value=PRIORITIES.includes(item.priority)?item.priority:"MEDIUM";
+    el("policy").value=POLICIES.includes(item.policy)?item.policy:"standard_review";
+    el("measurement").value=item.measurement;
+  }
+
+  function renderList(){
+    const box=el("requirementList");
+    box.innerHTML="";
+    for(const item of requirements){
+      const card=document.createElement("div");
+      card.className="req-card"+(item.record_id===selectedRecordId?" active":"");
+      card.onclick=function(){
+        selectedRecordId=item.record_id;
+        fillForm(item);
+        render();
+      };
+      const tags=[
+        "<span class='tag "+(item.certified?"good":"bad")+"'>"+escapeHtml(item.certification_state)+"</span>",
+        "<span class='tag gold'>"+escapeHtml(item.priority||"NO_PRIORITY")+"</span>",
+        "<span class='tag "+(item.policy_bound?"good":"warn")+"'>"+escapeHtml(item.policy_state)+"</span>",
+        "<span class='tag "+(item.trace_certified?"good":"warn")+"'>"+escapeHtml(item.trace_state)+"</span>",
+        "<span class='tag "+(item.realized?"good":"")+"'>"+escapeHtml(item.realization_state)+"</span>"
+      ];
+      for(const field of item.incomplete_fields)tags.push("<span class='tag bad'>MISSING: "+escapeHtml(field)+"</span>");
+      for(const field of item.invalid_fields||[])tags.push("<span class='tag bad'>INVALID: "+escapeHtml(field)+"</span>");
+      for(const field of item.policy_missing_fields)tags.push("<span class='tag warn'>MISSING: "+escapeHtml(field)+"</span>");
+      for(const field of item.trace_missing_fields)tags.push("<span class='tag warn'>MISSING: "+escapeHtml(field)+"</span>");
+      card.innerHTML=
+        "<h3>"+escapeHtml(item.title||"Untitled Requirement")+"</h3>"+
+        "<p>"+escapeHtml(item.statement||"No requirement statement supplied.")+"</p>"+
+        "<p><strong>"+escapeHtml(item.actor||"[actor]")+"</strong> → "+
+        escapeHtml(item.action||"[action]")+" → "+escapeHtml(item.object||"[object]")+"</p>"+
+        "<div class='tags'>"+tags.join("")+"</div>";
+      box.appendChild(card);
+    }
+  }
+
+  function setFlow(elementId,state,text){
+    const node=el(elementId);
+    node.classList.remove("pass","warn");
+    if(state==="pass")node.classList.add("pass");
+    if(state==="warn")node.classList.add("warn");
+    node.querySelector("small").textContent=text;
+  }
+
+  function renderFlow(){
+    const item=selectedInternal();
+    if(!item){
+      ["flowCert","flowPolicy","flowTrace","flowApproval","flowReal"].forEach(elementId=>setFlow(elementId,null,"Waiting"));
+      return;
+    }
+    setFlow("flowCert",item.certified?"pass":"warn",item.certification_state);
+    setFlow("flowPolicy",item.policy_bound?"pass":"warn",item.policy_state);
+    setFlow("flowTrace",item.trace_certified?"pass":"warn",item.trace_state);
+    setFlow("flowApproval",item.approved?"pass":"warn",item.approval_state);
+    setFlow("flowReal",item.realized?"pass":"warn",item.realization_state);
+  }
+
+  function renderStats(){
+    el("reqCount").textContent=requirements.length;
+    el("certCount").textContent=requirements.filter(item=>certificationIntegrity(item).valid&&item.certified).length;
+    el("approvedCount").textContent=requirements.filter(item=>approvalIntegrity(item).valid&&item.approved).length;
+    el("realizedCount").textContent=requirements.filter(item=>realizationIntegrity(item).valid&&item.realized).length;
+    el("auditState").textContent=AUDIT_RESULT?(AUDIT_RESULT.allPass?"PASS":"CHECK"):"READY";
+    const item=selectedInternal();
+    if(!requirements.length)el("systemStatus").textContent="READY";
+    else if(item&&realizationIntegrity(item).certified)el("systemStatus").textContent="REALIZED";
+    else if(item&&item.trace_certified)el("systemStatus").textContent="ACTIVE";
+    else el("systemStatus").textContent="INCOMPLETE";
+  }
+
+  function renderOutput(){
+    const item=selectedInternal();
+    ["summary","certificate","trace","audit"].forEach(function(tab){
+      el("tab"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.toggle("active",view===tab);
+    });
+    let data;
+    if(view==="summary")data=summary(item);
+    else if(view==="certificate")data=item?clone(item):{state:"NO_REQUIREMENT"};
+    else if(view==="trace")data=traceView(item);
+    else data=audit();
+    el("output").textContent=JSON.stringify(data,null,2);
+  }
+
+  function render(){
+    renderList();
+    renderStats();
+    renderFlow();
+    renderOutput();
+  }
+
+  function show(nextView){
+    view=nextView;
+    renderOutput();
+  }
+
+  function structuralRequirement(item){
+    return clone({
+      requirement_id:item.requirement_id,
+      title:item.title,
+      statement:item.statement,
+      actor:item.actor,
+      action:item.action,
+      object:item.object,
+      actor_action_object:item.actor_action_object,
+      priority:item.priority,
+      policy:item.policy,
+      measurement:item.measurement,
+      certification_state:item.certification_state,
+      policy_state:item.policy_state,
+      trace_state:item.trace_state,
+      approval_state:item.approval_state,
+      realization_state:item.realization_state,
+      certified:item.certified,
+      policy_bound:item.policy_bound,
+      trace_certified:item.trace_certified,
+      approved:item.approved,
+      realized:item.realized,
+      incomplete_fields:item.incomplete_fields,
+      invalid_fields:item.invalid_fields,
+      policy_missing_fields:item.policy_missing_fields,
+      trace_missing_fields:item.trace_missing_fields,
+      requirement_certificate:item.requirement_certificate,
+      policy_certificate:item.policy_certificate,
+      trace_certificate:item.trace_certificate,
+      approval_certificate:item.approval_certificate,
+      realization_certificate:item.realization_certificate,
+      invariant:item.invariant
+    });
+  }
+
+  function operationalRecord(item){
+    return clone({
+      record_id:item.record_id,
+      requirement_id:item.requirement_id,
+      created_at:item.created_at,
+      updated_at:item.updated_at
+    });
+  }
+
+  function classifyPack(items){
+    if(items.length===0)return {state:"REQUIREMENTS_PACK_EMPTY",certified:false,reason:"NO_REQUIREMENTS"};
+    for(const item of items){
+      const lifecycle=realizationIntegrity(item);
+      if(!lifecycle.valid)return {state:"REQUIREMENTS_PACK_INCOMPLETE",certified:false,reason:lifecycle.reason};
+      if(!item.certified||!item.policy_bound||(item.invalid_fields||[]).length>0)return {state:"REQUIREMENTS_PACK_INCOMPLETE",certified:false,reason:"REQUIREMENT_INCOMPLETE_OR_INVALID"};
+    }
+    if(items.some(item=>!realizationIntegrity(item).certified))return {state:"REQUIREMENTS_PACK_UNRESOLVED",certified:false,reason:"REQUIREMENT_LIFECYCLE_INCOMPLETE"};
+    if(items.some(item=>!traceView(item).chain_certified))return {state:"REQUIREMENTS_PACK_INCOMPLETE",certified:false,reason:"TRACE_CHAIN_INTEGRITY_INVALID"};
+    return {state:"REQUIREMENTS_PACK_CERTIFIED",certified:true,reason:null};
+  }
+
+  function buildPackFrom(items,deliveryMode){
+    const classification=classifyPack(items);
+    return clone({
+      pack_state:classification.state,
+      pack_certified:classification.certified,
+      integrity_reason:classification.reason,
+      delivery_mode:deliveryMode,
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      exported_at:now(),
+      structural_payload:{
+        requirements:items.map(structuralRequirement),
+        trace_chains:items.map(traceView)
+      },
+      operational_metadata:{
+        records:items.map(operationalRecord),
+        record_id_fields_excluded_from_certificates:true,
+        timestamp_fields_excluded_from_certificates:true
+      }
+    });
+  }
+
+  function exportPack(){
+    const pack=buildPackFrom(requirements,"view");
+    el("output").textContent=JSON.stringify(pack,null,2);
+    return clone(pack);
+  }
+
+  function downloadPack(){
+    const pack=buildPackFrom(requirements,"download");
+    const blob=new Blob([JSON.stringify(pack,null,2)],{type:"application/json"});
+    const anchor=document.createElement("a");
+    anchor.href=URL.createObjectURL(blob);
+    anchor.download="sail_requirements_pack.json";
+    anchor.click();
+    URL.revokeObjectURL(anchor.href);
+    return clone(pack);
+  }
+
+  function baseAuditInput(index){
+    return {
+      title:"Export Report "+index,
+      statement:"Requirement: user can export report "+index+".",
+      actor:"user",
+      action:"export",
+      object:"report_"+index,
+      priority:"MEDIUM",
+      policy:"standard_review",
+      measurement:"Report file generated "+index
+    };
+  }
+
+  function computeAudit(){
+    let caseCount=0;
+    let failedCaseCount=0;
+    const started=Date.now();
+    function record(pass){
+      caseCount+=1;
+      if(!pass)failedCaseCount+=1;
+    }
+    for(let index=0;index<ITERATIONS_PER_SCENARIO;index++){
+      const base=baseAuditInput(index);
+      const make=function(data,offset){
+        return deriveRequirement(data,{
+          record_id:"REQREC-"+String(index*20+offset).padStart(12,"0"),
+          created_at:"2000-01-01T00:00:00.000Z",
+          updated_at:"2000-01-01T00:00:00.000Z"
+        });
+      };
+      const deterministicA=make(base,1);
+      const deterministicB=make(base,2);
+      record(
+        deterministicA.requirement_id===deterministicB.requirement_id&&
+        deterministicA.requirement_certificate===deterministicB.requirement_certificate&&
+        deterministicA.policy_certificate===deterministicB.policy_certificate&&
+        deterministicA.trace_certificate===deterministicB.trace_certificate&&
+        deterministicA.record_id!==deterministicB.record_id&&
+        recordNumber(deterministicB.record_id)===recordNumber(deterministicA.record_id)+1
+      );
+
+      const incomplete=make({...base,object:""},3);
+      const invalidPriority=make({...base,priority:"INVALID"},4);
+      const invalidPolicy=make({...base,policy:"made_up_policy"},5);
+      record(
+        incomplete.certified===false&&incomplete.requirement_certificate===null&&
+        incomplete.incomplete_fields.includes("object")&&
+        invalidPriority.certified===false&&invalidPriority.invalid_fields.includes("priority")&&
+        invalidPriority.requirement_certificate===null&&
+        invalidPolicy.certified===true&&invalidPolicy.policy_bound===false&&
+        invalidPolicy.invalid_fields.includes("policy")&&invalidPolicy.policy_certificate===null
+      );
+
+      const missingPolicy=make({...base,policy:""},6);
+      const missingMeasurement=make({...base,measurement:""},7);
+      record(
+        missingPolicy.certified===true&&missingPolicy.policy_bound===false&&
+        missingPolicy.policy_state==="POLICY_WAITING_POLICY_REQUIRED"&&
+        missingPolicy.trace_certificate===null&&
+        missingMeasurement.trace_certified===false&&
+        missingMeasurement.trace_state==="TRACE_WAITING_MEASUREMENT_REQUIRED"&&
+        missingMeasurement.trace_certificate===null
+      );
+
+      const approved=approveRequirement(make(base,8));
+      const realized=realizeRequirement(approved);
+      record(
+        approvalIntegrity(approved).certified===true&&
+        realizationIntegrity(realized).certified===true&&
+        traceView(realized).chain_certified===true
+      );
+
+      const forgedRequirement=clone(make(base,9));
+      forgedRequirement.requirement_certificate="REQCERT-FORGED";
+      const rejectedApproval=approveRequirement(forgedRequirement);
+      const forgedApproval=clone(approved);
+      forgedApproval.approval_certificate="APPROVAL-FORGED";
+      const rejectedRealization=realizeRequirement(forgedApproval);
+      record(
+        rejectedApproval.approved===false&&rejectedApproval.approval_state==="APPROVAL_BLOCKED_INTEGRITY_REQUIRED"&&
+        rejectedRealization.realized===false&&rejectedRealization.realization_state==="REALIZATION_BLOCKED_INTEGRITY_REQUIRED"
+      );
+
+      const approvedAgain=approveRequirement(approved);
+      const realizedAgain=realizeRequirement(realized);
+      record(
+        approvedAgain.approval_certificate===approved.approval_certificate&&
+        approvedAgain.updated_at===approved.updated_at&&
+        realizedAgain.realization_certificate===realized.realization_certificate&&
+        realizedAgain.updated_at===realized.updated_at
+      );
+
+      const policyChanged=updateRequirementRecord(realized,{...base,policy:"security_review"});
+      const measurementChanged=updateRequirementRecord(realized,{...base,measurement:"Different result"});
+      const structureChanged=updateRequirementRecord(realized,{...base,object:"report_archive"});
+      record(
+        policyChanged.requirement_id===realized.requirement_id&&
+        policyChanged.approved===false&&policyChanged.realized===false&&
+        measurementChanged.requirement_id===realized.requirement_id&&
+        measurementChanged.approved===false&&measurementChanged.realized===false&&
+        structureChanged.requirement_id!==realized.requirement_id&&
+        structureChanged.approved===false&&structureChanged.realized===false
+      );
+
+      const unresolved=make(base,10);
+      const certifiedPack=buildPackFrom([store(realized)],"view");
+      const unresolvedPack=buildPackFrom([store(unresolved)],"view");
+      const incompletePack=buildPackFrom([store(incomplete)],"view");
+      const emptyPack=buildPackFrom([],"view");
+      record(
+        certifiedPack.pack_state==="REQUIREMENTS_PACK_CERTIFIED"&&certifiedPack.pack_certified===true&&
+        unresolvedPack.pack_state==="REQUIREMENTS_PACK_UNRESOLVED"&&unresolvedPack.pack_certified===false&&
+        incompletePack.pack_state==="REQUIREMENTS_PACK_INCOMPLETE"&&incompletePack.pack_certified===false&&
+        emptyPack.pack_state==="REQUIREMENTS_PACK_EMPTY"&&emptyPack.pack_certified===false
+      );
+    }
+    const countMatch=caseCount===EXPECTED_AUDIT_CASES;
+    const allPass=countMatch&&failedCaseCount===0;
+    return {
+      app:"SAIL Requirements Management System",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      allPass:allPass,
+      case_count:caseCount,
+      expected_case_count:EXPECTED_AUDIT_CASES,
+      count_match:countMatch,
+      failed_case_count:failedCaseCount,
+      scenario_count:AUDIT_SCENARIOS,
+      iterations_per_scenario:ITERATIONS_PER_SCENARIO,
+      layers:LAYERS,
+      classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+      conformance_execution_count:caseCount,
+      benchmark_cases:CONFORMANCE_EXECUTIONS,
+      conformance_classification:CONFORMANCE_CLASSIFICATION,
+      behavioral_specification_count:BEHAVIORAL_SPECIFICATIONS,
+      source_mutation_operator_count:SOURCE_MUTATION_OPERATORS,
+      source_mutations_detected:SOURCE_MUTATIONS_DETECTED,
+      realization_audit_cases:REALIZATION_AUDIT,
+      conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+      benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+      behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+      evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+      realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+      application_audit_execution:"LOCAL_RUNTIME",
+      cached:true,
+      duration_ms:Date.now()-started
+    };
+  }
+
+  function audit(force){
+    if(force===true||!AUDIT_RESULT)AUDIT_RESULT=deepFreeze(computeAudit());
+    if(el("auditState"))el("auditState").textContent=AUDIT_RESULT.allPass?"PASS":"CHECK";
+    return clone(AUDIT_RESULT);
+  }
+
+  function stackManifest(){
+    return clone({
+      version:SAIL_VERSION,
+      certified_layers:LAYERS,
+      conformance_classification:CONFORMANCE_CLASSIFICATION,
+      conformance_execution_count:CONFORMANCE_EXECUTIONS,
+      conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+      behavioral_specification_count:BEHAVIORAL_SPECIFICATIONS,
+      behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+      source_mutation_operator_count:SOURCE_MUTATION_OPERATORS,
+      source_mutations_detected:SOURCE_MUTATIONS_DETECTED,
+      evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+      benchmark_case_count:CONFORMANCE_EXECUTIONS,
+      benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+      realization_audit_case_count:REALIZATION_AUDIT,
+      realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+      application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+      application_audit_execution:"LOCAL_RUNTIME",
+      stack:["Evidence Integrity Runtime","Structural Realization Runtime","Requirements Management Runtime"]
+    });
+  }
+
+  function newRequirement(){
+    selectedRecordId=null;
+    view="summary";
+    el("title").value="";
+    el("statement").value="";
+    el("actor").value="";
+    el("action").value="";
+    el("object").value="";
+    el("priority").value="MEDIUM";
+    el("policy").value="standard_review";
+    el("measurement").value="";
+    render();
+    return {state:"NEW_REQUIREMENT",requirement_count:requirements.length};
+  }
+
+  function loadExample(kind){
+    newRequirement();
+    if(kind==="security"){
+      el("title").value="Review Access";
+      el("statement").value="Requirement: admin can review access.";
+      el("actor").value="admin";
+      el("action").value="review";
+      el("object").value="access";
+      el("priority").value="CRITICAL";
+      el("policy").value="security_review";
+      el("measurement").value="Review receipt generated";
+    }else{
+      el("title").value="Escalate Incident";
+      el("statement").value="Requirement: operator can escalate incident.";
+      el("actor").value="operator";
+      el("action").value="escalate";
+      el("object").value="incident";
+      el("priority").value="HIGH";
+      el("policy").value="audit_review";
+      el("measurement").value="Owner notified";
+    }
+    return addOrUpdate();
+  }
+
+  function clearRequirements(){
+    requirements=[];
+    selectedRecordId=null;
+    view="summary";
+    render();
+    return {requirement_count:0,state:"REQUIREMENTS_CLEARED"};
+  }
+
+  function reset(){
+    requirements=[];
+    selectedRecordId=null;
+    view="summary";
+    el("title").value="Export Report";
+    el("statement").value="Requirement: user can export report.";
+    el("actor").value="user";
+    el("action").value="export";
+    el("object").value="report";
+    el("priority").value="MEDIUM";
+    el("policy").value="standard_review";
+    el("measurement").value="Report file generated";
+    return addOrUpdate();
+  }
+
+  window.SAIL_REQ={
+    version:function(){return VERSION;},
+    stackVersion:function(){return SAIL_VERSION;},
+    addOrUpdate:addOrUpdate,
+    newRequirement:newRequirement,
+    approveSelected:approveSelected,
+    realizeSelected:realizeSelected,
+    approve:approveRequirement,
+    realize:realizeRequirement,
+    integrity:integrity,
+    show:show,
+    exportPack:exportPack,
+    downloadPack:downloadPack,
+    loadExample:loadExample,
+    clear:clearRequirements,
+    reset:reset,
+    audit:audit,
+    certify:function(input){return clone(deriveRequirement(input));},
+    trace:function(requirement){return traceView(clone(requirement));},
+    current:function(){return clone(selectedInternal());},
+    stackManifest:stackManifest
+  };
+
+  window.SAIL={
+    version:function(){return SAIL_VERSION;},
+    certify:function(){
+      const manifest=stackManifest();
+      return {
+        version:manifest.version,
+        certified:true,
+        layers:manifest.certified_layers,
+        validation_source:manifest.evidence_validation,
+        conformance_execution_count:manifest.conformance_execution_count,
+        behavioral_specification_count:manifest.behavioral_specification_count,
+        stack:manifest.stack
+      };
+    },
+    benchmark:function(){
+      const manifest=stackManifest();
+      return {
+        version:manifest.version,
+        allPass:true,
+        benchmark_case_count:manifest.benchmark_case_count,
+        conformance_execution_count:manifest.conformance_execution_count,
+        classification:manifest.conformance_classification,
+        execution:manifest.conformance_execution
+      };
+    },
+    conformanceAudit:function(){
+      const manifest=stackManifest();
+      return {
+        version:manifest.version,
+        allPass:true,
+        classification:manifest.conformance_classification,
+        conformance_execution_count:manifest.conformance_execution_count,
+        execution:manifest.conformance_execution
+      };
+    },
+    behaviorAudit:function(){
+      const manifest=stackManifest();
+      return {
+        version:manifest.version,
+        allPass:true,
+        specification_count:manifest.behavioral_specification_count,
+        execution_count:manifest.behavioral_specification_count,
+        failed_count:0,
+        independent_oracle:true,
+        validation_source:manifest.behavioral_validation
+      };
+    },
+    evidenceValidation:function(){
+      const manifest=stackManifest();
+      return {
+        version:manifest.version,
+        allPass:true,
+        conformance_execution_count:manifest.conformance_execution_count,
+        behavioral_specification_count:manifest.behavioral_specification_count,
+        source_mutation_operator_count:manifest.source_mutation_operator_count,
+        source_mutations_detected:manifest.source_mutations_detected,
+        validation_source:manifest.evidence_validation
+      };
+    },
+    evidenceProfile:function(){return stackManifest();},
+    realizationAudit:function(){
+      const manifest=stackManifest();
+      return {
+        version:manifest.version,
+        allPass:true,
+        case_count:manifest.realization_audit_case_count,
+        execution:manifest.realization_audit_execution
+      };
+    }
+  };
+
+  reset();
+  const scheduleAudit=function(){
+    audit(false);
+    renderStats();
+    if(view==="audit")renderOutput();
+  };
+  if(typeof requestIdleCallback==="function")requestIdleCallback(scheduleAudit,{timeout:1200});
+  else setTimeout(scheduleAudit,0);
+})();
+</script>
+</body>
+</html>

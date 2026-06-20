@@ -633,7 +633,7 @@ CORE RELEASE ARTIFACT VERIFICATION
 Required core artifacts:
 
 - SAIL_v5_9_0_Evidence_Integrity_Runtime.html
-- README_SAIL_v5_9_0.md
+- README.md
 - SAIL_v5_9_0_console_tests.txt
 - SAIL_v5_9_0_behavioral_oracles.json
 - sail_v5_9_0_runtime_behavior_test.py

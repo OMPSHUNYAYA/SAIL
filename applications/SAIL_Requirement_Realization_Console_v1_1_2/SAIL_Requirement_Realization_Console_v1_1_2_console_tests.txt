@@ -1,0 +1,1474 @@
+SAIL Requirement Realization Console Validation
+SAIL Requirement Realization Console v1.1.2
+Built on SAIL v5.9.0 Evidence Integrity Runtime
+
+==================================================
+APPLICATION VALIDATION
+==================================================
+
+[
+  SAIL_APP.version(),
+  SAIL_APP.stackVersion(),
+  SAIL_APP.audit().allPass,
+  SAIL_APP.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected:
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  10000,
+  37,
+  347400
+]
+
+==================================================
+EVIDENCE REFERENCE VALIDATION
+==================================================
+
+(() => {
+  const manifest = SAIL_APP.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version:manifest.version,
+    conformance_classification:conformance.classification,
+    conformance_execution_count:conformance.conformance_execution_count,
+    behavioral_specification_count:behavior.specification_count,
+    behavioral_failures:behavior.failed_count,
+    source_mutation_operators:evidence.source_mutation_operator_count,
+    source_mutations_detected:evidence.source_mutations_detected,
+    evidence_all_pass:evidence.allPass
+  };
+})()
+
+Expected:
+
+{
+  version:"5.9.0",
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  behavioral_failures:0,
+  source_mutation_operators:5,
+  source_mutations_detected:5,
+  evidence_all_pass:true
+}
+
+Referenced validation boundary:
+
+347400, 96, 5 of 5, and 48600 are REFERENCE_RELEASE_VALIDATION metadata.
+
+They are not re-executed by this application.
+
+The application locally executes 10000 application conformance executions.
+
+==================================================
+REQUIREMENT-LAYER INDEPENDENCE
+==================================================
+
+(() => {
+  const result = SAIL_APP.requirement({
+    requirement:"Requirement: user can export report.",
+    workflow:""
+  });
+
+  return {
+    state:result.state,
+    certified:result.certified,
+    requirement:result.invariant.requirement,
+    workflow_in_requirement_invariant:
+      Object.prototype.hasOwnProperty.call(
+        result.invariant,
+        "workflow"
+      ),
+    certificate_prefix_valid:
+      result.certificate.startsWith("REQ-")
+  };
+})()
+
+Expected:
+
+{
+  state:"REQUIREMENT_CERTIFIED",
+  certified:true,
+  requirement:"Requirement: user can export report.",
+  workflow_in_requirement_invariant:false,
+  certificate_prefix_valid:true
+}
+
+Requirement invariant:
+
+same requirement -> same requirement certificate
+
+==================================================
+WORKFLOW-LAYER BLOCKING AND NULL CERTIFICATES
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: user can export report.",
+    workflow:"",
+    execution:"Export completed",
+    measurement:"Report file generated",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:1
+  });
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    incomplete_fields:result.incomplete_fields,
+    invalid_fields:result.invalid_fields,
+    requirement_state:result.requirement.state,
+    requirement_certified:result.requirement.certified,
+    workflow_state:result.workflow.state,
+    workflow_certified:result.workflow.certified,
+    workflow_certificate:result.workflow.certificate,
+    execution_certificate:result.execution.certificate,
+    measurement_certificate:result.measurement.certificate,
+    outcome_certificate:result.outcome.certificate,
+    realization_certificate:result.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  realized:false,
+  incomplete_fields:["workflow"],
+  invalid_fields:[],
+  requirement_state:"REQUIREMENT_CERTIFIED",
+  requirement_certified:true,
+  workflow_state:"WORKFLOW_BLOCKED",
+  workflow_certified:false,
+  workflow_certificate:null,
+  execution_certificate:null,
+  measurement_certificate:null,
+  outcome_certificate:null,
+  realization_certificate:null
+}
+
+Layer invariant:
+
+requirement certification depends only on requirement structure
+
+Blocked-stage invariant:
+
+blocked structural stages do not issue certificates
+
+==================================================
+REQUIREMENT CERTIFICATE STABILITY ACROSS WORKFLOWS
+==================================================
+
+(() => {
+  const base = {
+    requirement:"Requirement: user can export report.",
+    execution:"Export completed",
+    measurement:"Report file generated",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:1
+  };
+
+  const first = SAIL_APP.realize({
+    ...base,
+    workflow:"Export Report Workflow"
+  });
+
+  const second = SAIL_APP.realize({
+    ...base,
+    workflow:"Alternative Export Workflow"
+  });
+
+  return {
+    same_requirement_certificate:
+      first.requirement.certificate ===
+      second.requirement.certificate,
+    different_workflow_certificate:
+      first.workflow.certificate !==
+      second.workflow.certificate,
+    first_requirement_state:
+      first.requirement.state,
+    second_requirement_state:
+      second.requirement.state
+  };
+})()
+
+Expected:
+
+{
+  same_requirement_certificate:true,
+  different_workflow_certificate:true,
+  first_requirement_state:"REQUIREMENT_CERTIFIED",
+  second_requirement_state:"REQUIREMENT_CERTIFIED"
+}
+
+Separation invariant:
+
+requirement identity independent of realization workflow
+
+==================================================
+REALIZATION CERTIFICATION AND INTEGRITY
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: user can export report.",
+    workflow:"Export Report Workflow",
+    execution:"Export completed",
+    measurement:"Report file generated",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:1
+  });
+
+  const integrity = SAIL_APP.integrity(result);
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    incomplete_fields:result.incomplete_fields,
+    invalid_fields:result.invalid_fields,
+    requirement_state:result.requirement.state,
+    workflow_state:result.workflow.state,
+    execution_state:result.execution.state,
+    measurement_state:result.measurement.state,
+    outcome_state:result.outcome.state,
+    replayable:result.replayable,
+    auditable:result.auditable,
+    memoryless:result.memoryless,
+    certificate_prefix_valid:
+      result.realization_certificate.startsWith("REAL-"),
+    integrity_valid:integrity.valid,
+    integrity_certified:integrity.certified,
+    integrity_reason:integrity.reason
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_CERTIFIED",
+  realized:true,
+  incomplete_fields:[],
+  invalid_fields:[],
+  requirement_state:"REQUIREMENT_CERTIFIED",
+  workflow_state:"WORKFLOW_CERTIFIED",
+  execution_state:"EXECUTION_CERTIFIED",
+  measurement_state:"MEASUREMENT_CERTIFIED",
+  outcome_state:"OUTCOME_VERIFIED",
+  replayable:true,
+  auditable:true,
+  memoryless:true,
+  certificate_prefix_valid:true,
+  integrity_valid:true,
+  integrity_certified:true,
+  integrity_reason:null
+}
+
+Integrity invariant:
+
+realization certified iff every layer certificate is reproducible and mutually consistent
+
+==================================================
+OUTCOME MEASUREMENT
+==================================================
+
+SAIL_APP.measure({
+  requirement:"Requirement: user can export report.",
+  workflow:"Export Report Workflow",
+  execution:"Export completed",
+  measurement:"Report file generated",
+  expected:true,
+  actual:true,
+  score:1,
+  threshold:1
+})
+
+Expected:
+
+{
+  realization_state:"REALIZATION_CERTIFIED",
+  certified:true,
+  realized:true,
+  measurement_state:"MEASUREMENT_CERTIFIED",
+  outcome_state:"OUTCOME_VERIFIED",
+  boolean_match:true,
+  score_match:true,
+  expected_valid:true,
+  actual_valid:true
+}
+
+==================================================
+OUTCOME VERIFICATION
+==================================================
+
+SAIL_APP.verify({
+  requirement:"Requirement: user can export report.",
+  workflow:"Export Report Workflow",
+  execution:"Export completed",
+  measurement:"Report file generated",
+  expected:true,
+  actual:true,
+  score:1,
+  threshold:1
+})
+
+Expected:
+
+{
+  verification_state:"OUTCOME_VERIFIED",
+  certified:true,
+  realized:true,
+  outcome_state:"OUTCOME_VERIFIED",
+  boolean_match:true,
+  score_match:true,
+  expected_valid:true,
+  actual_valid:true
+}
+
+==================================================
+REALIZATION CERTIFICATE
+==================================================
+
+(() => {
+  const result = SAIL_APP.certificate({
+    requirement:"Requirement: user can export report.",
+    workflow:"Export Report Workflow",
+    execution:"Export completed",
+    measurement:"Report file generated",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:1
+  });
+
+  return {
+    certificate_state:result.certificate_state,
+    certified:result.certified,
+    realized:result.realized,
+    certificate_prefix_valid:
+      result.realization_certificate.startsWith("REAL-")
+  };
+})()
+
+Expected:
+
+{
+  certificate_state:"REALIZATION_CERTIFICATE_ISSUED",
+  certified:true,
+  realized:true,
+  certificate_prefix_valid:true
+}
+
+==================================================
+INVALID EXPECTED-BOOLEAN ADMISSION
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: expected value must be valid.",
+    workflow:"Boolean Admission Workflow",
+    execution:"Execution completed",
+    measurement:"Outcome measured",
+    expected:"yes",
+    actual:true,
+    score:1,
+    threshold:1
+  });
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    invalid_fields:result.invalid_fields,
+    outcome_state:result.outcome.state,
+    expected_valid:result.outcome.expected_valid,
+    actual_valid:result.outcome.actual_valid,
+    outcome_certificate:result.outcome.certificate,
+    realization_certificate:result.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  realized:false,
+  invalid_fields:["expected"],
+  outcome_state:"OUTCOME_BLOCKED_INVALID_BOOLEAN",
+  expected_valid:false,
+  actual_valid:true,
+  outcome_certificate:null,
+  realization_certificate:null
+}
+
+Admission invariant:
+
+expected outcome admitted iff it is true, false, "true", or "false"
+
+==================================================
+INVALID ACTUAL-BOOLEAN ADMISSION
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: actual value must be valid.",
+    workflow:"Boolean Admission Workflow",
+    execution:"Execution completed",
+    measurement:"Outcome measured",
+    expected:false,
+    actual:"no",
+    score:1,
+    threshold:1
+  });
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    invalid_fields:result.invalid_fields,
+    outcome_state:result.outcome.state,
+    expected_valid:result.outcome.expected_valid,
+    actual_valid:result.outcome.actual_valid,
+    outcome_certificate:result.outcome.certificate,
+    realization_certificate:result.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  realized:false,
+  invalid_fields:["actual"],
+  outcome_state:"OUTCOME_BLOCKED_INVALID_BOOLEAN",
+  expected_valid:true,
+  actual_valid:false,
+  outcome_certificate:null,
+  realization_certificate:null
+}
+
+Admission invariant:
+
+actual outcome admitted iff it is true, false, "true", or "false"
+
+==================================================
+INVALID NUMERIC ADMISSION
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: score must be numeric.",
+    workflow:"Numeric Admission Workflow",
+    execution:"Execution completed",
+    measurement:"Score measured",
+    expected:true,
+    actual:true,
+    score:"bad",
+    threshold:1
+  });
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    invalid_fields:result.invalid_fields,
+    measurement_state:result.measurement.state,
+    measurement_certificate:result.measurement.certificate,
+    outcome_state:result.outcome.state,
+    score_match:result.outcome.score_match,
+    realization_certificate:result.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  realized:false,
+  invalid_fields:["score"],
+  measurement_state:"MEASUREMENT_BLOCKED",
+  measurement_certificate:null,
+  outcome_state:"OUTCOME_NOT_VERIFIED",
+  score_match:false,
+  realization_certificate:null
+}
+
+==================================================
+NEGATIVE THRESHOLD REJECTION
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: invalid threshold is rejected.",
+    workflow:"Threshold Validation Workflow",
+    execution:"Execution completed",
+    measurement:"Score measured",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:-1
+  });
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    invalid_fields:result.invalid_fields,
+    measurement_state:result.measurement.state,
+    measurement_certified:result.measurement.certified,
+    threshold:result.measurement.invariant.threshold,
+    threshold_valid:result.measurement.invariant.threshold_valid,
+    score_match:result.outcome.score_match,
+    realization_certificate:result.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  realized:false,
+  invalid_fields:["threshold"],
+  measurement_state:"MEASUREMENT_BLOCKED",
+  measurement_certified:false,
+  threshold:null,
+  threshold_valid:false,
+  score_match:false,
+  realization_certificate:null
+}
+
+==================================================
+ZERO THRESHOLD VALIDATION
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: zero threshold is valid.",
+    workflow:"Zero Threshold Workflow",
+    execution:"Execution completed",
+    measurement:"Score measured",
+    expected:true,
+    actual:true,
+    score:0,
+    threshold:0
+  });
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    measurement_state:result.measurement.state,
+    measurement_certified:result.measurement.certified,
+    threshold:result.measurement.invariant.threshold,
+    threshold_valid:result.measurement.invariant.threshold_valid,
+    boolean_match:result.outcome.boolean_match,
+    score_match:result.outcome.score_match
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_CERTIFIED",
+  realized:true,
+  measurement_state:"MEASUREMENT_CERTIFIED",
+  measurement_certified:true,
+  threshold:0,
+  threshold_valid:true,
+  boolean_match:true,
+  score_match:true
+}
+
+Threshold invariant:
+
+threshold >= 0 is structurally valid
+
+==================================================
+BOOLEAN AND SCORE SEPARATION
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: failed outcome remains visible.",
+    workflow:"Outcome Verification Workflow",
+    execution:"Execution completed",
+    measurement:"Outcome measured",
+    expected:true,
+    actual:false,
+    score:1,
+    threshold:1
+  });
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    outcome_state:result.outcome.state,
+    boolean_match:result.outcome.boolean_match,
+    score_match:result.outcome.score_match,
+    matched:result.outcome.matched,
+    boolean_state:
+      result.outcome.invariant.outcome_boolean_state,
+    score_state:
+      result.outcome.invariant.outcome_score_state,
+    outcome_certificate:result.outcome.certificate,
+    realization_certificate:result.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  realized:false,
+  outcome_state:"OUTCOME_NOT_VERIFIED",
+  boolean_match:false,
+  score_match:true,
+  matched:false,
+  boolean_state:"OUTCOME_BOOLEAN_MISMATCHED",
+  score_state:"OUTCOME_SCORE_MATCHED",
+  outcome_certificate:null,
+  realization_certificate:null
+}
+
+Outcome invariant:
+
+realized iff boolean match AND score match AND structural chain complete
+
+==================================================
+DETERMINISTIC REALIZATION REPLAY
+==================================================
+
+(() => {
+  const input = {
+    requirement:"Requirement: user can export report.",
+    workflow:"Export Report Workflow",
+    execution:"Export completed",
+    measurement:"Report file generated",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:1
+  };
+
+  const first = SAIL_APP.realize(input);
+  const second = SAIL_APP.realize(input);
+
+  return {
+    same_requirement_certificate:
+      first.requirement.certificate ===
+      second.requirement.certificate,
+    same_workflow_certificate:
+      first.workflow.certificate ===
+      second.workflow.certificate,
+    same_execution_certificate:
+      first.execution.certificate ===
+      second.execution.certificate,
+    same_measurement_certificate:
+      first.measurement.certificate ===
+      second.measurement.certificate,
+    same_outcome_certificate:
+      first.outcome.certificate ===
+      second.outcome.certificate,
+    same_realization_certificate:
+      first.realization_certificate ===
+      second.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  same_requirement_certificate:true,
+  same_workflow_certificate:true,
+  same_execution_certificate:true,
+  same_measurement_certificate:true,
+  same_outcome_certificate:true,
+  same_realization_certificate:true
+}
+
+Replay invariant:
+
+same structure -> same certificate chain -> same realization outcome
+
+==================================================
+CERTIFIED OUTCOME LEDGER
+==================================================
+
+(() => {
+  const input = {
+    requirement:"Requirement: user can export report.",
+    workflow:"Export Report Workflow",
+    execution:"Export completed",
+    measurement:"Report file generated",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:1
+  };
+
+  const first = SAIL_APP.ledger(input);
+  const second = SAIL_APP.ledger(input);
+
+  return {
+    ledger_state:first.ledger_state,
+    ledger_certified:first.ledger_certified,
+    integrity_reason:first.integrity_reason,
+    requirement_certificate_present:
+      first.chain.requirement_certificate.startsWith("REQ-"),
+    workflow_certificate_present:
+      first.chain.workflow_certificate.startsWith("WF-"),
+    execution_certificate_present:
+      first.chain.execution_certificate.startsWith("EXE-"),
+    measurement_certificate_present:
+      first.chain.measurement_certificate.startsWith("MEA-"),
+    outcome_certificate_present:
+      first.chain.outcome_certificate.startsWith("OUT-"),
+    realization_certificate_present:
+      first.chain.realization_certificate.startsWith("REAL-"),
+    ledger_certificate_present:
+      first.ledger_certificate.startsWith("LEDGER-"),
+    deterministic_ledger:
+      first.ledger_certificate ===
+      second.ledger_certificate
+  };
+})()
+
+Expected:
+
+{
+  ledger_state:"OUTCOME_LEDGER_CERTIFIED",
+  ledger_certified:true,
+  integrity_reason:null,
+  requirement_certificate_present:true,
+  workflow_certificate_present:true,
+  execution_certificate_present:true,
+  measurement_certificate_present:true,
+  outcome_certificate_present:true,
+  realization_certificate_present:true,
+  ledger_certificate_present:true,
+  deterministic_ledger:true
+}
+
+Ledger invariant:
+
+ledger certified iff realization integrity is certified
+
+==================================================
+BLOCKED OUTCOME LEDGER
+==================================================
+
+(() => {
+  const ledger = SAIL_APP.ledger({
+    requirement:"Requirement: failed outcome remains visible.",
+    workflow:"Outcome Verification Workflow",
+    execution:"Execution completed",
+    measurement:"Outcome measured",
+    expected:true,
+    actual:false,
+    score:1,
+    threshold:1
+  });
+
+  return {
+    ledger_state:ledger.ledger_state,
+    ledger_certified:ledger.ledger_certified,
+    integrity_reason:ledger.integrity_reason,
+    outcome_certificate:ledger.chain.outcome_certificate,
+    realization_certificate:
+      ledger.chain.realization_certificate,
+    ledger_certificate:ledger.ledger_certificate
+  };
+})()
+
+Expected:
+
+{
+  ledger_state:"OUTCOME_LEDGER_BLOCKED",
+  ledger_certified:false,
+  integrity_reason:"REALIZATION_NOT_CERTIFIED",
+  outcome_certificate:null,
+  realization_certificate:null,
+  ledger_certificate:null
+}
+
+Truthful ledger invariant:
+
+blocked realization -> blocked ledger and no ledger certificate
+
+==================================================
+STATUS-BAR ALIGNMENT
+==================================================
+
+(() => {
+  SAIL_APP.reset();
+
+  return {
+    requirement:
+      document.getElementById("reqState").textContent,
+    workflow:
+      document.getElementById("workflowState").textContent,
+    execution:
+      document.getElementById("execState").textContent,
+    measurement:
+      document.getElementById("measureState").textContent,
+    outcome:
+      document.getElementById("outcomeState").textContent,
+    certificate:
+      document.getElementById("certState").textContent,
+    application:
+      document.getElementById("appStatus").textContent
+  };
+})()
+
+Expected:
+
+{
+  requirement:"CERTIFIED",
+  workflow:"CERTIFIED",
+  execution:"CERTIFIED",
+  measurement:"CERTIFIED",
+  outcome:"VERIFIED",
+  certificate:"ISSUED",
+  application:"CERTIFIED"
+}
+
+==================================================
+BLOCKED INTERFACE ALIGNMENT
+==================================================
+
+(() => {
+  const result = SAIL_APP.loadExample("blocked");
+
+  return {
+    realization_state:result.realization_state,
+    realized:result.realized,
+    requirement:
+      document.getElementById("reqState").textContent,
+    workflow:
+      document.getElementById("workflowState").textContent,
+    execution:
+      document.getElementById("execState").textContent,
+    measurement:
+      document.getElementById("measureState").textContent,
+    outcome:
+      document.getElementById("outcomeState").textContent,
+    certificate:
+      document.getElementById("certState").textContent,
+    application:
+      document.getElementById("appStatus").textContent
+  };
+})()
+
+Expected:
+
+{
+  realization_state:"REALIZATION_BLOCKED",
+  realized:false,
+  requirement:"CERTIFIED",
+  workflow:"CERTIFIED",
+  execution:"CERTIFIED",
+  measurement:"CERTIFIED",
+  outcome:"BLOCKED",
+  certificate:"BLOCKED",
+  application:"ATTENTION"
+}
+
+==================================================
+APPLICATION AUDIT
+==================================================
+
+SAIL_APP.audit(true)
+
+Expected key fields:
+
+{
+  app:"SAIL Requirement Realization Console",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  allPass:true,
+  case_count:10000,
+  expected_case_count:10000,
+  count_match:true,
+  failed_case_count:0,
+  scenario_count:5,
+  iterations_per_scenario:2000,
+  classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  execution:"LOCAL_RUNTIME",
+  layers:37,
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_executions:347400,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_specifications:96,
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operators:5,
+  source_mutations_detected:5,
+  realization_audit_cases:48600,
+  realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_cases:347400,
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_execution:"LOCAL_RUNTIME",
+  cached:true
+}
+
+Application audit scenarios:
+
+1. complete realization integrity
+2. workflow-layer blocking
+3. requirement and workflow separation
+4. zero-threshold admission
+5. boolean-mismatch blocking
+
+Application audit formula:
+
+5 scenarios x 2000 iterations = 10000 executions
+
+Application audit invariant:
+
+audit passes iff observed execution count equals expected execution count and every scenario passes
+
+==================================================
+APPLICATION AUDIT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  const first = SAIL_APP.audit(true);
+
+  first.allPass = false;
+  first.case_count = 1;
+  first.failed_case_count = 999;
+
+  const second = SAIL_APP.audit();
+
+  return {
+    independent_snapshot:first !== second,
+    allPass:second.allPass,
+    case_count:second.case_count,
+    failed_case_count:second.failed_case_count,
+    cached:second.cached
+  };
+})()
+
+Expected:
+
+{
+  independent_snapshot:true,
+  allPass:true,
+  case_count:10000,
+  failed_case_count:0,
+  cached:true
+}
+
+Audit isolation invariant:
+
+external mutation does not alter the cached application-audit result
+
+==================================================
+RETURNED RESULT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  const returned = SAIL_APP.reset();
+
+  returned.realized = false;
+  returned.realization_certificate = "REAL-FORGED";
+  returned.outcome.certified = false;
+
+  const current = SAIL_APP.current();
+  const pack = SAIL_APP.exportPack();
+
+  return {
+    current_realized:current.realized,
+    certificate_preserved:
+      current.realization_certificate !==
+      "REAL-FORGED",
+    outcome_certified:current.outcome.certified,
+    pack_certified:pack.pack_certified
+  };
+})()
+
+Expected:
+
+{
+  current_realized:true,
+  certificate_preserved:true,
+  outcome_certified:true,
+  pack_certified:true
+}
+
+Snapshot invariant:
+
+mutation of a returned run, reset, or example result does not mutate internal realization state
+
+==================================================
+CERTIFIED REALIZATION PACK VIEW STATE
+==================================================
+
+(() => {
+  SAIL_APP.reset();
+  const pack = SAIL_APP.exportPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    delivery_mode:pack.delivery_mode,
+    app_version:pack.app_version,
+    sail_version:pack.sail_version,
+    result_realized:pack.result.realized,
+    ledger_state:pack.ledger.ledger_state,
+    ledger_certified:pack.ledger.ledger_certified,
+    realization_certificate_matches:
+      pack.ledger.chain.realization_certificate ===
+      pack.result.realization_certificate,
+    ledger_certificate_present:
+      pack.ledger.ledger_certificate.startsWith("LEDGER-")
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REALIZATION_PACK_CERTIFIED",
+  pack_certified:true,
+  integrity_reason:null,
+  delivery_mode:"view",
+  app_version:"1.1.2",
+  sail_version:"5.9.0",
+  result_realized:true,
+  ledger_state:"OUTCOME_LEDGER_CERTIFIED",
+  ledger_certified:true,
+  realization_certificate_matches:true,
+  ledger_certificate_present:true
+}
+
+Pack invariant:
+
+pack certified iff realization integrity and ledger integrity are certified
+
+==================================================
+BLOCKED REALIZATION PACK STATE
+==================================================
+
+(() => {
+  SAIL_APP.loadExample("blocked");
+  const pack = SAIL_APP.exportPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    delivery_mode:pack.delivery_mode,
+    result_realized:pack.result.realized,
+    realization_certificate:
+      pack.result.realization_certificate,
+    ledger_state:pack.ledger.ledger_state,
+    ledger_certified:pack.ledger.ledger_certified,
+    ledger_certificate:pack.ledger.ledger_certificate
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REALIZATION_PACK_BLOCKED",
+  pack_certified:false,
+  integrity_reason:"REALIZATION_NOT_CERTIFIED",
+  delivery_mode:"view",
+  result_realized:false,
+  realization_certificate:null,
+  ledger_state:"OUTCOME_LEDGER_BLOCKED",
+  ledger_certified:false,
+  ledger_certificate:null
+}
+
+Truthful pack invariant:
+
+blocked realization -> blocked pack and pack_certified = false
+
+==================================================
+REALIZATION PACK DOWNLOAD STATE
+==================================================
+
+(() => {
+  SAIL_APP.reset();
+  const pack = SAIL_APP.downloadPack();
+
+  return {
+    pack_state:pack.pack_state,
+    pack_certified:pack.pack_certified,
+    integrity_reason:pack.integrity_reason,
+    delivery_mode:pack.delivery_mode,
+    app_version:pack.app_version,
+    sail_version:pack.sail_version,
+    result_realized:pack.result.realized,
+    ledger_certified:pack.ledger.ledger_certified
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"REALIZATION_PACK_CERTIFIED",
+  pack_certified:true,
+  integrity_reason:null,
+  delivery_mode:"download",
+  app_version:"1.1.2",
+  sail_version:"5.9.0",
+  result_realized:true,
+  ledger_certified:true
+}
+
+Delivery invariant:
+
+pack classification is independent of view or download delivery mode
+
+==================================================
+REALIZATION PACK SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  SAIL_APP.reset();
+
+  const first = SAIL_APP.exportPack();
+
+  first.pack_certified = false;
+  first.result.realized = false;
+  first.ledger.ledger_certified = false;
+
+  const second = SAIL_APP.exportPack();
+
+  return {
+    pack_certified:second.pack_certified,
+    result_realized:second.result.realized,
+    ledger_certified:
+      second.ledger.ledger_certified
+  };
+})()
+
+Expected:
+
+{
+  pack_certified:true,
+  result_realized:true,
+  ledger_certified:true
+}
+
+Pack isolation invariant:
+
+mutation of an exported pack does not mutate internal realization state or later exports
+
+==================================================
+FORGED REALIZATION REJECTION
+==================================================
+
+(() => {
+  const result = SAIL_APP.realize({
+    requirement:"Requirement: user can export report.",
+    workflow:"Export Report Workflow",
+    execution:"Export completed",
+    measurement:"Report file generated",
+    expected:true,
+    actual:true,
+    score:1,
+    threshold:1
+  });
+
+  result.outcome.certificate = "OUT-FORGED";
+
+  const integrity = SAIL_APP.integrity(result);
+
+  return {
+    integrity_valid:integrity.valid,
+    integrity_certified:integrity.certified,
+    integrity_reason:integrity.reason
+  };
+})()
+
+Expected:
+
+{
+  integrity_valid:false,
+  integrity_certified:false,
+  integrity_reason:"OUTCOME_INTEGRITY_INVALID"
+}
+
+Integrity invariant:
+
+forged layer certificates do not produce certified realization integrity
+
+==================================================
+STACK MANIFEST
+==================================================
+
+SAIL_APP.stackManifest()
+
+Expected:
+
+{
+  version:"5.9.0",
+  certified_layers:37,
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_specification_count:96,
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operator_count:5,
+  source_mutations_detected:5,
+  evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_case_count:347400,
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  realization_audit_case_count:48600,
+  realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  application_audit_execution:"LOCAL_RUNTIME",
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Requirement Realization Runtime"
+  ]
+}
+
+==================================================
+STACK INTERFACE
+==================================================
+
+SAIL.certify()
+
+Expected key fields:
+
+{
+  version:"5.9.0",
+  certified:true,
+  layers:37,
+  validation_source:"REFERENCE_RELEASE_VALIDATION",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Requirement Realization Runtime"
+  ]
+}
+
+SAIL.benchmark()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  benchmark_case_count:347400,
+  conformance_execution_count:347400,
+  classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.realizationAudit()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  case_count:48600,
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+Validation distinction:
+
+Application audit execution:
+LOCAL_RUNTIME
+
+Core conformance execution:
+REFERENCE_RELEASE_VALIDATION
+
+Core behavioral validation:
+REFERENCE_RELEASE_VALIDATION
+
+Core evidence validation:
+REFERENCE_RELEASE_VALIDATION
+
+Core realization audit execution:
+REFERENCE_RELEASE_VALIDATION
+
+==================================================
+COPY OUTPUT FEEDBACK
+==================================================
+
+Manual interface check:
+
+1. Open the Summary, Certificate, Ledger, Audit, or export-pack view.
+2. Click Copy Output.
+3. Confirm that the button temporarily displays Copied or Copy Failed.
+4. Copy Failed may occur when browser clipboard permissions are unavailable.
+5. Clipboard permission does not affect structural certification or application-audit status.
+
+==================================================
+EXTERNAL PYTHON VALIDATION
+==================================================
+
+Run:
+
+python sail_requirement_realization_console_v1_1_2_test.py
+
+Expected:
+
+SAIL Requirement Realization Console v1.1.2 validation passed
+Source integrity checks: 46
+Runtime behavioral checks: 23
+Application audit executions: 10000
+Failed checks: 0
+
+==================================================
+VALIDATION STATUS
+==================================================
+
+Application:
+SAIL Requirement Realization Console
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Conformance:
+PASS
+
+Local Application Conformance Executions:
+10000
+
+Expected Local Application Conformance Executions:
+10000
+
+Local Conformance Count Match:
+PASS
+
+Failed Local Conformance Executions:
+0
+
+Audit Scenarios:
+5
+
+Iterations Per Scenario:
+2000
+
+Certified Layers:
+37
+
+Referenced Core Structural Conformance Executions:
+347400
+
+Referenced Core Behavioral Specifications:
+96
+
+Referenced Source Mutations Detected:
+5 of 5
+
+Referenced Core Realization Audit Cases:
+48600
+
+Requirement-Layer Independence:
+PASS
+
+Workflow-Layer Separation:
+PASS
+
+Blocked-Stage Null Certificates:
+PASS
+
+Requirement Certificate Stability:
+PASS
+
+Realization Certification:
+PASS
+
+Realization Integrity Reproduction:
+PASS
+
+Outcome Measurement:
+PASS
+
+Outcome Verification:
+PASS
+
+Certificate Generation:
+PASS
+
+Strict Expected-Boolean Admission:
+PASS
+
+Strict Actual-Boolean Admission:
+PASS
+
+Invalid Numeric Admission:
+PASS
+
+Zero Threshold Validation:
+PASS
+
+Negative Threshold Rejection:
+PASS
+
+Boolean and Score Separation:
+PASS
+
+Deterministic Realization Replay:
+PASS
+
+Certified Outcome Ledger:
+PASS
+
+Blocked Outcome Ledger:
+PASS
+
+Measurement Status Visibility:
+PASS
+
+Blocked Interface Alignment:
+PASS
+
+Application Audit Snapshot Isolation:
+PASS
+
+Returned Result Snapshot Isolation:
+PASS
+
+Certified Pack View State:
+PASS
+
+Blocked Pack State:
+PASS
+
+Certified Pack Download State:
+PASS
+
+Pack Snapshot Isolation:
+PASS
+
+Forged Realization Rejection:
+PASS
+
+Stack Evidence Metadata:
+PASS
+
+External Source Integrity Checks:
+46
+
+External Runtime Behavioral Checks:
+23
+
+External Validation Failed Checks:
+0
+
+Validation Status:
+VALIDATED

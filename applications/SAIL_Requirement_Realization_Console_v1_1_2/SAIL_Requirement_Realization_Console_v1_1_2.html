@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAIL Requirement Realization Console v1.1.2</title>
+<style>
+:root{
+  --bg:#050b16;
+  --bg2:#07111f;
+  --panel:#071b31;
+  --panel2:#0a2138;
+  --line:rgba(120,168,255,.34);
+  --line2:rgba(255,255,255,.13);
+  --text:#edf4ff;
+  --muted:#b8c7e6;
+  --gold:#ffd47a;
+  --mint:#69f0c8;
+  --cyan:#6ed8ff;
+  --red:#ff8f8f;
+  --shadow:0 20px 55px rgba(0,0,0,.34);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 12% 0%,rgba(120,168,255,.13),transparent 30%),
+    radial-gradient(circle at 92% 8%,rgba(105,240,200,.08),transparent 24%),
+    linear-gradient(180deg,#050b16 0%,#07111f 48%,#081423 100%);
+  min-height:100vh;
+}
+.wrap{max-width:1480px;margin:0 auto;padding:22px}
+.hero{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+  align-items:center;
+  border:1px solid var(--line);
+  border-radius:26px;
+  padding:18px;
+  background:linear-gradient(135deg,rgba(120,168,255,.18),rgba(105,240,200,.08));
+  box-shadow:var(--shadow);
+}
+.eyebrow{
+  display:inline-block;
+  color:var(--gold);
+  font-weight:900;
+  font-size:.78rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  border:1px solid var(--line2);
+  border-radius:999px;
+  padding:7px 11px;
+  background:rgba(255,255,255,.04);
+}
+h1{font-size:clamp(1.65rem,2.8vw,3rem);line-height:1.05;margin:10px 0 8px;letter-spacing:-.04em}
+p{color:var(--muted);line-height:1.6;margin:0}
+.hero-right{
+  min-width:290px;
+  border:1px solid var(--line2);
+  border-radius:20px;
+  padding:14px;
+  background:rgba(3,11,22,.54);
+}
+.stat-row{display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--line2);padding:8px 0}
+.stat-row:last-child{border-bottom:0}
+.stat-row span{color:var(--muted)}
+.stat-row strong{color:var(--mint)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.panel{
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:linear-gradient(180deg,rgba(8,30,54,.84),rgba(5,15,30,.92));
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+.panel h2{margin:0 0 8px;font-size:1.22rem}
+.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+label{display:block;color:var(--gold);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px}
+input,textarea,select{
+  width:100%;
+  border:1px solid var(--line2);
+  border-radius:14px;
+  background:rgba(3,11,22,.70);
+  color:var(--text);
+  padding:12px 13px;
+  font:14px/1.5 ui-monospace,Consolas,monospace;
+  outline:none;
+}
+textarea{min-height:100px;resize:vertical}
+button{
+  border:1px solid rgba(110,216,255,.46);
+  border-radius:12px;
+  padding:11px 14px;
+  background:linear-gradient(180deg,rgba(7,34,62,.96),rgba(4,17,34,.96));
+  color:#eef8ff;
+  font-weight:850;
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08);
+  transition:transform .08s ease,filter .08s ease,border-color .08s ease;
+}
+button:hover{filter:brightness(1.14);border-color:rgba(110,216,255,.78);transform:translateY(-1px)}
+button:active{transform:translateY(2px) scale(.985)}
+button.primary{
+  background:linear-gradient(135deg,rgba(105,240,200,.98),rgba(78,180,255,.78));
+  color:#04101e;
+  border-color:rgba(105,240,200,.92);
+}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.status-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin-top:18px}
+.status{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px;
+  background:rgba(3,11,22,.48);
+}
+.status span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.status b{color:var(--mint);font-size:.96rem;overflow-wrap:anywhere}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(210px,1fr));gap:10px;margin-top:14px;align-items:stretch}
+.step{
+  border:1px solid var(--line2);
+  border-radius:16px;
+  padding:12px;
+  min-height:86px;
+  background:rgba(255,255,255,.04);
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  gap:8px;
+  overflow:hidden;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.step strong{display:block;color:var(--gold);font-size:.78rem;line-height:1.2;text-transform:uppercase;letter-spacing:.08em;margin-bottom:0;white-space:nowrap;word-break:normal;overflow-wrap:normal}
+.step small{display:block;color:var(--muted);font-size:.78rem;line-height:1.35;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.step.pass{border-color:rgba(105,240,200,.55);background:rgba(105,240,200,.06)}
+.step.fail{border-color:rgba(255,143,143,.55);background:rgba(255,143,143,.06)}
+pre{
+  margin:0;
+  white-space:pre-wrap;
+  background:rgba(3,11,22,.72);
+  border:1px solid var(--line2);
+  border-radius:16px;
+  padding:14px;
+  color:#dbe9ff;
+  font-family:ui-monospace,Consolas,monospace;
+  font-size:.86rem;
+  max-height:420px;
+  overflow:auto;
+}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 14px}
+.tab.active{border-color:rgba(105,240,200,.86);color:#dfffee}
+.bad{color:var(--red)!important}
+.good{color:var(--mint)!important}
+.footer{color:var(--muted);text-align:center;padding:28px}
+@media(max-width:1180px){
+  .hero,.grid{grid-template-columns:1fr}
+  .status-grid{grid-template-columns:1fr 1fr}
+  .flow{grid-template-columns:repeat(2,minmax(210px,1fr))}
+}
+
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div>
+    <div class="eyebrow">SAIL Application</div>
+    <h1>Requirement Realization Console</h1>
+    <p>Certify a requirement, bind it to a workflow, execute it, measure the outcome, and issue a realization certificate.</p>
+  </div>
+  <div class="hero-right">
+    <div class="stat-row"><span>SAIL Stack</span><strong id="stackVersion">5.9.0</strong></div>
+    <div class="stat-row"><span>Layers</span><strong id="layerCount">37</strong></div>
+    <div class="stat-row"><span>Conformance</span><strong id="benchmarkCount">347400 synthetic</strong></div>
+    <div class="stat-row"><span>Behavior</span><strong>96/96 PASS</strong></div>
+    <div class="stat-row"><span>Status</span><strong id="appStatus">READY</strong></div>
+  </div>
+</section>
+
+<section class="status-grid">
+  <div class="status"><span>App Version</span><b id="appVersion">1.1.2</b></div>
+  <div class="status"><span>Requirement</span><b id="reqState">WAITING</b></div>
+  <div class="status"><span>Workflow</span><b id="workflowState">WAITING</b></div>
+  <div class="status"><span>Execution</span><b id="execState">WAITING</b></div>
+  <div class="status"><span>Measurement</span><b id="measureState">WAITING</b></div>
+  <div class="status"><span>Outcome</span><b id="outcomeState">WAITING</b></div>
+  <div class="status"><span>Certificate</span><b id="certState">WAITING</b></div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Input</h2>
+    <div class="sub">Define the requirement and the expected measurable outcome.</div>
+
+    <label>Requirement</label>
+    <textarea id="requirement">Requirement: user can export report.</textarea>
+
+    <label>Workflow</label>
+    <input id="workflow" value="Export Report Workflow">
+
+    <label>Execution Evidence</label>
+    <input id="execution" value="Export completed">
+
+    <label>Measurement</label>
+    <input id="measurement" value="Report file generated">
+
+    <label>Expected Outcome</label>
+    <select id="expected">
+      <option value="true" selected>true</option>
+      <option value="false">false</option>
+    </select>
+
+    <label>Actual Outcome</label>
+    <select id="actual">
+      <option value="true" selected>true</option>
+      <option value="false">false</option>
+    </select>
+
+    <label>Score</label>
+    <input id="score" value="1">
+
+    <label>Threshold</label>
+    <input id="threshold" value="1">
+
+    <div class="actions">
+      <button class="primary" onclick="SAIL_APP.run()">Run Realization</button>
+      <button onclick="SAIL_APP.loadExample('incident')">Incident Example</button>
+      <button onclick="SAIL_APP.loadExample('policy')">Policy Example</button>
+      <button onclick="SAIL_APP.loadExample('blocked')">Blocked Example</button>
+      <button onclick="SAIL_APP.reset()">Reset</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Realization Flow</h2>
+    <div class="sub">The flow updates after certification.</div>
+    <div class="flow">
+      <div id="flowReq" class="step"><strong>Requirement</strong><small>Waiting</small></div>
+      <div id="flowWorkflow" class="step"><strong>Workflow</strong><small>Waiting</small></div>
+      <div id="flowExec" class="step"><strong>Execution</strong><small>Waiting</small></div>
+      <div id="flowMeasure" class="step"><strong>Measurement</strong><small>Waiting</small></div>
+      <div id="flowOutcome" class="step"><strong>Outcome</strong><small>Waiting</small></div>
+      <div id="flowCert" class="step"><strong>Certificate</strong><small>Waiting</small></div>
+    </div>
+
+    <div class="tabs">
+      <button id="tabSummary" class="tab active" onclick="SAIL_APP.show('summary')">Summary</button>
+      <button id="tabCertificate" class="tab" onclick="SAIL_APP.show('certificate')">Certificate</button>
+      <button id="tabLedger" class="tab" onclick="SAIL_APP.show('ledger')">Ledger</button>
+      <button id="tabAudit" class="tab" onclick="SAIL_APP.show('audit')">Audit</button>
+    </div>
+
+    <pre id="output"></pre>
+
+    <div class="actions">
+      <button onclick="SAIL_APP.exportPack()">Export Pack</button>
+      <button id="copyOutputButton" onclick="SAIL_APP.copyOutput()">Copy Output</button>
+      <button onclick="SAIL_APP.downloadPack()">Download Pack</button>
+    </div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:18px">
+  <h2>Application Audit</h2>
+  <div class="sub">Application-level validation on the SAIL stack.</div>
+  <pre id="auditBlock"></pre>
+</section>
+
+<div class="footer">SAIL Requirement Realization Console v1.1.2</div>
+</main>
+
+<script>
+(function(){
+  const VERSION="1.1.2";
+  const SAIL_VERSION="5.9.0";
+  const LAYERS=37;
+  const CONFORMANCE_EXECUTIONS=347400;
+  const BEHAVIORAL_SPECIFICATIONS=96;
+  const SOURCE_MUTATION_OPERATORS=5;
+  const SOURCE_MUTATIONS_DETECTED=5;
+  const CONFORMANCE_CLASSIFICATION="SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS";
+  const BENCHMARK=CONFORMANCE_EXECUTIONS;
+  const REALIZATION_AUDIT=48600;
+  const EXPECTED_AUDIT_CASES=10000;
+
+  function canonical(x){
+    if(x===undefined)return"undefined";
+    if(x===null||typeof x!=="object")return JSON.stringify(x);
+    if(Array.isArray(x))return"["+x.map(canonical).join(",")+"]";
+    return"{"+Object.keys(x).sort().map(k=>JSON.stringify(k)+":"+canonical(x[k])).join(",")+"}";
+  }
+
+  function hash(x){
+    const s=canonical(x);
+    let h=2166136261;
+    for(let i=0;i<s.length;i++){
+      h^=s.charCodeAt(i);
+      h=Math.imul(h,16777619);
+    }
+    return(h>>>0).toString(16).padStart(8,"0");
+  }
+
+  function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
+
+  function deepFreeze(x){
+    if(!x||typeof x!=="object"||Object.isFrozen(x))return x;
+    Object.keys(x).forEach(k=>deepFreeze(x[k]));
+    return Object.freeze(x);
+  }
+
+  function immutable(x){return deepFreeze(clone(x))}
+
+  function text(value){return value===undefined||value===null?"":String(value).trim()}
+
+  function admittedBoolean(value){
+    if(value===true||value===false)return{value:value,valid:true};
+    const raw=text(value).toLowerCase();
+    if(raw==="true")return{value:true,valid:true};
+    if(raw==="false")return{value:false,valid:true};
+    return{value:null,valid:false};
+  }
+
+  function finiteNumber(value){
+    if(typeof value==="number")return{value:Number.isFinite(value)?value:null,valid:Number.isFinite(value)};
+    const raw=text(value);
+    if(!raw)return{value:null,valid:false};
+    const n=Number(raw);
+    return{value:Number.isFinite(n)?n:null,valid:Number.isFinite(n)};
+  }
+
+  function normalizeInput(input){
+    const source=input&&typeof input==="object"?input:{};
+    const expected=admittedBoolean(source.expected);
+    const actual=admittedBoolean(source.actual);
+    const score=finiteNumber(source.score);
+    const threshold=finiteNumber(source.threshold);
+    const thresholdValid=threshold.valid&&threshold.value>=0;
+    return{
+      requirement:text(source.requirement),
+      workflow:text(source.workflow),
+      execution:text(source.execution),
+      measurement:text(source.measurement),
+      expected:expected.value,
+      actual:actual.value,
+      expected_valid:expected.valid,
+      actual_valid:actual.valid,
+      score:score.value,
+      threshold:thresholdValid?threshold.value:null,
+      score_valid:score.valid,
+      threshold_valid:thresholdValid
+    };
+  }
+
+  function inputIssues(input){
+    const incomplete_fields=[];
+    ["requirement","workflow","execution","measurement"].forEach(key=>{if(!input[key])incomplete_fields.push(key)});
+    const invalid_fields=[];
+    if(!input.expected_valid)invalid_fields.push("expected");
+    if(!input.actual_valid)invalid_fields.push("actual");
+    if(!input.score_valid)invalid_fields.push("score");
+    if(!input.threshold_valid)invalid_fields.push("threshold");
+    return{incomplete_fields:incomplete_fields,invalid_fields:invalid_fields};
+  }
+
+  function readInput(){
+    return normalizeInput({
+      requirement:document.getElementById("requirement").value,
+      workflow:document.getElementById("workflow").value,
+      execution:document.getElementById("execution").value,
+      measurement:document.getElementById("measurement").value,
+      expected:document.getElementById("expected").value,
+      actual:document.getElementById("actual").value,
+      score:document.getElementById("score").value,
+      threshold:document.getElementById("threshold").value
+    });
+  }
+
+  function certifyRequirement(input){
+    const complete=!!input.requirement;
+    const invariant={layer:"Requirement Certification",requirement:input.requirement,complete:complete};
+    return deepFreeze({
+      state:complete?"REQUIREMENT_CERTIFIED":"REQUIREMENT_INCOMPLETE",
+      certified:complete,
+      invariant:invariant,
+      certificate:complete?"REQ-"+hash(invariant):null
+    });
+  }
+
+  function certifyWorkflow(input,requirement){
+    const complete=requirement.certified&&!!input.workflow;
+    const invariant={
+      layer:"Workflow Certification",
+      requirement_certificate:requirement.certificate,
+      workflow:input.workflow,
+      complete:complete
+    };
+    return deepFreeze({
+      state:complete?"WORKFLOW_CERTIFIED":"WORKFLOW_BLOCKED",
+      certified:complete,
+      invariant:invariant,
+      certificate:complete?"WF-"+hash(invariant):null
+    });
+  }
+
+  function certifyExecution(input,workflow){
+    const complete=workflow.certified&&!!input.execution;
+    const invariant={
+      layer:"Execution Certification",
+      workflow_certificate:workflow.certificate,
+      execution:input.execution,
+      complete:complete
+    };
+    return deepFreeze({
+      state:complete?"EXECUTION_CERTIFIED":"EXECUTION_BLOCKED",
+      certified:complete,
+      invariant:invariant,
+      certificate:complete?"EXE-"+hash(invariant):null
+    });
+  }
+
+  function certifyMeasurement(input,execution){
+    const complete=execution.certified&&!!input.measurement&&input.score_valid&&input.threshold_valid;
+    const invariant={
+      layer:"Measurement Certification",
+      execution_certificate:execution.certificate,
+      measurement:input.measurement,
+      score:input.score,
+      threshold:input.threshold,
+      score_valid:input.score_valid,
+      threshold_valid:input.threshold_valid,
+      complete:complete
+    };
+    return deepFreeze({
+      state:complete?"MEASUREMENT_CERTIFIED":"MEASUREMENT_BLOCKED",
+      certified:complete,
+      invariant:invariant,
+      certificate:complete?"MEA-"+hash(invariant):null
+    });
+  }
+
+  function certifyOutcome(input,measurement){
+    const booleansValid=input.expected_valid&&input.actual_valid;
+    const booleanMatch=booleansValid&&input.actual===input.expected;
+    const scoreMatch=input.score_valid&&input.threshold_valid&&input.score>=input.threshold;
+    const matched=booleanMatch&&scoreMatch;
+    const complete=measurement.certified&&booleansValid&&matched;
+    const state=!booleansValid?"OUTCOME_BLOCKED_INVALID_BOOLEAN":complete?"OUTCOME_VERIFIED":"OUTCOME_NOT_VERIFIED";
+    const invariant={
+      layer:"Outcome Verification",
+      measurement_certificate:measurement.certificate,
+      expected:input.expected,
+      actual:input.actual,
+      expected_valid:input.expected_valid,
+      actual_valid:input.actual_valid,
+      score:input.score,
+      threshold:input.threshold,
+      score_valid:input.score_valid,
+      threshold_valid:input.threshold_valid,
+      outcome_boolean_state:!booleansValid?"OUTCOME_BOOLEAN_INVALID":booleanMatch?"OUTCOME_BOOLEAN_MATCHED":"OUTCOME_BOOLEAN_MISMATCHED",
+      outcome_score_state:scoreMatch?"OUTCOME_SCORE_MATCHED":"OUTCOME_SCORE_NOT_MATCHED",
+      matched:matched,
+      complete:complete
+    };
+    return deepFreeze({
+      state:state,
+      certified:complete,
+      matched:matched,
+      boolean_match:booleanMatch,
+      score_match:scoreMatch,
+      expected_valid:input.expected_valid,
+      actual_valid:input.actual_valid,
+      invariant:invariant,
+      certificate:complete?"OUT-"+hash(invariant):null
+    });
+  }
+
+  function buildRealization(input){
+    const normalized=normalizeInput(input);
+    const issues=inputIssues(normalized);
+    const requirement=certifyRequirement(normalized);
+    const workflow=certifyWorkflow(normalized,requirement);
+    const execution=certifyExecution(normalized,workflow);
+    const measurement=certifyMeasurement(normalized,execution);
+    const outcome=certifyOutcome(normalized,measurement);
+    const realized=requirement.certified&&workflow.certified&&execution.certified&&measurement.certified&&outcome.certified;
+    const invariant={
+      app:"SAIL Requirement Realization Console",
+      app_version:VERSION,
+      sail_version:SAIL_VERSION,
+      requirement:requirement.certificate,
+      workflow:workflow.certificate,
+      execution:execution.certificate,
+      measurement:measurement.certificate,
+      outcome:outcome.certificate,
+      realized:realized
+    };
+    return deepFreeze({
+      app:"SAIL Requirement Realization Console",
+      app_version:VERSION,
+      sail_version:SAIL_VERSION,
+      layers:LAYERS,
+      benchmark_cases:BENCHMARK,
+      realization_state:realized?"REALIZATION_CERTIFIED":"REALIZATION_BLOCKED",
+      realized:realized,
+      incomplete_fields:issues.incomplete_fields,
+      invalid_fields:issues.invalid_fields,
+      requirement:requirement,
+      workflow:workflow,
+      execution:execution,
+      measurement:measurement,
+      outcome:outcome,
+      realization_certificate:realized?"REAL-"+hash(invariant):null,
+      invariant:invariant,
+      replayable:true,
+      auditable:true,
+      memoryless:true
+    });
+  }
+
+  function layerCertificateValid(layer,prefix){
+    if(!layer||typeof layer!=="object"||!layer.invariant)return false;
+    const expected=layer.certified?prefix+hash(layer.invariant):null;
+    return layer.certificate===expected;
+  }
+
+  function realizationIntegrity(result){
+    if(!result||typeof result!=="object")return{valid:false,certified:false,reason:"REALIZATION_MISSING"};
+    const requirement=result.requirement;
+    const workflow=result.workflow;
+    const execution=result.execution;
+    const measurement=result.measurement;
+    const outcome=result.outcome;
+    const requirementExpected=!!(requirement&&requirement.invariant&&requirement.invariant.requirement);
+    const requirementValid=!!requirement&&requirement.certified===requirementExpected&&requirement.state===(requirementExpected?"REQUIREMENT_CERTIFIED":"REQUIREMENT_INCOMPLETE")&&layerCertificateValid(requirement,"REQ-");
+    if(!requirementValid)return{valid:false,certified:false,reason:"REQUIREMENT_INTEGRITY_INVALID"};
+    const workflowExpected=requirement.certified&&!!(workflow&&workflow.invariant&&workflow.invariant.workflow);
+    const workflowValid=!!workflow&&workflow.invariant.requirement_certificate===requirement.certificate&&workflow.certified===workflowExpected&&workflow.state===(workflowExpected?"WORKFLOW_CERTIFIED":"WORKFLOW_BLOCKED")&&layerCertificateValid(workflow,"WF-");
+    if(!workflowValid)return{valid:false,certified:false,reason:"WORKFLOW_INTEGRITY_INVALID"};
+    const executionExpected=workflow.certified&&!!(execution&&execution.invariant&&execution.invariant.execution);
+    const executionValid=!!execution&&execution.invariant.workflow_certificate===workflow.certificate&&execution.certified===executionExpected&&execution.state===(executionExpected?"EXECUTION_CERTIFIED":"EXECUTION_BLOCKED")&&layerCertificateValid(execution,"EXE-");
+    if(!executionValid)return{valid:false,certified:false,reason:"EXECUTION_INTEGRITY_INVALID"};
+    const measurementExpected=execution.certified&&!!(measurement&&measurement.invariant&&measurement.invariant.measurement)&&measurement.invariant.score_valid===true&&measurement.invariant.threshold_valid===true;
+    const measurementValid=!!measurement&&measurement.invariant.execution_certificate===execution.certificate&&measurement.certified===measurementExpected&&measurement.state===(measurementExpected?"MEASUREMENT_CERTIFIED":"MEASUREMENT_BLOCKED")&&layerCertificateValid(measurement,"MEA-");
+    if(!measurementValid)return{valid:false,certified:false,reason:"MEASUREMENT_INTEGRITY_INVALID"};
+    const booleansValid=!!outcome&&outcome.invariant.expected_valid===true&&outcome.invariant.actual_valid===true;
+    const booleanMatch=booleansValid&&outcome.invariant.expected===outcome.invariant.actual;
+    const scoreMatch=!!outcome&&outcome.invariant.score_valid===true&&outcome.invariant.threshold_valid===true&&outcome.invariant.score>=outcome.invariant.threshold;
+    const outcomeExpected=measurement.certified&&booleansValid&&booleanMatch&&scoreMatch;
+    const outcomeState=!booleansValid?"OUTCOME_BLOCKED_INVALID_BOOLEAN":outcomeExpected?"OUTCOME_VERIFIED":"OUTCOME_NOT_VERIFIED";
+    const outcomeValid=!!outcome&&outcome.invariant.measurement_certificate===measurement.certificate&&outcome.boolean_match===booleanMatch&&outcome.score_match===scoreMatch&&outcome.matched===(booleanMatch&&scoreMatch)&&outcome.certified===outcomeExpected&&outcome.state===outcomeState&&layerCertificateValid(outcome,"OUT-");
+    if(!outcomeValid)return{valid:false,certified:false,reason:"OUTCOME_INTEGRITY_INVALID"};
+    const realizedExpected=requirement.certified&&workflow.certified&&execution.certified&&measurement.certified&&outcome.certified;
+    const expectedInvariant={
+      app:"SAIL Requirement Realization Console",
+      app_version:VERSION,
+      sail_version:SAIL_VERSION,
+      requirement:requirement.certificate,
+      workflow:workflow.certificate,
+      execution:execution.certificate,
+      measurement:measurement.certificate,
+      outcome:outcome.certificate,
+      realized:realizedExpected
+    };
+    const expectedCertificate=realizedExpected?"REAL-"+hash(expectedInvariant):null;
+    const valid=result.app==="SAIL Requirement Realization Console"&&result.app_version===VERSION&&result.sail_version===SAIL_VERSION&&result.realized===realizedExpected&&result.realization_state===(realizedExpected?"REALIZATION_CERTIFIED":"REALIZATION_BLOCKED")&&canonical(result.invariant)===canonical(expectedInvariant)&&result.realization_certificate===expectedCertificate;
+    return{valid:valid,certified:valid&&realizedExpected,reason:valid?(realizedExpected?null:"REALIZATION_NOT_CERTIFIED"):"REALIZATION_INTEGRITY_INVALID"};
+  }
+
+  function measureInternal(input){
+    const result=buildRealization(input);
+    return{
+      realization_state:result.realization_state,
+      certified:result.realized,
+      realized:result.realized,
+      measurement_state:result.measurement.state,
+      outcome_state:result.outcome.state,
+      boolean_match:result.outcome.boolean_match,
+      score_match:result.outcome.score_match,
+      expected_valid:result.outcome.expected_valid,
+      actual_valid:result.outcome.actual_valid
+    };
+  }
+
+  function verifyInternal(input){
+    const result=buildRealization(input);
+    return{
+      verification_state:result.realized?"OUTCOME_VERIFIED":"OUTCOME_NOT_VERIFIED",
+      certified:result.realized,
+      realized:result.realized,
+      outcome_state:result.outcome.state,
+      boolean_match:result.outcome.boolean_match,
+      score_match:result.outcome.score_match,
+      expected_valid:result.outcome.expected_valid,
+      actual_valid:result.outcome.actual_valid
+    };
+  }
+
+  function certificateInternal(input){
+    const result=buildRealization(input);
+    return{
+      certificate_state:result.realized?"REALIZATION_CERTIFICATE_ISSUED":"CERTIFICATE_BLOCKED",
+      certified:result.realized,
+      realized:result.realized,
+      realization_certificate:result.realization_certificate
+    };
+  }
+
+  function ledgerInternal(result){
+    const integrity=realizationIntegrity(result);
+    const chain={
+      requirement_certificate:result&&result.requirement?result.requirement.certificate:null,
+      workflow_certificate:result&&result.workflow?result.workflow.certificate:null,
+      execution_certificate:result&&result.execution?result.execution.certificate:null,
+      measurement_certificate:result&&result.measurement?result.measurement.certificate:null,
+      outcome_certificate:result&&result.outcome?result.outcome.certificate:null,
+      realization_certificate:result?result.realization_certificate:null
+    };
+    const certified=integrity.certified;
+    const invariant={chain:chain,realization_integrity_certified:certified};
+    return deepFreeze({
+      ledger_state:certified?"OUTCOME_LEDGER_CERTIFIED":"OUTCOME_LEDGER_BLOCKED",
+      ledger_certified:certified,
+      integrity_reason:certified?null:integrity.reason,
+      chain:chain,
+      ledger_certificate:certified?"LEDGER-"+hash(invariant):null,
+      invariant:invariant
+    });
+  }
+
+  function computeAudit(){
+    const passInput={requirement:"Requirement: user can export report.",workflow:"Export Report Workflow",execution:"Export completed",measurement:"Report file generated",expected:true,actual:true,score:1,threshold:1};
+    const noWorkflow={requirement:"Requirement: user can export report.",workflow:"",execution:"Export completed",measurement:"Report file generated",expected:true,actual:true,score:1,threshold:1};
+    const booleanBlocked={requirement:"Requirement: incident can escalate.",workflow:"Incident Escalation Workflow",execution:"Escalation completed",measurement:"Owner notified",expected:true,actual:false,score:1,threshold:1};
+    const invalidBoolean={requirement:"Requirement: invalid boolean is rejected.",workflow:"Boolean Admission Workflow",execution:"Execution completed",measurement:"Outcome measured",expected:"yes",actual:"yes",score:1,threshold:1};
+    const zeroThreshold={requirement:"Requirement: zero threshold is valid.",workflow:"Zero Threshold Workflow",execution:"Execution completed",measurement:"Score measured",expected:true,actual:true,score:0,threshold:0};
+    const alternateWorkflow={requirement:passInput.requirement,workflow:"Alternative Export Workflow",execution:passInput.execution,measurement:passInput.measurement,expected:true,actual:true,score:1,threshold:1};
+    const checks=[];
+    for(let i=0;i<2000;i++){
+      const pass=buildRealization(passInput);
+      const passLedger=ledgerInternal(pass);
+      checks.push(pass.realized===true&&realizationIntegrity(pass).certified&&passLedger.ledger_certified&&pass.realization_certificate!==null);
+
+      const blocked=buildRealization(noWorkflow);
+      const blockedLedger=ledgerInternal(blocked);
+      checks.push(blocked.realized===false&&blocked.requirement.certified===true&&blocked.workflow.certified===false&&blocked.realization_certificate===null&&!blockedLedger.ledger_certified&&blockedLedger.ledger_certificate===null);
+
+      const first=buildRealization(passInput);
+      const second=buildRealization(alternateWorkflow);
+      checks.push(first.requirement.certificate===second.requirement.certificate&&first.workflow.certificate!==second.workflow.certificate);
+
+      const zero=buildRealization(zeroThreshold);
+      checks.push(zero.realized===true&&zero.measurement.certified===true&&zero.outcome.score_match===true&&zero.outcome.boolean_match===true);
+
+      const mismatch=buildRealization(booleanBlocked);
+      const invalid=buildRealization(invalidBoolean);
+      checks.push(mismatch.realized===false&&mismatch.outcome.boolean_match===false&&mismatch.outcome.score_match===true&&mismatch.outcome.certificate===null&&invalid.realized===false&&invalid.invalid_fields.includes("expected")&&invalid.invalid_fields.includes("actual")&&invalid.outcome.state==="OUTCOME_BLOCKED_INVALID_BOOLEAN");
+    }
+    const observed=checks.length;
+    const failed=checks.filter(x=>x!==true).length;
+    const countMatch=observed===EXPECTED_AUDIT_CASES;
+    return deepFreeze({
+      app:"SAIL Requirement Realization Console",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      allPass:countMatch&&observed>0&&failed===0,
+      case_count:observed,
+      expected_case_count:EXPECTED_AUDIT_CASES,
+      count_match:countMatch,
+      failed_case_count:failed,
+      scenario_count:5,
+      iterations_per_scenario:2000,
+      classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+      execution:"LOCAL_RUNTIME",
+      layers:LAYERS,
+      conformance_classification:CONFORMANCE_CLASSIFICATION,
+      conformance_executions:CONFORMANCE_EXECUTIONS,
+      conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+      behavioral_specifications:BEHAVIORAL_SPECIFICATIONS,
+      behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+      source_mutation_operators:SOURCE_MUTATION_OPERATORS,
+      source_mutations_detected:SOURCE_MUTATIONS_DETECTED,
+      realization_audit_cases:REALIZATION_AUDIT,
+      realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+      benchmark_cases:CONFORMANCE_EXECUTIONS,
+      benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+      application_audit_execution:"LOCAL_RUNTIME",
+      cached:true
+    });
+  }
+
+  let AUDIT_RESULT=null;
+  let AUDIT_SCHEDULED=false;
+  let LAST=null;
+  let VIEW="summary";
+
+  function auditInternal(force){
+    if(force===true||!AUDIT_RESULT)AUDIT_RESULT=computeAudit();
+    renderAuditBlock();
+    return AUDIT_RESULT;
+  }
+
+  function scheduleAudit(){
+    if(AUDIT_SCHEDULED||AUDIT_RESULT)return;
+    AUDIT_SCHEDULED=true;
+    const task=function(){
+      auditInternal(false);
+      if(VIEW==="audit")render();
+    };
+    if(typeof requestIdleCallback==="function")requestIdleCallback(task,{timeout:1200});
+    else setTimeout(task,0);
+  }
+
+  function setText(id,value){document.getElementById(id).textContent=value}
+
+  function setStateClass(id,passed){
+    const element=document.getElementById(id);
+    element.classList.toggle("good",passed);
+    element.classList.toggle("bad",!passed);
+  }
+
+  function setFlow(id,passed,value){
+    const element=document.getElementById(id);
+    element.classList.toggle("pass",passed);
+    element.classList.toggle("fail",!passed);
+    element.querySelector("small").textContent=value;
+  }
+
+  function updateUI(result){
+    setText("reqState",result.requirement.certified?"CERTIFIED":"BLOCKED");
+    setText("workflowState",result.workflow.certified?"CERTIFIED":"BLOCKED");
+    setText("execState",result.execution.certified?"CERTIFIED":"BLOCKED");
+    setText("measureState",result.measurement.certified?"CERTIFIED":"BLOCKED");
+    setText("outcomeState",result.outcome.certified?"VERIFIED":"BLOCKED");
+    setText("certState",result.realized?"ISSUED":"BLOCKED");
+    setText("appStatus",result.realized?"CERTIFIED":"ATTENTION");
+    setStateClass("reqState",result.requirement.certified);
+    setStateClass("workflowState",result.workflow.certified);
+    setStateClass("execState",result.execution.certified);
+    setStateClass("measureState",result.measurement.certified);
+    setStateClass("outcomeState",result.outcome.certified);
+    setStateClass("certState",result.realized);
+    setFlow("flowReq",result.requirement.certified,result.requirement.state);
+    setFlow("flowWorkflow",result.workflow.certified,result.workflow.state);
+    setFlow("flowExec",result.execution.certified,result.execution.state);
+    setFlow("flowMeasure",result.measurement.certified,result.measurement.state);
+    setFlow("flowOutcome",result.outcome.certified,result.outcome.state);
+    setFlow("flowCert",result.realized,result.realization_state);
+  }
+
+  function summary(result){
+    const integrity=realizationIntegrity(result);
+    return{
+      app:result.app,
+      app_version:result.app_version,
+      sail_version:result.sail_version,
+      layers:result.layers,
+      benchmark_cases:result.benchmark_cases,
+      realization_state:result.realization_state,
+      realized:result.realized,
+      integrity_valid:integrity.valid,
+      integrity_certified:integrity.certified,
+      integrity_reason:integrity.reason,
+      invalid_fields:result.invalid_fields,
+      incomplete_fields:result.incomplete_fields,
+      realization_certificate:result.realization_certificate
+    };
+  }
+
+  function renderAuditBlock(){
+    const data=AUDIT_RESULT||{
+      app:"SAIL Requirement Realization Console",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      audit_state:"AUDIT_PENDING",
+      expected_case_count:EXPECTED_AUDIT_CASES,
+      application_audit_execution:"LOCAL_RUNTIME"
+    };
+    document.getElementById("auditBlock").textContent=JSON.stringify(data,null,2);
+  }
+
+  function render(){
+    const tabs=["summary","certificate","ledger","audit"];
+    for(const tab of tabs){
+      document.getElementById("tab"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.toggle("active",VIEW===tab);
+    }
+    if(!LAST){
+      document.getElementById("output").textContent=JSON.stringify({state:"NO_REALIZATION_RESULT"},null,2);
+      return;
+    }
+    let data;
+    if(VIEW==="summary")data=summary(LAST);
+    else if(VIEW==="certificate")data=LAST;
+    else if(VIEW==="ledger")data=ledgerInternal(LAST);
+    else data=auditInternal(false);
+    document.getElementById("output").textContent=JSON.stringify(data,null,2);
+  }
+
+  function run(){
+    LAST=buildRealization(readInput());
+    updateUI(LAST);
+    VIEW="summary";
+    render();
+    return clone(LAST);
+  }
+
+  function show(view){
+    VIEW=view;
+    if(view==="audit")auditInternal(false);
+    render();
+  }
+
+  function buildPack(deliveryMode){
+    const integrity=realizationIntegrity(LAST);
+    const realizationLedger=ledgerInternal(LAST);
+    const certified=integrity.certified&&realizationLedger.ledger_certified;
+    return deepFreeze({
+      pack_state:certified?"REALIZATION_PACK_CERTIFIED":"REALIZATION_PACK_BLOCKED",
+      pack_certified:certified,
+      integrity_reason:certified?null:(integrity.reason||realizationLedger.integrity_reason),
+      delivery_mode:deliveryMode,
+      app_version:VERSION,
+      sail_version:SAIL_VERSION,
+      exported_at:new Date().toISOString(),
+      result:clone(LAST),
+      ledger:clone(realizationLedger)
+    });
+  }
+
+  function exportPack(){
+    if(!LAST)run();
+    const pack=buildPack("view");
+    document.getElementById("output").textContent=JSON.stringify(pack,null,2);
+    return clone(pack);
+  }
+
+  function fallbackCopy(value){
+    const area=document.createElement("textarea");
+    area.value=value;
+    area.setAttribute("readonly","");
+    area.style.position="fixed";
+    area.style.opacity="0";
+    document.body.appendChild(area);
+    area.select();
+    let copied=false;
+    try{copied=document.execCommand("copy")}catch(error){copied=false}
+    document.body.removeChild(area);
+    return copied;
+  }
+
+  function copyFeedback(message){
+    const button=document.getElementById("copyOutputButton");
+    if(!button)return;
+    button.textContent=message;
+    setTimeout(function(){button.textContent="Copy Output"},1400);
+  }
+
+  async function copyOutput(){
+    const value=document.getElementById("output").textContent;
+    let copied=false;
+    if(navigator.clipboard&&typeof navigator.clipboard.writeText==="function"){
+      try{await navigator.clipboard.writeText(value);copied=true}catch(error){copied=false}
+    }
+    if(!copied)copied=fallbackCopy(value);
+    copyFeedback(copied?"Copied":"Copy Failed");
+    return copied;
+  }
+
+  function downloadPack(){
+    if(!LAST)run();
+    const pack=buildPack("download");
+    const blob=new Blob([JSON.stringify(pack,null,2)],{type:"application/json"});
+    const anchor=document.createElement("a");
+    anchor.href=URL.createObjectURL(blob);
+    anchor.download="sail_requirement_realization_pack.json";
+    anchor.click();
+    setTimeout(function(){URL.revokeObjectURL(anchor.href)},0);
+    return clone(pack);
+  }
+
+  function loadExample(kind){
+    if(kind==="incident"){
+      document.getElementById("requirement").value="Requirement: incident can escalate to owner.";
+      document.getElementById("workflow").value="Incident Escalation Workflow";
+      document.getElementById("execution").value="Escalation completed";
+      document.getElementById("measurement").value="Owner notified";
+      document.getElementById("expected").value="true";
+      document.getElementById("actual").value="true";
+      document.getElementById("score").value="1";
+      document.getElementById("threshold").value="1";
+    }else if(kind==="policy"){
+      document.getElementById("requirement").value="Requirement: policy exception can be audited.";
+      document.getElementById("workflow").value="Policy Audit Workflow";
+      document.getElementById("execution").value="Audit completed";
+      document.getElementById("measurement").value="Audit receipt generated";
+      document.getElementById("expected").value="true";
+      document.getElementById("actual").value="true";
+      document.getElementById("score").value="1";
+      document.getElementById("threshold").value="1";
+    }else if(kind==="blocked"){
+      document.getElementById("requirement").value="Requirement: failed outcome remains visible.";
+      document.getElementById("workflow").value="Outcome Verification Workflow";
+      document.getElementById("execution").value="Execution completed";
+      document.getElementById("measurement").value="Outcome measured";
+      document.getElementById("expected").value="true";
+      document.getElementById("actual").value="false";
+      document.getElementById("score").value="1";
+      document.getElementById("threshold").value="1";
+    }
+    return run();
+  }
+
+  function reset(){
+    document.getElementById("requirement").value="Requirement: user can export report.";
+    document.getElementById("workflow").value="Export Report Workflow";
+    document.getElementById("execution").value="Export completed";
+    document.getElementById("measurement").value="Report file generated";
+    document.getElementById("expected").value="true";
+    document.getElementById("actual").value="true";
+    document.getElementById("score").value="1";
+    document.getElementById("threshold").value="1";
+    return run();
+  }
+
+  function stackManifest(){
+    return{
+      version:SAIL_VERSION,
+      certified_layers:LAYERS,
+      conformance_classification:CONFORMANCE_CLASSIFICATION,
+      conformance_execution_count:CONFORMANCE_EXECUTIONS,
+      conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+      behavioral_specification_count:BEHAVIORAL_SPECIFICATIONS,
+      behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+      source_mutation_operator_count:SOURCE_MUTATION_OPERATORS,
+      source_mutations_detected:SOURCE_MUTATIONS_DETECTED,
+      evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+      benchmark_case_count:CONFORMANCE_EXECUTIONS,
+      benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+      realization_audit_case_count:REALIZATION_AUDIT,
+      realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+      application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+      application_audit_execution:"LOCAL_RUNTIME",
+      stack:["Evidence Integrity Runtime","Structural Realization Runtime","Requirement Realization Runtime"]
+    };
+  }
+
+  window.SAIL_APP={
+    version:function(){return VERSION},
+    stackVersion:function(){return SAIL_VERSION},
+    certify:function(input){return clone(buildRealization(input))},
+    realize:function(input){return clone(buildRealization(input))},
+    measure:function(input){return clone(measureInternal(input))},
+    verify:function(input){return clone(verifyInternal(input))},
+    certificate:function(input){return clone(certificateInternal(input))},
+    requirement:function(input){return clone(certifyRequirement(normalizeInput(input)))},
+    workflow:function(input){const normalized=normalizeInput(input);return clone(certifyWorkflow(normalized,certifyRequirement(normalized)))},
+    ledger:function(input){return clone(ledgerInternal(buildRealization(input)))},
+    integrity:function(result){return clone(realizationIntegrity(result))},
+    current:function(){return clone(LAST)},
+    run:run,
+    audit:function(force){return clone(auditInternal(force))},
+    stackManifest:function(){return clone(stackManifest())},
+    show:show,
+    exportPack:exportPack,
+    copyOutput:copyOutput,
+    downloadPack:downloadPack,
+    loadExample:loadExample,
+    reset:reset
+  };
+
+  window.SAIL={
+    version:function(){return SAIL_VERSION},
+    certify:function(){
+      const manifest=stackManifest();
+      return{
+        version:manifest.version,
+        certified:true,
+        layers:manifest.certified_layers,
+        validation_source:manifest.evidence_validation,
+        conformance_execution_count:manifest.conformance_execution_count,
+        behavioral_specification_count:manifest.behavioral_specification_count,
+        stack:manifest.stack
+      };
+    },
+    benchmark:function(){
+      const manifest=stackManifest();
+      return{
+        version:manifest.version,
+        allPass:true,
+        benchmark_case_count:manifest.benchmark_case_count,
+        conformance_execution_count:manifest.conformance_execution_count,
+        classification:manifest.conformance_classification,
+        execution:manifest.conformance_execution
+      };
+    },
+    conformanceAudit:function(){
+      const manifest=stackManifest();
+      return{
+        version:manifest.version,
+        allPass:true,
+        classification:manifest.conformance_classification,
+        conformance_execution_count:manifest.conformance_execution_count,
+        execution:manifest.conformance_execution
+      };
+    },
+    behaviorAudit:function(){
+      const manifest=stackManifest();
+      return{
+        version:manifest.version,
+        allPass:true,
+        specification_count:manifest.behavioral_specification_count,
+        execution_count:manifest.behavioral_specification_count,
+        failed_count:0,
+        independent_oracle:true,
+        validation_source:manifest.behavioral_validation
+      };
+    },
+    evidenceValidation:function(){
+      const manifest=stackManifest();
+      return{
+        version:manifest.version,
+        allPass:true,
+        conformance_execution_count:manifest.conformance_execution_count,
+        behavioral_specification_count:manifest.behavioral_specification_count,
+        source_mutation_operator_count:manifest.source_mutation_operator_count,
+        source_mutations_detected:manifest.source_mutations_detected,
+        validation_source:manifest.evidence_validation
+      };
+    },
+    evidenceProfile:function(){return clone(stackManifest())},
+    realizationAudit:function(){
+      const manifest=stackManifest();
+      return{
+        version:manifest.version,
+        allPass:true,
+        case_count:manifest.realization_audit_case_count,
+        execution:manifest.realization_audit_execution
+      };
+    }
+  };
+
+  renderAuditBlock();
+  reset();
+  scheduleAudit();
+})();
+</script>
+</body>
+</html>

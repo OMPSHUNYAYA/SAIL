@@ -1,0 +1,1349 @@
+SAIL Compliance and Audit Console Validation
+
+SAIL Compliance and Audit Console v1.1.2
+Built on SAIL v5.9.0 Evidence Integrity Runtime
+
+==================================================
+APPLICATION VALIDATION
+======================
+
+[
+  SAIL_AUD.version(),
+  SAIL_AUD.stackVersion(),
+  SAIL_AUD.audit().allPass,
+  SAIL_AUD.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected:
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  12000,
+  37,
+  347400
+]
+
+==================================================
+REFERENCED CORE EVIDENCE
+========================
+
+(() => {
+  const manifest = SAIL_AUD.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version: manifest.version,
+    conformance_classification: conformance.classification,
+    conformance_execution_count: conformance.conformance_execution_count,
+    conformance_execution: conformance.execution,
+    behavioral_specification_count: behavior.specification_count,
+    behavioral_failures: behavior.failed_count,
+    behavioral_validation: behavior.validation_source,
+    source_mutation_operators: evidence.source_mutation_operator_count,
+    source_mutations_detected: evidence.source_mutations_detected,
+    evidence_all_pass: evidence.allPass,
+    evidence_validation_source: evidence.validation_source
+  };
+})()
+
+Expected:
+
+{
+  version: "5.9.0",
+  conformance_classification: "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count: 347400,
+  conformance_execution: "REFERENCE_RELEASE_VALIDATION",
+  behavioral_specification_count: 96,
+  behavioral_failures: 0,
+  behavioral_validation: "REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operators: 5,
+  source_mutations_detected: 5,
+  evidence_all_pass: true,
+  evidence_validation_source: "REFERENCE_RELEASE_VALIDATION"
+}
+
+Validation distinction:
+
+application audit execution = LOCAL_RUNTIME
+
+core conformance execution = REFERENCE_RELEASE_VALIDATION
+
+core behavioral validation = REFERENCE_RELEASE_VALIDATION
+
+==================================================
+PASS EVALUATION CERTIFICATION
+=============================
+
+(() => {
+  const result = SAIL_AUD.certify({
+    title: "Export Audit Receipt",
+    statement: "Control: report export must generate an audit receipt.",
+    policy: "audit_receipt_required",
+    evidence: "Export receipt generated",
+    owner: "audit_team",
+    result: "PASS",
+    exceptionReason: ""
+  });
+
+  return {
+    title: result.title,
+    policy: result.policy,
+    evidence: result.evidence,
+    result: result.result,
+    result_admitted: result.invariant.result_admitted,
+    evaluation_certified: result.evaluation_certified,
+    certified: result.certified,
+    control_state: result.control_state,
+    compliance_state: result.compliance_state,
+    exception_state: result.exception_state,
+    compliant: result.compliant,
+    exception: result.exception
+  };
+})()
+
+Expected:
+
+{
+  title: "Export Audit Receipt",
+  policy: "audit_receipt_required",
+  evidence: "Export receipt generated",
+  result: "PASS",
+  result_admitted: true,
+  evaluation_certified: true,
+  certified: true,
+  control_state: "CONTROL_PASSED",
+  compliance_state: "COMPLIANT",
+  exception_state: "NO_EXCEPTION",
+  compliant: true,
+  exception: false
+}
+
+==================================================
+FAIL EVALUATION CERTIFICATION
+=============================
+
+(() => {
+  const result = SAIL_AUD.certify({
+    title: "Access Review Failure",
+    statement: "Control: admin access must be reviewed.",
+    policy: "access_review_required",
+    evidence: "Review not completed",
+    owner: "security_team",
+    result: "FAIL",
+    exceptionReason: ""
+  });
+
+  return {
+    result: result.result,
+    result_admitted: result.invariant.result_admitted,
+    evaluation_certified: result.evaluation_certified,
+    certified: result.certified,
+    control_state: result.control_state,
+    compliance_state: result.compliance_state,
+    exception_state: result.exception_state,
+    compliant: result.compliant,
+    exception: result.exception,
+    exception_certificate: result.exception_certificate
+  };
+})()
+
+Expected:
+
+{
+  result: "FAIL",
+  result_admitted: true,
+  evaluation_certified: true,
+  certified: true,
+  control_state: "CONTROL_FAILED",
+  compliance_state: "NON_COMPLIANT",
+  exception_state: "NO_EXCEPTION",
+  compliant: false,
+  exception: false,
+  exception_certificate: null
+}
+
+Core distinction:
+
+certified evaluation != compliant control
+
+==================================================
+EXCEPTION EVALUATION CERTIFICATION
+==================================
+
+(() => {
+  const result = SAIL_AUD.certify({
+    title: "Release Approval",
+    statement: "Control: release must have approval.",
+    policy: "release_approval_required",
+    evidence: "Approval deferred",
+    owner: "release_team",
+    result: "EXCEPTION",
+    exceptionReason: "Approved deviation pending review"
+  });
+
+  return {
+    result: result.result,
+    result_admitted: result.invariant.result_admitted,
+    evaluation_certified: result.evaluation_certified,
+    certified: result.certified,
+    control_state: result.control_state,
+    compliance_state: result.compliance_state,
+    exception_state: result.exception_state,
+    compliant: result.compliant,
+    exception: result.exception,
+    exception_certificate_present:
+      typeof result.exception_certificate === "string" &&
+      result.exception_certificate.startsWith("EXCEPT-")
+  };
+})()
+
+Expected:
+
+{
+  result: "EXCEPTION",
+  result_admitted: true,
+  evaluation_certified: true,
+  certified: true,
+  control_state: "CONTROL_EXCEPTION",
+  compliance_state: "EXCEPTION",
+  exception_state: "EXCEPTION_RECORDED",
+  compliant: false,
+  exception: true,
+  exception_certificate_present: true
+}
+
+==================================================
+EXCEPTION REASON REQUIREMENT
+============================
+
+(() => {
+  const result = SAIL_AUD.certify({
+    title: "Release Approval",
+    statement: "Control: release must have approval.",
+    policy: "release_approval_required",
+    evidence: "Approval deferred",
+    owner: "release_team",
+    result: "EXCEPTION",
+    exceptionReason: ""
+  });
+
+  return {
+    evaluation_certified: result.evaluation_certified,
+    certified: result.certified,
+    control_state: result.control_state,
+    compliance_state: result.compliance_state,
+    exception_state: result.exception_state,
+    incomplete_fields: result.incomplete_fields
+  };
+})()
+
+Expected:
+
+{
+  evaluation_certified: false,
+  certified: false,
+  control_state: "CONTROL_INCOMPLETE",
+  compliance_state: "UNRESOLVED",
+  exception_state: "NO_EXCEPTION",
+  incomplete_fields: ["exceptionReason"]
+}
+
+==================================================
+INVALID RESULT FAIL-CLOSED ADMISSION
+====================================
+
+(() => {
+  const result = SAIL_AUD.certify({
+    title: "Invalid Result",
+    statement: "Control result must be explicitly admitted.",
+    policy: "audit_receipt_required",
+    evidence: "Visible evidence",
+    owner: "audit_team",
+    result: "BOGUS",
+    exceptionReason: ""
+  });
+
+  return {
+    result: result.result,
+    result_admitted: result.invariant.result_admitted,
+    evaluation_certified: result.evaluation_certified,
+    certified: result.certified,
+    control_state: result.control_state,
+    compliance_state: result.compliance_state,
+    exception_state: result.exception_state,
+    incomplete_fields: result.incomplete_fields
+  };
+})()
+
+Expected:
+
+{
+  result: "BOGUS",
+  result_admitted: false,
+  evaluation_certified: false,
+  certified: false,
+  control_state: "CONTROL_INCOMPLETE",
+  compliance_state: "UNRESOLVED",
+  exception_state: "NO_EXCEPTION",
+  incomplete_fields: ["result"]
+}
+
+Result admission invariant:
+
+evaluation certified iff required fields are complete AND result is admitted
+
+Admitted results:
+
+PASS
+
+FAIL
+
+EXCEPTION
+
+==================================================
+DETERMINISTIC STRUCTURAL IDENTITY
+=================================
+
+(() => {
+  const input = {
+    title: "Export Audit Receipt",
+    statement: "Control: report export must generate an audit receipt.",
+    policy: "audit_receipt_required",
+    evidence: "Export receipt generated",
+    owner: "audit_team",
+    result: "PASS",
+    exceptionReason: ""
+  };
+
+  const first = SAIL_AUD.certify(input);
+  const second = SAIL_AUD.certify(input);
+
+  return {
+    same_control_id:
+      first.control_id === second.control_id,
+
+    same_control_certificate:
+      first.control_certificate === second.control_certificate,
+
+    same_policy_certificate:
+      first.policy_certificate === second.policy_certificate,
+
+    same_evidence_certificate:
+      first.evidence_certificate === second.evidence_certificate,
+
+    different_record_id:
+      first.record_id !== second.record_id,
+
+    deterministic_helper_matches:
+      SAIL_AUD.deterministicId(input) === first.control_id
+  };
+})()
+
+Expected:
+
+{
+  same_control_id: true,
+  same_control_certificate: true,
+  same_policy_certificate: true,
+  same_evidence_certificate: true,
+  different_record_id: true,
+  deterministic_helper_matches: true
+}
+
+Structural identity invariant:
+
+same structural evaluation -> same control identity
+
+Operational identity invariant:
+
+separate runtime records -> separate record identity
+
+==================================================
+MULTI-CONTROL REGISTER
+======================
+
+(() => {
+  SAIL_AUD.reset();
+
+  const firstPack = SAIL_AUD.exportPack();
+
+  SAIL_AUD.newControl();
+
+  document.getElementById("title").value =
+    "Second Control";
+
+  document.getElementById("statement").value =
+    "Control: second evaluation must remain independently traceable.";
+
+  document.getElementById("policy").value =
+    "access_review_required";
+
+  document.getElementById("evidence").value =
+    "Second evidence record";
+
+  document.getElementById("owner").value =
+    "second_team";
+
+  document.getElementById("result").value =
+    "PASS";
+
+  document.getElementById("exceptionReason").value =
+    "";
+
+  const second = SAIL_AUD.createOrUpdate();
+  const secondPack = SAIL_AUD.exportPack();
+
+  const recordIds =
+    secondPack.operational_metadata.records.map(
+      record => record.record_id
+    );
+
+  return {
+    first_control_count:
+      firstPack.evaluation_counts.total_control_count,
+
+    second_control_count:
+      secondPack.evaluation_counts.total_control_count,
+
+    unique_record_count:
+      new Set(recordIds).size,
+
+    second_evaluation_certified:
+      second.evaluation_certified,
+
+    pack_state:
+      secondPack.pack_state
+  };
+})()
+
+Expected:
+
+{
+  first_control_count: 1,
+  second_control_count: 2,
+  unique_record_count: 2,
+  second_evaluation_certified: true,
+  pack_state: "COMPLIANCE_PACK_CERTIFIED"
+}
+
+Register invariant:
+
+New Control -> new operational record
+
+Certify Evaluation with selected control -> update selected operational record
+
+==================================================
+INCOMPLETE EVALUATION ACCEPTANCE GUARD
+======================================
+
+(() => {
+  SAIL_AUD.reset();
+
+  document.getElementById("statement").value = "";
+  document.getElementById("evidence").value = "";
+  document.getElementById("owner").value = "";
+
+  const result = SAIL_AUD.createOrUpdate();
+  const acceptance = SAIL_AUD.acceptSelected();
+
+  return {
+    evaluation_certified: result.evaluation_certified,
+    control_state: result.control_state,
+    compliance_state: result.compliance_state,
+    incomplete_fields: result.incomplete_fields,
+    acceptance_result: acceptance
+  };
+})()
+
+Expected:
+
+{
+  evaluation_certified: false,
+  control_state: "CONTROL_INCOMPLETE",
+  compliance_state: "UNRESOLVED",
+  incomplete_fields: [
+    "evidence",
+    "owner",
+    "statement"
+  ],
+  acceptance_result: false
+}
+
+Acceptance invariant:
+
+evaluation accepted iff evaluation certified
+
+==================================================
+PUBLIC RECEIPT DERIVATION GUARD
+===============================
+
+(() => {
+  const result = SAIL_AUD.certify({
+    title: "Receipt Guard",
+    statement: "Control: receipt requires accepted evaluation.",
+    policy: "audit_receipt_required",
+    evidence: "Visible evidence",
+    owner: "audit_team",
+    result: "PASS",
+    exceptionReason: ""
+  });
+
+  const beforeAcceptance =
+    SAIL_AUD.receiptFor(result);
+
+  result.accepted = true;
+
+  const afterAcceptance =
+    SAIL_AUD.receiptFor(result);
+
+  return {
+    receipt_before_acceptance:
+      beforeAcceptance,
+
+    receipt_after_acceptance_present:
+      typeof afterAcceptance === "string" &&
+      afterAcceptance.startsWith("AUDIT-")
+  };
+})()
+
+Expected:
+
+{
+  receipt_before_acceptance: null,
+  receipt_after_acceptance_present: true
+}
+
+Public receipt invariant:
+
+audit receipt derivable iff evaluation certified AND evaluation accepted
+
+==================================================
+AUDIT RECEIPT LIFECYCLE GUARD
+=============================
+
+(() => {
+  SAIL_AUD.reset();
+
+  const receiptBeforeAcceptance =
+    SAIL_AUD.issueReceipt();
+
+  const acceptance =
+    SAIL_AUD.acceptSelected();
+
+  const receiptAfterAcceptance =
+    SAIL_AUD.issueReceipt();
+
+  const pack =
+    SAIL_AUD.exportPack();
+
+  const control =
+    pack.structural_payload.controls[0];
+
+  return {
+    receipt_before_acceptance:
+      receiptBeforeAcceptance,
+
+    acceptance_result:
+      acceptance,
+
+    receipt_after_acceptance:
+      receiptAfterAcceptance,
+
+    receipt_state:
+      control.receipt_state,
+
+    audit_receipt_present:
+      typeof control.audit_receipt === "string" &&
+      control.audit_receipt.startsWith("AUDIT-")
+  };
+})()
+
+Expected:
+
+{
+  receipt_before_acceptance: false,
+  acceptance_result: true,
+  receipt_after_acceptance: true,
+  receipt_state: "AUDIT_RECEIPT_ISSUED",
+  audit_receipt_present: true
+}
+
+Receipt invariant:
+
+audit receipt issued iff evaluation certified AND evaluation accepted
+
+==================================================
+ACCEPTANCE AND RECEIPT IDEMPOTENCY
+=================================
+
+(() => {
+  SAIL_AUD.reset();
+
+  const firstAcceptance =
+    SAIL_AUD.acceptSelected();
+
+  const secondAcceptance =
+    SAIL_AUD.acceptSelected();
+
+  const firstIssue =
+    SAIL_AUD.issueReceipt();
+
+  const firstPack =
+    SAIL_AUD.exportPack();
+
+  const firstReceipt =
+    firstPack.structural_payload.controls[0].audit_receipt;
+
+  const secondIssue =
+    SAIL_AUD.issueReceipt();
+
+  const secondPack =
+    SAIL_AUD.exportPack();
+
+  const secondReceipt =
+    secondPack.structural_payload.controls[0].audit_receipt;
+
+  return {
+    first_acceptance: firstAcceptance,
+    second_acceptance: secondAcceptance,
+    first_issue: firstIssue,
+    second_issue: secondIssue,
+    same_receipt: firstReceipt === secondReceipt,
+    receipt_state:
+      secondPack.structural_payload.controls[0].receipt_state
+  };
+})()
+
+Expected:
+
+{
+  first_acceptance: true,
+  second_acceptance: true,
+  first_issue: true,
+  second_issue: true,
+  same_receipt: true,
+  receipt_state: "AUDIT_RECEIPT_ISSUED"
+}
+
+Idempotency invariant:
+
+repeat accepted transition -> same structural state + same audit receipt
+
+==================================================
+EXCEPTION RECORDING GUARD
+=========================
+
+(() => {
+  SAIL_AUD.reset();
+
+  document.getElementById("exceptionReason").value = "";
+
+  const blocked =
+    SAIL_AUD.exceptionSelected();
+
+  document.getElementById("exceptionReason").value =
+    "Approved deviation pending review";
+
+  const recorded =
+    SAIL_AUD.exceptionSelected();
+
+  const control =
+    SAIL_AUD.exportPack()
+      .structural_payload
+      .controls[0];
+
+  return {
+    exception_without_reason:
+      blocked,
+
+    exception_with_reason:
+      recorded,
+
+    control_state:
+      control.control_state,
+
+    compliance_state:
+      control.compliance_state,
+
+    exception_state:
+      control.exception_state,
+
+    exception:
+      control.exception,
+
+    exception_certificate_present:
+      typeof control.exception_certificate === "string" &&
+      control.exception_certificate.startsWith("EXCEPT-")
+  };
+})()
+
+Expected:
+
+{
+  exception_without_reason: false,
+  exception_with_reason: true,
+  control_state: "CONTROL_EXCEPTION",
+  compliance_state: "EXCEPTION",
+  exception_state: "EXCEPTION_RECORDED",
+  exception: true,
+  exception_certificate_present: true
+}
+
+Exception invariant:
+
+exception recorded iff evaluation certified AND explicit exception reason present
+
+==================================================
+DETERMINISTIC AUDIT RECEIPT REPLAY
+==================================
+
+(() => {
+  const input = {
+    title: "Export Audit Receipt",
+    statement: "Control: report export must generate an audit receipt.",
+    policy: "audit_receipt_required",
+    evidence: "Export receipt generated",
+    owner: "audit_team",
+    result: "PASS",
+    exceptionReason: ""
+  };
+
+  const first = SAIL_AUD.certify(input);
+  const second = SAIL_AUD.certify(input);
+
+  first.accepted = true;
+  second.accepted = true;
+
+  const firstReceipt =
+    SAIL_AUD.receiptFor(first);
+
+  const secondReceipt =
+    SAIL_AUD.receiptFor(second);
+
+  return {
+    same_receipt:
+      firstReceipt === secondReceipt,
+
+    receipt_prefix_valid:
+      firstReceipt.startsWith("AUDIT-"),
+
+    different_record_identity:
+      first.record_id !== second.record_id
+  };
+})()
+
+Expected:
+
+{
+  same_receipt: true,
+  receipt_prefix_valid: true,
+  different_record_identity: true
+}
+
+Replay invariant:
+
+same accepted structural evaluation -> same certificate chain -> same audit receipt
+
+==================================================
+CUSTOM POLICY SUPPORT
+=====================
+
+(() => {
+  SAIL_AUD.reset();
+
+  document.getElementById("policy").value =
+    "custom_policy";
+
+  document.getElementById("policy").dispatchEvent(
+    new Event("change")
+  );
+
+  document.getElementById("customPolicy").value =
+    "data_retention_review_required";
+
+  const result =
+    SAIL_AUD.createOrUpdate();
+
+  return {
+    policy: result.policy,
+    policy_state: result.policy_state,
+    evaluation_certified: result.evaluation_certified,
+    control_state: result.control_state,
+    deterministic_id_matches:
+      SAIL_AUD.deterministicId({
+        title: result.title,
+        statement: result.statement,
+        policy: result.policy,
+        evidence: result.evidence,
+        owner: result.owner,
+        result: result.result,
+        exceptionReason: result.exceptionReason
+      }) === result.control_id
+  };
+})()
+
+Expected:
+
+{
+  policy: "data_retention_review_required",
+  policy_state: "POLICY_BOUND",
+  evaluation_certified: true,
+  control_state: "CONTROL_PASSED",
+  deterministic_id_matches: true
+}
+
+==================================================
+CERTIFIED COMPLIANCE PACK
+=========================
+
+(() => {
+  SAIL_AUD.reset();
+
+  const pack =
+    SAIL_AUD.exportPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+
+    pack_certified:
+      pack.pack_certified,
+
+    total_control_count:
+      pack.evaluation_counts.total_control_count,
+
+    certified_control_count:
+      pack.evaluation_counts.certified_control_count,
+
+    incomplete_control_count:
+      pack.evaluation_counts.incomplete_control_count,
+
+    delivery_mode:
+      pack.delivery_mode
+  };
+})()
+
+Expected:
+
+{
+  pack_state: "COMPLIANCE_PACK_CERTIFIED",
+  pack_certified: true,
+  total_control_count: 1,
+  certified_control_count: 1,
+  incomplete_control_count: 0,
+  delivery_mode: "view"
+}
+
+Pack certification invariant:
+
+pack certified iff every included evaluation is certified
+
+==================================================
+INCOMPLETE COMPLIANCE PACK
+==========================
+
+(() => {
+  SAIL_AUD.reset();
+
+  document.getElementById("statement").value = "";
+  document.getElementById("evidence").value = "";
+  document.getElementById("owner").value = "";
+
+  SAIL_AUD.createOrUpdate();
+
+  const pack =
+    SAIL_AUD.exportPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+
+    pack_certified:
+      pack.pack_certified,
+
+    total_control_count:
+      pack.evaluation_counts.total_control_count,
+
+    certified_control_count:
+      pack.evaluation_counts.certified_control_count,
+
+    incomplete_control_count:
+      pack.evaluation_counts.incomplete_control_count
+  };
+})()
+
+Expected:
+
+{
+  pack_state: "COMPLIANCE_PACK_INCOMPLETE",
+  pack_certified: false,
+  total_control_count: 1,
+  certified_control_count: 0,
+  incomplete_control_count: 1
+}
+
+==================================================
+PARTIALLY CERTIFIED COMPLIANCE PACK
+===================================
+
+(() => {
+  SAIL_AUD.reset();
+
+  SAIL_AUD.newControl();
+
+  document.getElementById("title").value =
+    "Incomplete Control";
+
+  document.getElementById("statement").value = "";
+  document.getElementById("evidence").value = "";
+  document.getElementById("owner").value = "";
+
+  SAIL_AUD.createOrUpdate();
+
+  const pack =
+    SAIL_AUD.exportPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+
+    pack_certified:
+      pack.pack_certified,
+
+    total_control_count:
+      pack.evaluation_counts.total_control_count,
+
+    certified_control_count:
+      pack.evaluation_counts.certified_control_count,
+
+    incomplete_control_count:
+      pack.evaluation_counts.incomplete_control_count
+  };
+})()
+
+Expected:
+
+{
+  pack_state: "COMPLIANCE_PACK_PARTIALLY_CERTIFIED",
+  pack_certified: false,
+  total_control_count: 2,
+  certified_control_count: 1,
+  incomplete_control_count: 1
+}
+
+Pack state invariant:
+
+all evaluations certified -> COMPLIANCE_PACK_CERTIFIED
+
+no evaluations certified -> COMPLIANCE_PACK_INCOMPLETE
+
+mixed certification states -> COMPLIANCE_PACK_PARTIALLY_CERTIFIED
+
+==================================================
+STRUCTURAL AND OPERATIONAL PACK SEPARATION
+==========================================
+
+(() => {
+  SAIL_AUD.reset();
+
+  const pack =
+    SAIL_AUD.exportPack();
+
+  const structuralControl =
+    pack.structural_payload.controls[0];
+
+  const operationalRecord =
+    pack.operational_metadata.records[0];
+
+  return {
+    structural_controls_present:
+      Array.isArray(
+        pack.structural_payload.controls
+      ),
+
+    operational_records_present:
+      Array.isArray(
+        pack.operational_metadata.records
+      ),
+
+    timestamps_excluded_from_certificates:
+      pack.operational_metadata
+        .timestamp_fields_excluded_from_certificates,
+
+    structural_contains_record_id:
+      Object.prototype.hasOwnProperty.call(
+        structuralControl,
+        "record_id"
+      ),
+
+    structural_contains_created_at:
+      Object.prototype.hasOwnProperty.call(
+        structuralControl,
+        "created_at"
+      ),
+
+    operational_contains_record_id:
+      Object.prototype.hasOwnProperty.call(
+        operationalRecord,
+        "record_id"
+      ),
+
+    operational_contains_created_at:
+      Object.prototype.hasOwnProperty.call(
+        operationalRecord,
+        "created_at"
+      )
+  };
+})()
+
+Expected:
+
+{
+  structural_controls_present: true,
+  operational_records_present: true,
+  timestamps_excluded_from_certificates: true,
+  structural_contains_record_id: false,
+  structural_contains_created_at: false,
+  operational_contains_record_id: true,
+  operational_contains_created_at: true
+}
+
+Pack separation invariant:
+
+structural certificate data excludes operational timestamps and record identity
+
+==================================================
+DOWNLOAD PACK STATE
+===================
+
+(() => {
+  SAIL_AUD.reset();
+
+  const pack =
+    SAIL_AUD.downloadPack();
+
+  return {
+    pack_state: pack.pack_state,
+    pack_certified: pack.pack_certified,
+    delivery_mode: pack.delivery_mode,
+    version: pack.version,
+    sail_version: pack.sail_version,
+    certified_control_count:
+      pack.evaluation_counts.certified_control_count,
+    incomplete_control_count:
+      pack.evaluation_counts.incomplete_control_count
+  };
+})()
+
+Expected:
+
+{
+  pack_state: "COMPLIANCE_PACK_CERTIFIED",
+  pack_certified: true,
+  delivery_mode: "download",
+  version: "1.1.2",
+  sail_version: "5.9.0",
+  certified_control_count: 1,
+  incomplete_control_count: 0
+}
+
+==================================================
+APPLICATION AUDIT
+=================
+
+SAIL_AUD.audit(true)
+
+Expected key fields:
+
+{
+  app: "SAIL Compliance and Audit Console",
+  version: "1.1.2",
+  sail_version: "5.9.0",
+  allPass: true,
+  case_count: 12000,
+  expected_case_count: 12000,
+  count_match: true,
+  failed_case_count: 0,
+  layers: 37,
+  classification: "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  execution: "LOCAL_RUNTIME",
+  conformance_classification: "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_executions: 347400,
+  conformance_execution: "REFERENCE_RELEASE_VALIDATION",
+  behavioral_specifications: 96,
+  behavioral_validation: "REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operators: 5,
+  source_mutations_detected: 5,
+  benchmark_cases: 347400,
+  benchmark_execution: "REFERENCE_RELEASE_VALIDATION"
+}
+
+Application audit coverage includes:
+
+PASS evaluation semantics
+
+FAIL evaluation semantics
+
+EXCEPTION evaluation semantics
+
+exception-reason admission
+
+invalid-result fail-closed admission
+
+incomplete-evaluation guards
+
+deterministic structural identity
+
+operational identity separation
+
+public receipt derivation guards
+
+evaluation acceptance guards
+
+audit receipt guards
+
+deterministic receipt replay
+
+certified pack classification
+
+incomplete pack classification
+
+partially certified pack classification
+
+Application audit invariant:
+
+audit passes iff observed case count = expected case count AND every case passes
+
+==================================================
+STACK MANIFEST
+==============
+
+SAIL_AUD.stackManifest()
+
+Expected key fields:
+
+{
+  version: "5.9.0",
+  certified_layers: 37,
+  conformance_classification: "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count: 347400,
+  conformance_execution: "REFERENCE_RELEASE_VALIDATION",
+  behavioral_specification_count: 96,
+  behavioral_validation: "REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operator_count: 5,
+  source_mutations_detected: 5,
+  evidence_validation: "REFERENCE_RELEASE_VALIDATION",
+  benchmark_case_count: 347400,
+  benchmark_execution: "REFERENCE_RELEASE_VALIDATION",
+  application_audit_classification: "LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  application_audit_execution: "LOCAL_RUNTIME",
+  stack: [
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Compliance and Audit Runtime"
+  ]
+}
+
+==================================================
+STACK INTERFACE
+===============
+
+SAIL.certify()
+
+Expected key fields:
+
+{
+  version: "5.9.0",
+  certified: true,
+  layers: 37,
+  validation_source: "REFERENCE_RELEASE_VALIDATION",
+  conformance_execution_count: 347400,
+  behavioral_specification_count: 96,
+  stack: [
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Compliance and Audit Runtime"
+  ]
+}
+
+SAIL.benchmark()
+
+Expected:
+
+{
+  version: "5.9.0",
+  allPass: true,
+  benchmark_case_count: 347400,
+  conformance_execution_count: 347400,
+  classification: "SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  execution: "REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.behaviorAudit()
+
+Expected:
+
+{
+  version: "5.9.0",
+  allPass: true,
+  specification_count: 96,
+  execution_count: 96,
+  failed_count: 0,
+  independent_oracle: true,
+  validation_source: "REFERENCE_RELEASE_VALIDATION"
+}
+
+==================================================
+EXTERNAL EXECUTABLE VALIDATION
+==============================
+
+Run from the application directory:
+
+python sail_compliance_audit_console_v1_1_2_test.py
+
+Expected:
+
+SAIL Compliance and Audit Console v1.1.2 validation passed
+Source integrity checks: 24
+Runtime behavioral checks: 16
+Application audit executions: 12000
+Failed checks: 0
+
+The external Python validation performs:
+
+source-integrity validation
+
+real Chromium execution
+
+independently specified behavioral checks
+
+browser error detection
+
+application-audit count verification
+
+==================================================
+VALIDATION STATUS
+=================
+
+Application:
+SAIL Compliance and Audit Console
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Audit:
+PASS
+
+Application Conformance Executions:
+12000
+
+Expected Application Conformance Executions:
+12000
+
+Application Count Match:
+PASS
+
+Failed Application Cases:
+0
+
+Certified Layers:
+37
+
+Referenced Core Conformance Executions:
+347400
+
+Core Conformance Classification:
+SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS
+
+Core Evidence Validation Source:
+REFERENCE_RELEASE_VALIDATION
+
+Core Behavioral Specifications:
+96
+
+Controlled Source Mutations Detected:
+5 of 5
+
+PASS Evaluation Certification:
+PASS
+
+FAIL Evaluation Semantics:
+PASS
+
+EXCEPTION Evaluation Semantics:
+PASS
+
+Exception Reason Requirement:
+PASS
+
+Invalid Result Fail-Closed Admission:
+PASS
+
+Deterministic Control Identity:
+PASS
+
+Operational Record Identity Separation:
+PASS
+
+Multi-Control Register:
+PASS
+
+Incomplete Evaluation Guard:
+PASS
+
+Evaluation Acceptance Guard:
+PASS
+
+Public Receipt Derivation Guard:
+PASS
+
+Audit Receipt Lifecycle Guard:
+PASS
+
+Acceptance and Receipt Idempotency:
+PASS
+
+Exception Recording Guard:
+PASS
+
+Deterministic Audit Receipt Replay:
+PASS
+
+Custom Policy Support:
+PASS
+
+Certified Pack Classification:
+PASS
+
+Incomplete Pack Classification:
+PASS
+
+Partially Certified Pack Classification:
+PASS
+
+Structural and Operational Pack Separation:
+PASS
+
+Timestamp Exclusion from Certificate Identity:
+PASS
+
+External Source Integrity Checks:
+24
+
+External Runtime Behavioral Checks:
+16
+
+External Validation Failures:
+0
+
+Validation Status:
+VALIDATED

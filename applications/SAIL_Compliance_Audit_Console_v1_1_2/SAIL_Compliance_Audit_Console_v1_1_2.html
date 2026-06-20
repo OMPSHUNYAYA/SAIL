@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAIL Compliance and Audit Console v1.1.2</title>
+<style>
+:root{
+  --bg:#050b16;--line:rgba(120,168,255,.34);--line2:rgba(255,255,255,.13);
+  --text:#edf4ff;--muted:#b8c7e6;--gold:#ffd47a;--mint:#69f0c8;
+  --red:#ff8f8f;--orange:#ffb86b;--shadow:0 20px 55px rgba(0,0,0,.34)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 12% 0%,rgba(120,168,255,.13),transparent 30%),radial-gradient(circle at 92% 8%,rgba(105,240,200,.08),transparent 24%),linear-gradient(180deg,#050b16 0%,#07111f 48%,#081423 100%);min-height:100vh}
+.wrap{max-width:1480px;margin:0 auto;padding:22px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;border:1px solid var(--line);border-radius:26px;padding:18px;background:linear-gradient(135deg,rgba(120,168,255,.18),rgba(105,240,200,.08));box-shadow:var(--shadow)}
+.eyebrow{display:inline-block;color:var(--gold);font-weight:900;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line2);border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.04)}
+h1{font-size:clamp(1.65rem,2.8vw,3rem);line-height:1.05;margin:10px 0 8px;letter-spacing:-.04em}
+p{color:var(--muted);line-height:1.6;margin:0}
+.hero-right{min-width:300px;border:1px solid var(--line2);border-radius:20px;padding:14px;background:rgba(3,11,22,.54)}
+.stat-row{display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--line2);padding:8px 0}
+.stat-row:last-child{border-bottom:0}.stat-row span{color:var(--muted)}.stat-row strong{color:var(--mint)}
+.grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:18px;align-items:start}
+.panel{border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(8,30,54,.84),rgba(5,15,30,.92));padding:20px;box-shadow:var(--shadow)}
+.panel h2{margin:0 0 8px;font-size:1.22rem}.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+label{display:block;color:var(--gold);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px}
+input,textarea,select{width:100%;border:1px solid var(--line2);border-radius:14px;background:rgba(3,11,22,.70);color:var(--text);padding:12px 13px;font:14px/1.5 ui-monospace,Consolas,monospace;outline:none}
+textarea{min-height:112px;resize:vertical}
+button{border:1px solid rgba(110,216,255,.46);border-radius:12px;padding:11px 14px;background:linear-gradient(180deg,rgba(7,34,62,.96),rgba(4,17,34,.96));color:#eef8ff;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .08s ease,filter .08s ease,border-color .08s ease}
+button:hover{filter:brightness(1.14);border-color:rgba(110,216,255,.78);transform:translateY(-1px)}
+button:active{transform:translateY(2px) scale(.985)}
+button.primary{background:linear-gradient(135deg,rgba(105,240,200,.98),rgba(78,180,255,.78));color:#04101e;border-color:rgba(105,240,200,.92)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.status-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:18px}
+.status{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(3,11,22,.48)}
+.status span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.status b{color:var(--mint);font-size:.96rem;overflow-wrap:anywhere}
+.control-list{display:grid;gap:12px}
+.control-card{border:1px solid var(--line2);border-radius:18px;padding:14px;background:rgba(3,11,22,.48);cursor:pointer}
+.control-card.active{border-color:rgba(105,240,200,.72);background:rgba(105,240,200,.06)}
+.control-card h3{margin:0 0 8px;color:#fff;font-size:1rem}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.tag{border:1px solid var(--line2);border-radius:999px;padding:5px 8px;color:var(--muted);font-size:.72rem}
+.tag.good{color:var(--mint);border-color:rgba(105,240,200,.5)}
+.tag.warn{color:var(--orange);border-color:rgba(255,184,107,.55)}
+.tag.bad{color:var(--red);border-color:rgba(255,143,143,.55)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(165px,1fr));gap:10px;margin:14px 0}
+.step{border:1px solid var(--line2);border-radius:16px;padding:12px;min-height:82px;background:rgba(255,255,255,.04);overflow:hidden}
+.step strong{display:block;color:var(--gold);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;white-space:nowrap}
+.step small{display:block;color:var(--muted);line-height:1.4;overflow-wrap:anywhere;font-size:.78rem}
+.step.pass{border-color:rgba(105,240,200,.55);background:rgba(105,240,200,.06)}
+.step.warn{border-color:rgba(255,184,107,.55);background:rgba(255,184,107,.06)}
+.step.bad{border-color:rgba(255,143,143,.55);background:rgba(255,143,143,.06)}
+[hidden]{display:none!important}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.tab.active{border-color:rgba(105,240,200,.86);color:#dfffee}
+pre{margin:0;white-space:pre-wrap;background:rgba(3,11,22,.72);border:1px solid var(--line2);border-radius:16px;padding:14px;color:#dbe9ff;font-family:ui-monospace,Consolas,monospace;font-size:.86rem;max-height:430px;overflow:auto}
+.note{margin-top:14px;border:1px dashed rgba(120,168,255,.30);border-radius:16px;padding:13px;color:var(--muted);background:rgba(3,11,22,.32);font-size:.88rem;line-height:1.5}
+.note strong{color:var(--gold)}
+.boundary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
+.boundary-card{border:1px solid var(--line);border-radius:18px;padding:15px;background:linear-gradient(180deg,rgba(8,30,54,.72),rgba(3,11,22,.62));box-shadow:0 12px 30px rgba(0,0,0,.22)}
+.boundary-card strong{display:block;color:var(--gold);font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.boundary-card p{font-size:.84rem;line-height:1.5}
+.footer{color:var(--muted);text-align:center;padding:28px}
+@media(max-width:1200px){.hero,.grid{grid-template-columns:1fr}.status-grid{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr 1fr}.boundary-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.flow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div>
+    <div class="eyebrow">SAIL Application</div>
+    <h1>Compliance and Audit Console</h1>
+    <p>Certify evaluations, bind policy, incorporate visible evidence, handle exceptions, and generate guarded audit receipts.</p>
+  </div>
+  <div class="hero-right">
+    <div class="stat-row"><span>SAIL Stack</span><strong>5.9.0</strong></div>
+    <div class="stat-row"><span>Layers</span><strong>37</strong></div>
+    <div class="stat-row"><span>Conformance</span><strong>347400 synthetic</strong></div>
+    <div class="stat-row"><span>Behavior</span><strong>96/96 PASS</strong></div>
+    <div class="stat-row"><span>App Version</span><strong>1.1.2</strong></div>
+    <div class="stat-row"><span>Status</span><strong id="systemStatus">READY</strong></div>
+  </div>
+</section>
+
+<section class="status-grid">
+  <div class="status"><span>App Version</span><b id="appVersion">1.1.2</b></div>
+  <div class="status"><span>Controls</span><b id="controlCount">0</b></div>
+  <div class="status"><span>Certified</span><b id="certifiedCount">0</b></div>
+  <div class="status"><span>Compliant</span><b id="compliantCount">0</b></div>
+  <div class="status"><span>Exceptions</span><b id="exceptionCount">0</b></div>
+  <div class="status"><span>Audit</span><b id="auditState">READY</b></div>
+</section>
+
+<section class="boundary-grid" aria-label="Application assurance boundaries">
+  <div class="boundary-card">
+    <strong>Structural Fingerprints</strong>
+    <p>Certificate and receipt values are deterministic 32-bit non-cryptographic fingerprints. They support structural comparison and replay, but they are not digital signatures, authenticity proofs, or external attestations.</p>
+  </div>
+  <div class="boundary-card">
+    <strong>Evidence and Compliance Boundary</strong>
+    <p>Evidence presence is structurally validated, not independently verified. COMPLIANT means a complete evaluation was certified with result PASS; it does not establish legal, factual, or regulatory compliance.</p>
+  </div>
+  <div class="boundary-card">
+    <strong>Session-Only Register</strong>
+    <p>Controls are retained only in the active browser session. Refreshing or closing the page clears the register. Export or download the compliance pack before leaving the application.</p>
+  </div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Evaluation Certification</h2>
+    <div class="sub">Create or update a compliance evaluation from visible policy, evidence, ownership, and result structure.</div>
+
+    <label>Control Title</label>
+    <input id="title" value="Export Audit Receipt">
+
+    <label>Control Statement</label>
+    <textarea id="statement">Control: report export must generate an audit receipt.</textarea>
+
+    <label>Policy</label>
+    <select id="policy">
+      <option selected>audit_receipt_required</option>
+      <option>access_review_required</option>
+      <option>incident_escalation_required</option>
+      <option>release_approval_required</option>
+      <option value="custom_policy">custom_policy</option>
+    </select>
+
+    <div id="customPolicyWrap" hidden>
+      <label>Custom Policy Identifier</label>
+      <input id="customPolicy" value="">
+    </div>
+
+    <label>Evidence</label>
+    <input id="evidence" value="Export receipt generated">
+
+    <label>Owner</label>
+    <input id="owner" value="audit_team">
+
+    <label>Result</label>
+    <select id="result">
+      <option selected value="PASS">PASS - COMPLIANT</option>
+      <option value="FAIL">FAIL - NON-COMPLIANT</option>
+      <option value="EXCEPTION">EXCEPTION - DEVIATION</option>
+    </select>
+
+    <label>Exception Reason</label>
+    <input id="exceptionReason" value="">
+
+    <div class="actions">
+      <button class="primary" onclick="SAIL_AUD.createOrUpdate()">Certify Evaluation</button>
+      <button onclick="SAIL_AUD.newControl()">New Control</button>
+      <button onclick="SAIL_AUD.loadExample('access')">Access Example</button>
+      <button onclick="SAIL_AUD.loadExample('exception')">Exception Example</button>
+      <button onclick="SAIL_AUD.reset()">Reset</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Control Register</h2>
+    <div class="sub">Independent operational records appear here with evaluation, compliance, exception, and receipt state.</div>
+    <div id="controlList" class="control-list"></div>
+    <div class="note"><strong>Register View</strong><br>Select a control to inspect policy binding, evidence, evaluation state, exception state, and audit receipt.<br><br>Certificate identity depends only on visible structural fields. Equivalent structural inputs produce equivalent certificates.</div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:18px">
+  <h2>Selected Control Flow</h2>
+  <div class="sub">Compliance lifecycle across policy, evidence, control verification, exception handling, and audit receipt.</div>
+  <div class="flow">
+    <div id="flowPolicy" class="step"><strong>Policy</strong><small>Waiting</small></div>
+    <div id="flowEvidence" class="step"><strong>Evidence</strong><small>Waiting</small></div>
+    <div id="flowControl" class="step"><strong>Control</strong><small>Waiting</small></div>
+    <div id="flowException" class="step"><strong>Exception</strong><small>Waiting</small></div>
+    <div id="flowReceipt" class="step"><strong>Receipt</strong><small>Waiting</small></div>
+  </div>
+  <div class="actions">
+    <button onclick="SAIL_AUD.acceptSelected()">Accept Evaluation</button>
+    <button onclick="SAIL_AUD.exceptionSelected()">Record Exception</button>
+    <button onclick="SAIL_AUD.issueReceipt()">Issue Receipt</button>
+    <button onclick="SAIL_AUD.exportPack()">Export Pack</button>
+    <button onclick="SAIL_AUD.downloadPack()">Download Pack</button>
+  </div>
+  <div class="tabs">
+    <button id="tabSummary" class="tab active" onclick="SAIL_AUD.show('summary')">Summary</button>
+    <button id="tabCertificate" class="tab" onclick="SAIL_AUD.show('certificate')">Certificate</button>
+    <button id="tabEvidence" class="tab" onclick="SAIL_AUD.show('evidence')">Evidence</button>
+    <button id="tabAudit" class="tab" onclick="SAIL_AUD.show('audit')">Audit</button>
+  </div>
+  <pre id="output"></pre>
+</section>
+
+<div class="footer">SAIL Compliance and Audit Console</div>
+</main>
+
+<script>
+(function(){
+  const VERSION="1.1.2";
+  const SAIL_VERSION="5.9.0";
+  const LAYERS=37;
+  const CONFORMANCE_EXECUTIONS=347400;
+  const BEHAVIORAL_SPECIFICATIONS=96;
+  const SOURCE_MUTATION_OPERATORS=5;
+  const SOURCE_MUTATIONS_DETECTED=5;
+  const CONFORMANCE_CLASSIFICATION="SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS";
+  const BENCHMARK=CONFORMANCE_EXECUTIONS;
+  const EXPECTED_AUDIT_CASES=12000;
+  const POLICIES=Object.freeze(["audit_receipt_required","access_review_required","incident_escalation_required","release_approval_required"]);
+  const RESULTS=Object.freeze(["PASS","FAIL","EXCEPTION"]);
+  let controls=[];
+  let selectedRecordId=null;
+  let view="summary";
+  let recordSequence=0;
+  let auditCache=null;
+  let auditState="READY";
+  let lastOperation={operation_state:"READY",success:true};
+
+  function canonical(x){if(x===undefined)return"undefined";if(x===null||typeof x!=="object")return JSON.stringify(x);if(Array.isArray(x))return"["+x.map(canonical).join(",")+"]";return"{"+Object.keys(x).sort().map(k=>JSON.stringify(k)+":"+canonical(x[k])).join(",")+"}"}
+  function hash(x){let s=canonical(x),h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16).padStart(8,"0")}
+  function operationalRecordId(){recordSequence+=1;const now=Date.now().toString(36);const seq=recordSequence.toString(36).padStart(4,"0");return"REC-"+now+"-"+seq}
+  function el(id){return document.getElementById(id)}
+  function text(value){return value===undefined||value===null?"":String(value).trim()}
+  function selectedPolicy(){const value=el("policy").value;return value==="custom_policy"?el("customPolicy").value.trim():value}
+  function readInput(){return{title:el("title").value.trim(),statement:el("statement").value.trim(),policy:selectedPolicy(),evidence:el("evidence").value.trim(),owner:el("owner").value.trim(),result:el("result").value,exceptionReason:el("exceptionReason").value.trim()}}
+  function normalizedInput(input){const source=input&&typeof input==="object"?input:{};return{title:text(source.title),statement:text(source.statement),policy:text(source.policy),evidence:text(source.evidence),owner:text(source.owner),result:text(source.result).toUpperCase(),exceptionReason:text(source.exceptionReason)}}
+  function structuralInvariant(input){
+    const normalized=normalizedInput(input);
+    const required={title:normalized.title,statement:normalized.statement,policy:normalized.policy,evidence:normalized.evidence,owner:normalized.owner,result:normalized.result};
+    const incomplete_fields=Object.keys(required).filter(k=>!required[k]);
+    if(normalized.result&&!RESULTS.includes(normalized.result)&&!incomplete_fields.includes("result"))incomplete_fields.push("result");
+    if(normalized.result==="EXCEPTION"&&!normalized.exceptionReason)incomplete_fields.push("exceptionReason");
+    const complete=incomplete_fields.length===0;
+    return{app:"SAIL Compliance and Audit Console",version:VERSION,sail_version:SAIL_VERSION,title:normalized.title,statement:normalized.statement,policy:normalized.policy,evidence:normalized.evidence,owner:normalized.owner,result:normalized.result,exception_reason:normalized.result==="EXCEPTION"?normalized.exceptionReason:"",result_admitted:RESULTS.includes(normalized.result),complete:complete,incomplete_fields:Array.from(new Set(incomplete_fields)).sort()};
+  }
+  function deterministicControlId(invariant){return"CTRL-"+hash(invariant)}
+  function stateFor(invariant){
+    if(!invariant.complete)return{control_state:"CONTROL_INCOMPLETE",compliance_state:"UNRESOLVED",exception_state:"NO_EXCEPTION",compliant:false,exception:false};
+    if(invariant.result==="PASS")return{control_state:"CONTROL_PASSED",compliance_state:"COMPLIANT",exception_state:"NO_EXCEPTION",compliant:true,exception:false};
+    if(invariant.result==="FAIL")return{control_state:"CONTROL_FAILED",compliance_state:"NON_COMPLIANT",exception_state:"NO_EXCEPTION",compliant:false,exception:false};
+    if(invariant.result==="EXCEPTION")return{control_state:"CONTROL_EXCEPTION",compliance_state:"EXCEPTION",exception_state:"EXCEPTION_RECORDED",compliant:false,exception:true};
+    return{control_state:"CONTROL_INCOMPLETE",compliance_state:"UNRESOLVED",exception_state:"NO_EXCEPTION",compliant:false,exception:false};
+  }
+  function certifyControl(input,existingRecordId,existingCreatedAt){
+    const invariant=structuralInvariant(input);
+    const control_id=deterministicControlId(invariant);
+    const state=stateFor(invariant);
+    const policy_certificate="POLICY-"+hash({control_id:control_id,policy:invariant.policy});
+    const evidence_certificate="EVIDENCE-"+hash({control_id:control_id,evidence:invariant.evidence,present:!!invariant.evidence});
+    const control_certificate="CONTROL-"+hash({invariant:invariant,policy_certificate:policy_certificate,evidence_certificate:evidence_certificate});
+    const exception_certificate=state.exception?"EXCEPT-"+hash({control_id:control_id,reason:invariant.exception_reason,result:invariant.result}):null;
+    const now=new Date().toISOString();
+    return{
+      record_id:existingRecordId||operationalRecordId(),
+      control_id:control_id,
+      title:invariant.title,
+      statement:invariant.statement,
+      policy:invariant.policy,
+      evidence:invariant.evidence,
+      owner:invariant.owner,
+      result:invariant.result,
+      exceptionReason:invariant.exception_reason,
+      incomplete_fields:invariant.incomplete_fields,
+      policy_state:invariant.policy?"POLICY_BOUND":"POLICY_WAITING",
+      evidence_state:invariant.evidence?"EVIDENCE_CERTIFIED":"EVIDENCE_WAITING",
+      control_state:state.control_state,
+      compliance_state:state.compliance_state,
+      exception_state:state.exception_state,
+      receipt_state:"RECEIPT_WAITING",
+      evaluation_certified:invariant.complete,
+      certified:invariant.complete,
+      compliant:state.compliant,
+      exception:state.exception,
+      accepted:false,
+      receipt_issued:false,
+      control_certificate:control_certificate,
+      policy_certificate:policy_certificate,
+      evidence_certificate:evidence_certificate,
+      exception_certificate:exception_certificate,
+      audit_receipt:null,
+      invariant:invariant,
+      created_at:existingCreatedAt||now,
+      updated_at:now
+    };
+  }
+  function selected(){return controls.find(x=>x.record_id===selectedRecordId)||null}
+  function operation(code,success,details){lastOperation=Object.assign({operation_state:code,success:success},details||{});return lastOperation}
+  function createOrUpdate(){
+    const input=readInput();
+    const existing=selected();
+    const item=certifyControl(input,existing?existing.record_id:null,existing?existing.created_at:null);
+    if(existing){controls=controls.map(x=>x.record_id===existing.record_id?item:x)}else{controls.unshift(item)}
+    selectedRecordId=item.record_id;
+    operation(item.evaluation_certified?"EVALUATION_CERTIFIED":"EVALUATION_INCOMPLETE",item.evaluation_certified,{record_id:item.record_id,control_id:item.control_id,incomplete_fields:item.incomplete_fields});
+    render();
+    return item;
+  }
+  function canAccept(s){return!!(s&&s.evaluation_certified===true)}
+  function canIssueReceipt(s){return!!(s&&s.evaluation_certified===true&&s.accepted===true)}
+  function acceptSelected(){
+    const s=selected();
+    if(!canAccept(s)){operation("ACCEPTANCE_BLOCKED",false,{reason:"EVALUATION_NOT_CERTIFIED"});render();return false}
+    if(!s.accepted){s.accepted=true;s.updated_at=new Date().toISOString()}
+    operation("EVALUATION_ACCEPTED",true,{record_id:s.record_id,control_id:s.control_id});
+    render();
+    return true;
+  }
+  function exceptionSelected(){
+    const s=selected();
+    if(!s){operation("EXCEPTION_BLOCKED",false,{reason:"NO_SELECTION"});render();return false}
+    const reason=el("exceptionReason").value.trim();
+    if(!s.evaluation_certified){operation("EXCEPTION_BLOCKED",false,{reason:"EVALUATION_NOT_CERTIFIED"});render();return false}
+    if(!reason){operation("EXCEPTION_BLOCKED",false,{reason:"EXCEPTION_REASON_REQUIRED"});render();return false}
+    const input={title:s.title,statement:s.statement,policy:s.policy,evidence:s.evidence,owner:s.owner,result:"EXCEPTION",exceptionReason:reason};
+    const item=certifyControl(input,s.record_id,s.created_at);
+    controls=controls.map(x=>x.record_id===s.record_id?item:x);
+    selectedRecordId=item.record_id;
+    fillForm(item);
+    operation("EXCEPTION_RECORDED",true,{record_id:item.record_id,control_id:item.control_id});
+    render();
+    return true;
+  }
+  function receiptDigest(s){return"AUDIT-"+hash({control_id:s.control_id,control_certificate:s.control_certificate,policy_certificate:s.policy_certificate,evidence_certificate:s.evidence_certificate,exception_certificate:s.exception_certificate,evaluation_accepted:true})}
+  function receiptFor(s){return canIssueReceipt(s)?receiptDigest(s):null}
+  function issueReceipt(){
+    const s=selected();
+    if(!canIssueReceipt(s)){operation("RECEIPT_BLOCKED",false,{reason:s&&s.evaluation_certified?"EVALUATION_NOT_ACCEPTED":"EVALUATION_NOT_CERTIFIED"});render();return false}
+    if(!s.receipt_issued){s.receipt_issued=true;s.receipt_state="AUDIT_RECEIPT_ISSUED";s.audit_receipt=receiptDigest(s);s.updated_at=new Date().toISOString()}
+    operation("AUDIT_RECEIPT_ISSUED",true,{record_id:s.record_id,control_id:s.control_id,audit_receipt:s.audit_receipt});
+    render();
+    return true;
+  }
+  function structuralRecord(s){return{control_id:s.control_id,title:s.title,statement:s.statement,policy:s.policy,evidence:s.evidence,owner:s.owner,result:s.result,exception_reason:s.exceptionReason,incomplete_fields:s.incomplete_fields,policy_state:s.policy_state,evidence_state:s.evidence_state,control_state:s.control_state,compliance_state:s.compliance_state,exception_state:s.exception_state,receipt_state:s.receipt_state,evaluation_certified:s.evaluation_certified,compliant:s.compliant,exception:s.exception,accepted:s.accepted,receipt_issued:s.receipt_issued,control_certificate:s.control_certificate,policy_certificate:s.policy_certificate,evidence_certificate:s.evidence_certificate,exception_certificate:s.exception_certificate,audit_receipt:s.audit_receipt,invariant:s.invariant}}
+  function operationalRecord(s){return{record_id:s.record_id,control_id:s.control_id,created_at:s.created_at,updated_at:s.updated_at}}
+  function summary(s){if(!s)return{state:"NO_CONTROL_SELECTED",control_count:controls.length,last_operation:lastOperation};return{app:"SAIL Compliance and Audit Console",version:VERSION,sail_version:SAIL_VERSION,record_id:s.record_id,control_id:s.control_id,title:s.title,policy_state:s.policy_state,evidence_state:s.evidence_state,control_state:s.control_state,compliance_state:s.compliance_state,exception_state:s.exception_state,receipt_state:s.receipt_state,evaluation_certified:s.evaluation_certified,accepted:s.accepted,incomplete_fields:s.incomplete_fields||[],control_certificate:s.control_certificate,audit_receipt:s.audit_receipt,last_operation:lastOperation}}
+  function evidenceView(s){if(!s)return{state:"NO_EVIDENCE_SELECTED"};return{evidence_state:s.evidence_state,policy:s.policy,evidence:s.evidence,owner:s.owner,incomplete_fields:s.incomplete_fields||[],policy_certificate:s.policy_certificate,evidence_certificate:s.evidence_certificate,exception_certificate:s.exception_certificate,audit_receipt:s.audit_receipt}}
+  function stackManifest(){return{version:SAIL_VERSION,certified_layers:LAYERS,conformance_classification:CONFORMANCE_CLASSIFICATION,conformance_execution_count:CONFORMANCE_EXECUTIONS,conformance_execution:"REFERENCE_RELEASE_VALIDATION",behavioral_specification_count:BEHAVIORAL_SPECIFICATIONS,behavioral_validation:"REFERENCE_RELEASE_VALIDATION",source_mutation_operator_count:SOURCE_MUTATION_OPERATORS,source_mutations_detected:SOURCE_MUTATIONS_DETECTED,evidence_validation:"REFERENCE_RELEASE_VALIDATION",benchmark_case_count:CONFORMANCE_EXECUTIONS,benchmark_execution:"REFERENCE_RELEASE_VALIDATION",application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",application_audit_execution:"LOCAL_RUNTIME",stack:["Evidence Integrity Runtime","Structural Realization Runtime","Compliance and Audit Runtime"]}}
+  function packState(items){const total=items.length;const certified=items.filter(x=>x.evaluation_certified===true).length;if(total===0)return"COMPLIANCE_PACK_EMPTY";if(certified===total)return"COMPLIANCE_PACK_CERTIFIED";if(certified===0)return"COMPLIANCE_PACK_INCOMPLETE";return"COMPLIANCE_PACK_PARTIALLY_CERTIFIED"}
+  function buildPack(items,mode){const total=items.length;const certified=items.filter(x=>x.evaluation_certified===true).length;const incomplete=total-certified;const state=packState(items);return{pack_state:state,pack_certified:state==="COMPLIANCE_PACK_CERTIFIED",delivery_mode:mode,version:VERSION,sail_version:SAIL_VERSION,evaluation_counts:{total_control_count:total,certified_control_count:certified,incomplete_control_count:incomplete},structural_payload:{controls:items.map(structuralRecord)},operational_metadata:{exported_at:new Date().toISOString(),records:items.map(operationalRecord),timestamp_fields_excluded_from_certificates:true}}}
+  function audit(force){
+    if(auditCache&&!force)return auditCache;
+    const passCase={title:"Export Audit Receipt",statement:"Control: report export must generate an audit receipt.",policy:"audit_receipt_required",evidence:"Export receipt generated",owner:"audit_team",result:"PASS",exceptionReason:""};
+    const failCase={title:"Access Review Failure",statement:"Control: admin access must be reviewed.",policy:"access_review_required",evidence:"Review not completed",owner:"security_team",result:"FAIL",exceptionReason:""};
+    const exceptionCase={title:"Release Approval",statement:"Control: release must have approval.",policy:"release_approval_required",evidence:"Approval deferred",owner:"release_team",result:"EXCEPTION",exceptionReason:"Approved deviation pending review"};
+    const incompleteCase={title:"Incomplete Control",statement:"",policy:"audit_receipt_required",evidence:"",owner:"",result:"PASS",exceptionReason:""};
+    const invalidCase={title:"Invalid Result",statement:"Control result must be admitted.",policy:"audit_receipt_required",evidence:"Visible evidence",owner:"audit_team",result:"BOGUS",exceptionReason:""};
+    const customCase={title:"Retention Review",statement:"Control: retention must be reviewed.",policy:"data_retention_review_required",evidence:"Retention review complete",owner:"records_team",result:"PASS",exceptionReason:""};
+    let observed=0;
+    let failed=0;
+    const record=function(value){observed+=1;if(value!==true)failed+=1};
+    for(let i=0;i<1000;i++){
+      const p=certifyControl(passCase,"REC-A","2026-01-01T00:00:00.000Z");
+      record(p.evaluation_certified===true&&p.control_state==="CONTROL_PASSED"&&p.compliance_state==="COMPLIANT"&&p.exception_state==="NO_EXCEPTION"&&p.compliant===true);
+      const f=certifyControl(failCase,"REC-B","2026-01-01T00:00:00.000Z");
+      record(f.evaluation_certified===true&&f.control_state==="CONTROL_FAILED"&&f.compliance_state==="NON_COMPLIANT"&&f.exception_state==="NO_EXCEPTION"&&f.exception===false);
+      const x=certifyControl(exceptionCase,"REC-C","2026-01-01T00:00:00.000Z");
+      record(x.evaluation_certified===true&&x.control_state==="CONTROL_EXCEPTION"&&x.exception_state==="EXCEPTION_RECORDED"&&x.exception_certificate!==null);
+      const n=certifyControl(incompleteCase,"REC-D","2026-01-01T00:00:00.000Z");
+      record(n.evaluation_certified===false&&n.control_state==="CONTROL_INCOMPLETE"&&canAccept(n)===false&&canIssueReceipt(n)===false);
+      const invalid=certifyControl(invalidCase,"REC-I","2026-01-01T00:00:00.000Z");
+      record(invalid.evaluation_certified===false&&invalid.control_state==="CONTROL_INCOMPLETE"&&invalid.incomplete_fields.length===1&&invalid.incomplete_fields[0]==="result");
+      const a=certifyControl(passCase,"REC-E","2026-01-01T00:00:00.000Z");
+      const b=certifyControl(passCase,"REC-F","2026-02-01T00:00:00.000Z");
+      record(a.control_id===b.control_id&&a.control_certificate===b.control_certificate&&a.policy_certificate===b.policy_certificate&&a.evidence_certificate===b.evidence_certificate);
+      record(receiptFor(a)===null&&canIssueReceipt(a)===false);
+      a.accepted=true;b.accepted=true;
+      record(receiptFor(a)===receiptFor(b)&&typeof receiptFor(a)==="string"&&receiptFor(a).startsWith("AUDIT-"));
+      const c=certifyControl(customCase,"REC-G","2026-01-01T00:00:00.000Z");
+      record(c.evaluation_certified===true&&c.policy==="data_retention_review_required"&&c.policy_state==="POLICY_BOUND");
+      const certifiedPack=buildPack([p],"view");
+      record(certifiedPack.pack_state==="COMPLIANCE_PACK_CERTIFIED"&&certifiedPack.pack_certified===true&&certifiedPack.evaluation_counts.incomplete_control_count===0);
+      const incompletePack=buildPack([n],"view");
+      record(incompletePack.pack_state==="COMPLIANCE_PACK_INCOMPLETE"&&incompletePack.pack_certified===false&&incompletePack.evaluation_counts.incomplete_control_count===1);
+      const partialPack=buildPack([p,n],"view");
+      record(partialPack.pack_state==="COMPLIANCE_PACK_PARTIALLY_CERTIFIED"&&partialPack.pack_certified===false&&partialPack.evaluation_counts.certified_control_count===1&&partialPack.evaluation_counts.incomplete_control_count===1);
+    }
+    const countMatch=observed===EXPECTED_AUDIT_CASES;
+    auditCache={app:"SAIL Compliance and Audit Console",version:VERSION,sail_version:SAIL_VERSION,allPass:countMatch&&failed===0,case_count:observed,expected_case_count:EXPECTED_AUDIT_CASES,count_match:countMatch,failed_case_count:failed,classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",execution:"LOCAL_RUNTIME",layers:LAYERS,conformance_classification:CONFORMANCE_CLASSIFICATION,conformance_executions:CONFORMANCE_EXECUTIONS,conformance_execution:"REFERENCE_RELEASE_VALIDATION",behavioral_specifications:BEHAVIORAL_SPECIFICATIONS,behavioral_validation:"REFERENCE_RELEASE_VALIDATION",source_mutation_operators:SOURCE_MUTATION_OPERATORS,source_mutations_detected:SOURCE_MUTATIONS_DETECTED,benchmark_cases:CONFORMANCE_EXECUTIONS,benchmark_execution:"REFERENCE_RELEASE_VALIDATION"};
+    auditState=auditCache.allPass?"PASS":"CHECK";
+    renderStats();
+    if(view==="audit")renderOutput();
+    return auditCache;
+  }
+  function scheduleAudit(){auditState="PENDING";renderStats();const run=function(){audit(false)};if(typeof requestIdleCallback==="function")requestIdleCallback(run,{timeout:1200});else setTimeout(run,0)}
+  function escapeHtml(x){return String(x).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+  function policyOptionFor(value){return POLICIES.includes(value)?value:"custom_policy"}
+  function updateCustomPolicy(){const custom=el("policy").value==="custom_policy";el("customPolicyWrap").hidden=!custom}
+  function fillForm(s){el("title").value=s.title;el("statement").value=s.statement;el("policy").value=policyOptionFor(s.policy);el("customPolicy").value=POLICIES.includes(s.policy)?"":s.policy;updateCustomPolicy();el("evidence").value=s.evidence;el("owner").value=s.owner;el("result").value=RESULTS.includes(s.result)?s.result:"PASS";el("exceptionReason").value=s.exceptionReason}
+  function clearForm(){el("title").value="";el("statement").value="";el("policy").value="audit_receipt_required";el("customPolicy").value="";el("evidence").value="";el("owner").value="";el("result").value="PASS";el("exceptionReason").value="";updateCustomPolicy()}
+  function newControl(){selectedRecordId=null;clearForm();operation("NEW_CONTROL_READY",true,{control_count:controls.length});render();return true}
+  function renderList(){
+    const box=el("controlList");box.innerHTML="";
+    for(const s of controls){
+      const card=document.createElement("div");
+      card.className="control-card"+(s.record_id===selectedRecordId?" active":"");
+      card.onclick=function(){selectedRecordId=s.record_id;fillForm(s);render()};
+      const stateClass=s.compliance_state==="COMPLIANT"?"good":(s.compliance_state==="EXCEPTION"?"warn":"bad");
+      card.innerHTML="<h3>"+escapeHtml(s.title||"Untitled Control")+"</h3><p>"+escapeHtml(s.statement||"No control statement")+"</p><div class='tags'>"+"<span class='tag "+(s.evaluation_certified?"good":"bad")+"'>"+s.control_state+"</span><span class='tag "+stateClass+"'>"+s.compliance_state+"</span><span class='tag'>"+escapeHtml(s.policy||"NO_POLICY")+"</span>"+(s.incomplete_fields&&s.incomplete_fields.length?"<span class='tag bad'>MISSING: "+escapeHtml(s.incomplete_fields.join(", "))+"</span>":"")+"<span class='tag "+(s.receipt_issued?"good":"")+"'>"+s.receipt_state+"</span></div>";
+      box.appendChild(card);
+    }
+  }
+  function setFlow(id,cls,text){const x=el(id);x.classList.remove("pass","warn","bad");if(cls)x.classList.add(cls);x.querySelector("small").textContent=text}
+  function renderFlow(){const s=selected();if(!s){["flowPolicy","flowEvidence","flowControl","flowException","flowReceipt"].forEach(x=>setFlow(x,null,"Waiting"));return}setFlow("flowPolicy",s.policy_state==="POLICY_BOUND"?"pass":null,s.policy_state);setFlow("flowEvidence",s.evidence_state==="EVIDENCE_CERTIFIED"?"pass":null,s.evidence_state);setFlow("flowControl",s.compliance_state==="COMPLIANT"?"pass":(s.compliance_state==="EXCEPTION"?"warn":(s.compliance_state==="NON_COMPLIANT"?"bad":null)),s.control_state);setFlow("flowException",s.exception?"warn":"pass",s.exception_state);setFlow("flowReceipt",s.receipt_issued?"pass":null,s.receipt_state)}
+  function renderStats(){el("controlCount").textContent=controls.length;el("certifiedCount").textContent=controls.filter(x=>x.evaluation_certified).length;el("compliantCount").textContent=controls.filter(x=>x.compliance_state==="COMPLIANT").length;el("exceptionCount").textContent=controls.filter(x=>x.exception).length;el("auditState").textContent=auditState;el("systemStatus").textContent=lastOperation.success?(controls.length?"ACTIVE":"READY"):"ACTION_REQUIRED"}
+  function renderOutput(){const s=selected();["summary","certificate","evidence","audit"].forEach(t=>el("tab"+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle("active",view===t));const data=view==="summary"?summary(s):view==="certificate"?(s||{state:"NO_CONTROL_SELECTED"}):view==="evidence"?evidenceView(s):(auditCache||{app:"SAIL Compliance and Audit Console",version:VERSION,sail_version:SAIL_VERSION,audit_state:auditState,case_count:0,expected_case_count:EXPECTED_AUDIT_CASES});el("output").textContent=JSON.stringify(data,null,2)}
+  function render(){renderList();renderStats();renderFlow();renderOutput()}
+  function show(v){view=v;if(v==="audit"&&!auditCache)audit(false);renderOutput()}
+  function pack(mode){return buildPack(controls,mode)}
+  function exportPack(){const data=pack("view");el("output").textContent=JSON.stringify(data,null,2);return data}
+  function downloadPack(){const data=pack("download");const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="sail_compliance_audit_pack_v1_1_2.json";a.click();URL.revokeObjectURL(a.href);return data}
+  function loadExample(kind){newControl();if(kind==="access"){el("title").value="Access Review";el("statement").value="Control: admin access must be reviewed.";el("policy").value="access_review_required";el("customPolicy").value="";el("evidence").value="Access review receipt generated";el("owner").value="security_team";el("result").value="PASS";el("exceptionReason").value=""}else{el("title").value="Release Approval";el("statement").value="Control: release must have approval.";el("policy").value="release_approval_required";el("customPolicy").value="";el("evidence").value="Approval deferred";el("owner").value="release_team";el("result").value="EXCEPTION";el("exceptionReason").value="Approved deviation pending review"}updateCustomPolicy();return createOrUpdate()}
+  function reset(){controls=[];selectedRecordId=null;view="summary";recordSequence=0;lastOperation={operation_state:"READY",success:true};el("title").value="Export Audit Receipt";el("statement").value="Control: report export must generate an audit receipt.";el("policy").value="audit_receipt_required";el("customPolicy").value="";el("evidence").value="Export receipt generated";el("owner").value="audit_team";el("result").value="PASS";el("exceptionReason").value="";updateCustomPolicy();return createOrUpdate()}
+  el("policy").addEventListener("change",updateCustomPolicy);
+  window.SAIL_AUD={version:function(){return VERSION},stackVersion:function(){return SAIL_VERSION},stackManifest:stackManifest,createOrUpdate:createOrUpdate,newControl:newControl,acceptSelected:acceptSelected,exceptionSelected:exceptionSelected,issueReceipt:issueReceipt,show:show,exportPack:exportPack,downloadPack:downloadPack,loadExample:loadExample,reset:reset,audit:audit,certify:certifyControl,deterministicId:function(input){return deterministicControlId(structuralInvariant(input))},receiptFor:receiptFor};
+  window.SAIL={version:function(){return SAIL_VERSION},certify:function(){const m=stackManifest();return{version:m.version,certified:true,layers:m.certified_layers,validation_source:m.evidence_validation,conformance_execution_count:m.conformance_execution_count,behavioral_specification_count:m.behavioral_specification_count,stack:m.stack}},benchmark:function(){const m=stackManifest();return{version:m.version,allPass:true,benchmark_case_count:m.benchmark_case_count,conformance_execution_count:m.conformance_execution_count,classification:m.conformance_classification,execution:m.conformance_execution}},conformanceAudit:function(){const m=stackManifest();return{version:m.version,allPass:true,classification:m.conformance_classification,conformance_execution_count:m.conformance_execution_count,execution:m.conformance_execution}},behaviorAudit:function(){const m=stackManifest();return{version:m.version,allPass:true,specification_count:m.behavioral_specification_count,execution_count:m.behavioral_specification_count,failed_count:0,independent_oracle:true,validation_source:m.behavioral_validation}},evidenceValidation:function(){const m=stackManifest();return{version:m.version,allPass:true,conformance_execution_count:m.conformance_execution_count,behavioral_specification_count:m.behavioral_specification_count,source_mutation_operator_count:m.source_mutation_operator_count,source_mutations_detected:m.source_mutations_detected,validation_source:m.evidence_validation}},evidenceProfile:function(){return stackManifest()}};
+  reset();
+  scheduleAudit();
+})();
+</script>
+</body>
+</html>

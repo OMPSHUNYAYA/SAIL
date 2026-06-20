@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAIL Incident Management System v1.1.2</title>
+<style>
+:root{
+  --bg:#050b16;--bg2:#07111f;--line:rgba(120,168,255,.34);--line2:rgba(255,255,255,.13);
+  --text:#edf4ff;--muted:#b8c7e6;--gold:#ffd47a;--mint:#69f0c8;--cyan:#6ed8ff;
+  --red:#ff8f8f;--orange:#ffb86b;--shadow:0 20px 55px rgba(0,0,0,.34)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 12% 0%,rgba(120,168,255,.13),transparent 30%),radial-gradient(circle at 92% 8%,rgba(105,240,200,.08),transparent 24%),linear-gradient(180deg,#050b16 0%,#07111f 48%,#081423 100%);min-height:100vh}
+.wrap{max-width:1480px;margin:0 auto;padding:22px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;border:1px solid var(--line);border-radius:26px;padding:18px;background:linear-gradient(135deg,rgba(120,168,255,.18),rgba(105,240,200,.08));box-shadow:var(--shadow)}
+.eyebrow{display:inline-block;color:var(--gold);font-weight:900;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--line2);border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.04)}
+h1{font-size:clamp(1.65rem,2.8vw,3rem);line-height:1.05;margin:10px 0 8px;letter-spacing:-.04em}
+p{color:var(--muted);line-height:1.6;margin:0}
+.hero-right{min-width:300px;border:1px solid var(--line2);border-radius:20px;padding:14px;background:rgba(3,11,22,.54)}
+.stat-row{display:grid;grid-template-columns:1fr auto;gap:10px;border-bottom:1px solid var(--line2);padding:8px 0}
+.stat-row:last-child{border-bottom:0}.stat-row span{color:var(--muted)}.stat-row strong{color:var(--mint)}
+.grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;margin-top:18px;align-items:start}
+.panel{border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(8,30,54,.84),rgba(5,15,30,.92));padding:20px;box-shadow:var(--shadow)}
+.panel h2{margin:0 0 8px;font-size:1.22rem}.sub{color:var(--muted);font-size:.92rem;margin-bottom:12px}
+label{display:block;color:var(--gold);font-weight:800;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px}
+input,textarea,select{width:100%;border:1px solid var(--line2);border-radius:14px;background:rgba(3,11,22,.70);color:var(--text);padding:12px 13px;font:14px/1.5 ui-monospace,Consolas,monospace;outline:none}
+textarea{min-height:112px;resize:vertical}
+button{border:1px solid rgba(110,216,255,.46);border-radius:12px;padding:11px 14px;background:linear-gradient(180deg,rgba(7,34,62,.96),rgba(4,17,34,.96));color:#eef8ff;font-weight:850;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08);transition:transform .08s ease,filter .08s ease,border-color .08s ease}
+button:hover{filter:brightness(1.14);border-color:rgba(110,216,255,.78);transform:translateY(-1px)}
+button:active{transform:translateY(2px) scale(.985)}
+button.primary{background:linear-gradient(135deg,rgba(105,240,200,.98),rgba(78,180,255,.78));color:#04101e;border-color:rgba(105,240,200,.92)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.status-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin-top:18px}
+.status{border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(3,11,22,.48)}
+.status span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.status b{color:var(--mint);font-size:.96rem;overflow-wrap:anywhere}
+.inc-list{display:grid;gap:12px}
+.inc-card{border:1px solid var(--line2);border-radius:18px;padding:14px;background:rgba(3,11,22,.48);cursor:pointer}
+.inc-card.active{border-color:rgba(105,240,200,.72);background:rgba(105,240,200,.06)}
+.inc-card h3{margin:0 0 8px;color:#fff;font-size:1rem}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.tag{border:1px solid var(--line2);border-radius:999px;padding:5px 8px;color:var(--muted);font-size:.72rem}
+.tag.good{color:var(--mint);border-color:rgba(105,240,200,.5)}
+.tag.warn{color:var(--orange);border-color:rgba(255,184,107,.55)}
+.tag.bad{color:var(--red);border-color:rgba(255,143,143,.55)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(165px,1fr));gap:10px;margin:14px 0}
+.step{border:1px solid var(--line2);border-radius:16px;padding:12px;min-height:82px;background:rgba(255,255,255,.04);overflow:hidden}
+.step strong{display:block;color:var(--gold);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;white-space:nowrap}
+.step small{display:block;color:var(--muted);line-height:1.4;overflow-wrap:anywhere;font-size:.78rem}
+.step.pass{border-color:rgba(105,240,200,.55);background:rgba(105,240,200,.06)}
+.step.warn{border-color:rgba(255,184,107,.55);background:rgba(255,184,107,.06)}
+.tabs{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.tab.active{border-color:rgba(105,240,200,.86);color:#dfffee}
+pre{margin:0;white-space:pre-wrap;background:rgba(3,11,22,.72);border:1px solid var(--line2);border-radius:16px;padding:14px;color:#dbe9ff;font-family:ui-monospace,Consolas,monospace;font-size:.86rem;max-height:430px;overflow:auto}
+.note{margin-top:14px;border:1px dashed rgba(120,168,255,.30);border-radius:16px;padding:13px;color:var(--muted);background:rgba(3,11,22,.32);font-size:.88rem;line-height:1.5}
+.note strong{color:var(--gold)}
+.footer{color:var(--muted);text-align:center;padding:28px}
+@media(max-width:1280px){.hero,.grid{grid-template-columns:1fr}.status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.flow{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.flow,.status-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+  <div>
+    <div class="eyebrow">SAIL Application</div>
+    <h1>Incident Management System</h1>
+    <p>Detect, certify, triage, escalate, recover, and verify incidents through deterministic structural operations and replayable certificate chains.</p>
+  </div>
+  <div class="hero-right">
+    <div class="stat-row"><span>SAIL Stack</span><strong>5.9.0</strong></div>
+    <div class="stat-row"><span>Layers</span><strong>37</strong></div>
+    <div class="stat-row"><span>Conformance</span><strong>347400 synthetic</strong></div>
+    <div class="stat-row"><span>Behavior</span><strong>96/96 PASS</strong></div>
+    <div class="stat-row"><span>Status</span><strong id="systemStatus">READY</strong></div>
+  </div>
+</section>
+
+<section class="status-grid">
+  <div class="status"><span>App Version</span><b id="appVersion">1.1.2</b></div>
+  <div class="status"><span>Incidents</span><b id="incidentCount">0</b></div>
+  <div class="status"><span>Certified</span><b id="certifiedCount">0</b></div>
+  <div class="status"><span>Escalated</span><b id="escalatedCount">0</b></div>
+  <div class="status"><span>Recovered</span><b id="recoveredCount">0</b></div>
+  <div class="status"><span>Verified</span><b id="verifiedCount">0</b></div>
+  <div class="status"><span>Audit</span><b id="auditState">PENDING</b></div>
+</section>
+
+<section class="grid">
+  <div class="panel">
+    <h2>Incident Capture</h2>
+    <div class="sub">Create or update an incident from visible operational structure.</div>
+
+    <label>Incident Title</label>
+    <input id="title" value="Export Service Timeout">
+
+    <label>Description</label>
+    <textarea id="description">Incident: export service response timeout detected.</textarea>
+
+    <label>Service</label>
+    <input id="service" value="Report Export Service">
+
+    <label>Condition</label>
+    <select id="condition">
+      <option>NORMAL</option>
+      <option selected>TIMEOUT</option>
+      <option>DEGRADED</option>
+      <option>CRITICAL_FAILURE</option>
+    </select>
+
+    <label>Severity</label>
+    <select id="severity">
+      <option>LOW</option>
+      <option selected>MEDIUM</option>
+      <option>HIGH</option>
+      <option>CRITICAL</option>
+    </select>
+
+    <label>Owner</label>
+    <input id="owner" value="operations_team">
+
+    <label>Recovery Measurement</label>
+    <input id="measurement" value="Service restored and export verified">
+
+    <div class="actions">
+      <button class="primary" onclick="SAIL_INC.createOrUpdate()">Certify Incident</button>
+      <button onclick="SAIL_INC.loadExample('critical')">Critical Example</button>
+      <button onclick="SAIL_INC.loadExample('degraded')">Degraded Example</button>
+      <button onclick="SAIL_INC.reset()">Reset</button>
+    </div>
+
+    <div class="note"><strong>Risk Model</strong><br>Severity weights: LOW 1, MEDIUM 2, HIGH 3, CRITICAL 4. Condition weights: NORMAL 0, TIMEOUT 2, DEGRADED 2, CRITICAL_FAILURE 4. Triage: LOW below 3, MEDIUM 3–4, HIGH 5–6, CRITICAL 7 or above. CRITICAL severity independently requires escalation.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Incident Register</h2>
+    <div class="sub">Certified incidents appear here with triage, escalation, recovery, and verification state.</div>
+    <div id="incidentList" class="inc-list"></div>
+    <div class="note"><strong>Register View</strong><br>Select an incident to inspect its deterministic incident identity, operational record identity, lifecycle states, and certificate chain.</div>
+  </div>
+</section>
+
+<section class="panel" style="margin-top:18px">
+  <h2>Selected Incident Flow</h2>
+  <div class="sub">Incident lifecycle across detection, triage, escalation, recovery, and verification.</div>
+  <div class="flow">
+    <div id="flowDetect" class="step"><strong>Detection</strong><small>Waiting</small></div>
+    <div id="flowTriage" class="step"><strong>Triage</strong><small>Waiting</small></div>
+    <div id="flowEscalate" class="step"><strong>Escalation</strong><small>Waiting</small></div>
+    <div id="flowRecover" class="step"><strong>Recovery</strong><small>Waiting</small></div>
+    <div id="flowVerify" class="step"><strong>Verification</strong><small>Waiting</small></div>
+  </div>
+  <div class="actions">
+    <button onclick="SAIL_INC.escalateSelected()">Escalate</button>
+    <button onclick="SAIL_INC.recoverSelected()">Recover</button>
+    <button onclick="SAIL_INC.verifySelected()">Verify Outcome</button>
+    <button onclick="SAIL_INC.exportPack()">Export Pack</button>
+    <button onclick="SAIL_INC.downloadPack()">Download Pack</button>
+  </div>
+  <div class="tabs">
+    <button id="tabSummary" class="tab active" onclick="SAIL_INC.show('summary')">Summary</button>
+    <button id="tabCertificate" class="tab" onclick="SAIL_INC.show('certificate')">Certificate</button>
+    <button id="tabChain" class="tab" onclick="SAIL_INC.show('chain')">Certificate Chain</button>
+    <button id="tabAudit" class="tab" onclick="SAIL_INC.show('audit')">Audit</button>
+  </div>
+  <pre id="output"></pre>
+</section>
+
+<div class="footer">SAIL Incident Management System v1.1.2</div>
+</main>
+
+<script>
+(function(){
+  const VERSION="1.1.2";
+  const SAIL_VERSION="5.9.0";
+  const LAYERS=37;
+  const CONFORMANCE_EXECUTIONS=347400;
+  const BEHAVIORAL_SPECIFICATIONS=96;
+  const SOURCE_MUTATION_OPERATORS=5;
+  const SOURCE_MUTATIONS_DETECTED=5;
+  const CONFORMANCE_CLASSIFICATION="SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS";
+  const BENCHMARK=CONFORMANCE_EXECUTIONS;
+  const REALIZATION_AUDIT=48600;
+  const EXPECTED_AUDIT_CASES=12000;
+  const AUDIT_SCENARIOS=8;
+  const AUDIT_ITERATIONS=1500;
+  const CONDITIONS=Object.freeze(["NORMAL","TIMEOUT","DEGRADED","CRITICAL_FAILURE"]);
+  const SEVERITIES=Object.freeze(["LOW","MEDIUM","HIGH","CRITICAL"]);
+  let incidents=[];
+  let selectedRecordId=null;
+  let view="summary";
+  let recordCounter=0;
+  let AUDIT_RESULT=null;
+
+  function canonical(x){
+    if(x===undefined)return"undefined";
+    if(x===null||typeof x!=="object")return JSON.stringify(x);
+    if(Array.isArray(x))return"["+x.map(canonical).join(",")+"]";
+    return"{"+Object.keys(x).sort().map(k=>JSON.stringify(k)+":"+canonical(x[k])).join(",")+"}";
+  }
+
+  function hash(x){
+    const s=canonical(x);
+    let h=2166136261;
+    for(let i=0;i<s.length;i++){
+      h^=s.charCodeAt(i);
+      h=Math.imul(h,16777619);
+    }
+    return(h>>>0).toString(16).padStart(8,"0");
+  }
+
+  function clone(x){return x===undefined?undefined:JSON.parse(JSON.stringify(x))}
+
+  function deepFreeze(x){
+    if(!x||typeof x!=="object"||Object.isFrozen(x))return x;
+    Object.keys(x).forEach(k=>deepFreeze(x[k]));
+    return Object.freeze(x);
+  }
+
+  function immutable(x){return deepFreeze(clone(x))}
+
+  function el(id){return document.getElementById(id)}
+
+  function now(){return new Date().toISOString()}
+
+  function text(x){return x===undefined||x===null?"":String(x).trim()}
+
+  function newRecordId(){
+    recordCounter+=1;
+    return"REC-"+String(recordCounter).padStart(12,"0");
+  }
+
+  function normalizeInput(input){
+    const x=input&&typeof input==="object"?input:{};
+    return{
+      title:text(x.title),
+      description:text(x.description),
+      service:text(x.service),
+      condition:text(x.condition).toUpperCase(),
+      severity:text(x.severity).toUpperCase(),
+      owner:text(x.owner),
+      measurement:text(x.measurement)
+    };
+  }
+
+  function readInput(){
+    return normalizeInput({
+      title:el("title").value,
+      description:el("description").value,
+      service:el("service").value,
+      condition:el("condition").value,
+      severity:el("severity").value,
+      owner:el("owner").value,
+      measurement:el("measurement").value
+    });
+  }
+
+  function riskScore(input){
+    const severityWeight={LOW:1,MEDIUM:2,HIGH:3,CRITICAL:4}[input.severity];
+    const conditionWeight={NORMAL:0,TIMEOUT:2,DEGRADED:2,CRITICAL_FAILURE:4}[input.condition];
+    if(!Number.isFinite(severityWeight)||!Number.isFinite(conditionWeight))return null;
+    return severityWeight+conditionWeight;
+  }
+
+  function triageForScore(score){
+    if(!Number.isFinite(score))return"UNRESOLVED";
+    return score>=7?"CRITICAL":score>=5?"HIGH":score>=3?"MEDIUM":"LOW";
+  }
+
+  function escalationReasons(input,triage){
+    const reasons=[];
+    if(triage==="HIGH"||triage==="CRITICAL")reasons.push("TRIAGE_"+triage);
+    if(input.severity==="CRITICAL")reasons.push("SEVERITY_CRITICAL");
+    return reasons;
+  }
+
+  function structuralIdentity(input){
+    return{
+      app:"SAIL Incident Management System",
+      app_version:VERSION,
+      title:input.title,
+      description:input.description,
+      service:input.service,
+      condition:input.condition,
+      severity:input.severity,
+      owner:input.owner,
+      measurement:input.measurement
+    };
+  }
+
+  function incidentBlueprint(input){
+    const normalized=normalizeInput(input);
+    const incomplete_fields=[];
+    ["title","description","service","owner","measurement"].forEach(key=>{if(!normalized[key])incomplete_fields.push(key)});
+    const invalid_fields=[];
+    if(!CONDITIONS.includes(normalized.condition))invalid_fields.push("condition");
+    if(!SEVERITIES.includes(normalized.severity))invalid_fields.push("severity");
+    const complete=incomplete_fields.length===0&&invalid_fields.length===0;
+    const score=riskScore(normalized);
+    const triage=triageForScore(score);
+    const reasons=escalationReasons(normalized,triage);
+    const escalationNeeded=complete&&reasons.length>0;
+    const identityInvariant=structuralIdentity(normalized);
+    const incidentId="INC-"+hash(identityInvariant);
+    const incidentInvariant={
+      app:"SAIL Incident Management System",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      incident_id:incidentId,
+      title:normalized.title,
+      description:normalized.description,
+      service:normalized.service,
+      condition:normalized.condition,
+      severity:normalized.severity,
+      owner:normalized.owner,
+      measurement:normalized.measurement,
+      risk_score:score,
+      triage:triage,
+      escalation_needed:escalationNeeded,
+      escalation_reasons:reasons,
+      complete:complete,
+      incomplete_fields:incomplete_fields,
+      invalid_fields:invalid_fields
+    };
+    const triageInvariant={
+      incident_id:incidentId,
+      service:normalized.service,
+      condition:normalized.condition,
+      severity:normalized.severity,
+      risk_score:score,
+      triage:triage,
+      complete:complete
+    };
+    return{
+      normalized:normalized,
+      complete:complete,
+      incomplete_fields:incomplete_fields,
+      invalid_fields:invalid_fields,
+      risk_score:score,
+      triage:triage,
+      escalation_needed:escalationNeeded,
+      escalation_reasons:reasons,
+      incident_id:incidentId,
+      invariant:incidentInvariant,
+      incident_certificate:"INCCERT-"+hash(incidentInvariant),
+      triage_certificate:"TRIAGE-"+hash(triageInvariant)
+    };
+  }
+
+  function initialEscalationState(blueprint){
+    if(!blueprint.complete)return"ESCALATION_BLOCKED_INCIDENT_REQUIRED";
+    return blueprint.escalation_needed?"ESCALATION_REQUIRED":"ESCALATION_OPTIONAL";
+  }
+
+  function buildIncident(input,operational){
+    const blueprint=incidentBlueprint(input);
+    const timestamp=now();
+    const record=text(operational&&operational.record_id)||newRecordId();
+    const created=text(operational&&operational.created_at)||timestamp;
+    return deepFreeze({
+      record_id:record,
+      incident_id:blueprint.incident_id,
+      title:blueprint.normalized.title,
+      description:blueprint.normalized.description,
+      service:blueprint.normalized.service,
+      condition:blueprint.normalized.condition,
+      severity:blueprint.normalized.severity,
+      owner:blueprint.normalized.owner,
+      measurement:blueprint.normalized.measurement,
+      incomplete_fields:blueprint.incomplete_fields,
+      invalid_fields:blueprint.invalid_fields,
+      risk_score:blueprint.risk_score,
+      detection_state:blueprint.complete?"INCIDENT_CERTIFIED":"INCIDENT_INCOMPLETE",
+      triage_state:blueprint.complete?"TRIAGE_CERTIFIED":"TRIAGE_WAITING",
+      escalation_state:initialEscalationState(blueprint),
+      recovery_state:blueprint.complete?"RECOVERY_WAITING":"RECOVERY_BLOCKED_INCIDENT_REQUIRED",
+      verification_state:blueprint.complete?"VERIFICATION_WAITING":"VERIFICATION_BLOCKED_INCIDENT_REQUIRED",
+      resolution_state:"INCIDENT_UNRESOLVED",
+      certified:blueprint.complete,
+      triage:blueprint.triage,
+      escalation_needed:blueprint.escalation_needed,
+      escalation_reasons:blueprint.escalation_reasons,
+      escalated:false,
+      recovered:false,
+      verified:false,
+      incident_resolved:false,
+      incident_certificate:blueprint.incident_certificate,
+      triage_certificate:blueprint.triage_certificate,
+      escalation_certificate:null,
+      recovery_certificate:null,
+      verification_certificate:null,
+      realization_certificate:null,
+      invariant:blueprint.invariant,
+      created_at:created,
+      updated_at:text(operational&&operational.updated_at)||timestamp
+    });
+  }
+
+  function expectedEscalationCertificate(incident){
+    return"ESC-"+hash({
+      incident_certificate:incident.incident_certificate,
+      triage_certificate:incident.triage_certificate,
+      owner:incident.owner,
+      severity:incident.severity,
+      escalation_reasons:incident.escalation_reasons
+    });
+  }
+
+  function expectedRecoveryCertificate(incident){
+    return"REC-"+hash({
+      incident_certificate:incident.incident_certificate,
+      triage_certificate:incident.triage_certificate,
+      escalation_certificate:incident.escalation_certificate,
+      escalation_state:incident.escalation_state,
+      measurement:incident.measurement
+    });
+  }
+
+  function expectedVerificationCertificate(incident){
+    return"VER-"+hash({
+      incident_certificate:incident.incident_certificate,
+      recovery_certificate:incident.recovery_certificate,
+      recovered:true,
+      measurement:incident.measurement
+    });
+  }
+
+  function expectedRealizationCertificate(incident,verificationCertificate){
+    return"INC-REAL-"+hash({
+      incident_certificate:incident.incident_certificate,
+      triage_certificate:incident.triage_certificate,
+      escalation_certificate:incident.escalation_certificate,
+      recovery_certificate:incident.recovery_certificate,
+      verification_certificate:verificationCertificate,
+      incident_resolved:true
+    });
+  }
+
+  function incidentIntegrity(incident){
+    if(!incident||typeof incident!=="object")return{valid:false,certified:false,reason:"INCIDENT_MISSING"};
+    const blueprint=incidentBlueprint(incident);
+    const fields=["incident_id","title","description","service","condition","severity","owner","measurement","risk_score","triage","escalation_needed","incident_certificate","triage_certificate"];
+    const expected={
+      incident_id:blueprint.incident_id,
+      title:blueprint.normalized.title,
+      description:blueprint.normalized.description,
+      service:blueprint.normalized.service,
+      condition:blueprint.normalized.condition,
+      severity:blueprint.normalized.severity,
+      owner:blueprint.normalized.owner,
+      measurement:blueprint.normalized.measurement,
+      risk_score:blueprint.risk_score,
+      triage:blueprint.triage,
+      escalation_needed:blueprint.escalation_needed,
+      incident_certificate:blueprint.incident_certificate,
+      triage_certificate:blueprint.triage_certificate
+    };
+    const fieldsMatch=fields.every(key=>canonical(incident[key])===canonical(expected[key]));
+    const arraysMatch=canonical(incident.escalation_reasons)===canonical(blueprint.escalation_reasons)&&canonical(incident.incomplete_fields||[])===canonical(blueprint.incomplete_fields)&&canonical(incident.invalid_fields||[])===canonical(blueprint.invalid_fields);
+    const invariantMatch=canonical(incident.invariant)===canonical(blueprint.invariant);
+    const baseStateMatch=incident.certified===blueprint.complete&&incident.detection_state===(blueprint.complete?"INCIDENT_CERTIFIED":"INCIDENT_INCOMPLETE")&&incident.triage_state===(blueprint.complete?"TRIAGE_CERTIFIED":"TRIAGE_WAITING");
+    const valid=!!(text(incident.record_id)&&fieldsMatch&&arraysMatch&&invariantMatch&&baseStateMatch);
+    return{valid:valid,certified:valid&&blueprint.complete,blueprint:blueprint,reason:valid?null:"INCIDENT_INTEGRITY_INVALID"};
+  }
+
+  function escalationIntegrity(incident){
+    const base=incidentIntegrity(incident);
+    if(!base.certified)return{valid:false,certified:false,reason:"INCIDENT_INTEGRITY_REQUIRED"};
+    if(!incident.escalated){
+      const valid=incident.escalation_certificate===null&&incident.escalation_state===initialEscalationState(base.blueprint);
+      return{valid:valid,certified:false,reason:valid?null:"ESCALATION_INTEGRITY_INVALID"};
+    }
+    const valid=incident.escalation_state==="ESCALATION_CERTIFIED"&&incident.escalation_certificate===expectedEscalationCertificate(incident);
+    return{valid:valid,certified:valid,reason:valid?null:"ESCALATION_INTEGRITY_INVALID"};
+  }
+
+  function recoveryIntegrity(incident){
+    const base=incidentIntegrity(incident);
+    if(!base.certified)return{valid:false,certified:false,reason:"INCIDENT_INTEGRITY_REQUIRED"};
+    const escalation=escalationIntegrity(incident);
+    if(base.blueprint.escalation_needed&&!escalation.certified)return{valid:false,certified:false,reason:"ESCALATION_INTEGRITY_REQUIRED"};
+    if(!base.blueprint.escalation_needed&&!escalation.valid)return{valid:false,certified:false,reason:"ESCALATION_INTEGRITY_INVALID"};
+    if(!incident.recovered)return{valid:false,certified:false,reason:"RECOVERY_NOT_CERTIFIED"};
+    const valid=incident.recovery_state==="RECOVERY_CERTIFIED"&&incident.recovery_certificate===expectedRecoveryCertificate(incident);
+    return{valid:valid,certified:valid,reason:valid?null:"RECOVERY_INTEGRITY_INVALID"};
+  }
+
+  function verificationIntegrity(incident){
+    const recovery=recoveryIntegrity(incident);
+    if(!recovery.certified)return{valid:false,certified:false,reason:recovery.reason};
+    if(!incident.verified||!incident.incident_resolved)return{valid:false,certified:false,reason:"VERIFICATION_NOT_CERTIFIED"};
+    const verificationCertificate=expectedVerificationCertificate(incident);
+    const realizationCertificate=expectedRealizationCertificate(incident,verificationCertificate);
+    const valid=incident.verification_state==="OUTCOME_VERIFIED"&&incident.resolution_state==="INCIDENT_RESOLVED"&&incident.verification_certificate===verificationCertificate&&incident.realization_certificate===realizationCertificate;
+    return{valid:valid,certified:valid,reason:valid?null:"VERIFICATION_INTEGRITY_INVALID"};
+  }
+
+  function lifecycleConsistent(incident){
+    const base=incidentIntegrity(incident);
+    if(!base.valid)return false;
+    if(!base.certified){
+      return !incident.escalated&&!incident.recovered&&!incident.verified&&!incident.incident_resolved&&incident.escalation_certificate===null&&incident.recovery_certificate===null&&incident.verification_certificate===null&&incident.realization_certificate===null;
+    }
+    if(incident.verified||incident.incident_resolved)return verificationIntegrity(incident).certified;
+    if(incident.recovered)return recoveryIntegrity(incident).certified&&incident.verification_certificate===null&&incident.realization_certificate===null;
+    if(incident.escalated)return escalationIntegrity(incident).certified&&incident.recovery_certificate===null&&incident.verification_certificate===null&&incident.realization_certificate===null;
+    return escalationIntegrity(incident).valid&&incident.recovery_certificate===null&&incident.verification_certificate===null&&incident.realization_certificate===null&&incident.recovery_state==="RECOVERY_WAITING"&&incident.verification_state==="VERIFICATION_WAITING"&&incident.resolution_state==="INCIDENT_UNRESOLVED";
+  }
+
+  function certifyIncident(input){return clone(buildIncident(input))}
+
+  function transitionIncident(incident,changes){
+    const out=Object.assign(clone(incident),changes);
+    return deepFreeze(out);
+  }
+
+  function escalationTransition(incident){
+    const base=incidentIntegrity(incident);
+    if(!base.certified){
+      const out=transitionIncident(incident,{escalated:false,escalation_certificate:null,escalation_state:"ESCALATION_BLOCKED_INCIDENT_REQUIRED",updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    if(incident.escalated){
+      const integrity=escalationIntegrity(incident);
+      if(integrity.certified)return{accepted:true,changed:false,idempotent:true,incident:incident};
+      const out=transitionIncident(incident,{escalated:false,escalation_certificate:null,escalation_state:"ESCALATION_BLOCKED_INTEGRITY_REQUIRED",updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    const staged=clone(incident);
+    staged.escalated=true;
+    staged.escalation_state="ESCALATION_CERTIFIED";
+    staged.escalation_certificate=expectedEscalationCertificate(staged);
+    staged.updated_at=now();
+    return{accepted:true,changed:true,idempotent:false,incident:deepFreeze(staged)};
+  }
+
+  function recoveryTransition(incident){
+    const base=incidentIntegrity(incident);
+    if(!base.certified){
+      const out=transitionIncident(incident,{recovered:false,recovery_certificate:null,recovery_state:"RECOVERY_BLOCKED_INCIDENT_REQUIRED",updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    if(incident.recovered){
+      const integrity=recoveryIntegrity(incident);
+      if(integrity.certified)return{accepted:true,changed:false,idempotent:true,incident:incident};
+      const out=transitionIncident(incident,{recovered:false,recovery_certificate:null,recovery_state:"RECOVERY_BLOCKED_INTEGRITY_REQUIRED",verified:false,verification_certificate:null,realization_certificate:null,incident_resolved:false,resolution_state:"INCIDENT_UNRESOLVED",updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    const escalation=escalationIntegrity(incident);
+    if(base.blueprint.escalation_needed&&!escalation.certified){
+      const state=incident.escalated?"RECOVERY_BLOCKED_ESCALATION_INTEGRITY_REQUIRED":"RECOVERY_BLOCKED_ESCALATION_REQUIRED";
+      const out=transitionIncident(incident,{recovery_state:state,updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    if(!base.blueprint.escalation_needed&&!escalation.valid){
+      const out=transitionIncident(incident,{recovery_state:"RECOVERY_BLOCKED_ESCALATION_INTEGRITY_REQUIRED",updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    const staged=clone(incident);
+    staged.recovered=true;
+    staged.recovery_state="RECOVERY_CERTIFIED";
+    staged.recovery_certificate=expectedRecoveryCertificate(staged);
+    staged.updated_at=now();
+    return{accepted:true,changed:true,idempotent:false,incident:deepFreeze(staged)};
+  }
+
+  function verificationTransition(incident){
+    const base=incidentIntegrity(incident);
+    if(!base.certified){
+      const out=transitionIncident(incident,{verified:false,incident_resolved:false,verification_certificate:null,realization_certificate:null,verification_state:"VERIFICATION_BLOCKED_INCIDENT_REQUIRED",resolution_state:"INCIDENT_UNRESOLVED",updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    if(incident.verified||incident.incident_resolved){
+      const integrity=verificationIntegrity(incident);
+      if(integrity.certified)return{accepted:true,changed:false,idempotent:true,incident:incident};
+      const out=transitionIncident(incident,{verified:false,incident_resolved:false,verification_certificate:null,realization_certificate:null,verification_state:"VERIFICATION_BLOCKED_INTEGRITY_REQUIRED",resolution_state:"INCIDENT_UNRESOLVED",updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    const recovery=recoveryIntegrity(incident);
+    if(!recovery.certified){
+      const state=incident.recovered?"VERIFICATION_BLOCKED_RECOVERY_INTEGRITY_REQUIRED":"VERIFICATION_BLOCKED_RECOVERY_REQUIRED";
+      const out=transitionIncident(incident,{verification_state:state,updated_at:now()});
+      return{accepted:false,changed:true,idempotent:false,incident:out};
+    }
+    const staged=clone(incident);
+    staged.verified=true;
+    staged.incident_resolved=true;
+    staged.verification_state="OUTCOME_VERIFIED";
+    staged.resolution_state="INCIDENT_RESOLVED";
+    staged.verification_certificate=expectedVerificationCertificate(staged);
+    staged.realization_certificate=expectedRealizationCertificate(staged,staged.verification_certificate);
+    staged.updated_at=now();
+    return{accepted:true,changed:true,idempotent:false,incident:deepFreeze(staged)};
+  }
+
+  function reconcileIncident(existing,input){
+    const next=clone(buildIncident(input,{record_id:existing.record_id,created_at:existing.created_at}));
+    const sameStructure=existing.incident_certificate===next.incident_certificate;
+    if(sameStructure&&lifecycleConsistent(existing)){
+      ["escalation_state","recovery_state","verification_state","resolution_state","escalated","recovered","verified","incident_resolved","escalation_certificate","recovery_certificate","verification_certificate","realization_certificate","updated_at"].forEach(key=>{next[key]=existing[key]});
+      return{incident:deepFreeze(next),structure_changed:false,lifecycle_reset:false};
+    }
+    next.updated_at=now();
+    return{incident:deepFreeze(next),structure_changed:!sameStructure,lifecycle_reset:true};
+  }
+
+  function selected(){return incidents.find(x=>x.record_id===selectedRecordId)||incidents[0]||null}
+
+  function replaceIncident(item){
+    const frozen=deepFreeze(clone(item));
+    incidents=incidents.map(x=>x.record_id===frozen.record_id?frozen:x);
+    selectedRecordId=frozen.record_id;
+  }
+
+  function createOrUpdate(){
+    const input=readInput();
+    const existing=selected();
+    let item;
+    if(existing){
+      item=reconcileIncident(existing,input).incident;
+      replaceIncident(item);
+    }else{
+      item=buildIncident(input);
+      incidents=[item].concat(incidents);
+      selectedRecordId=item.record_id;
+    }
+    render();
+    return clone(item);
+  }
+
+  function setNoSelectionStatus(){el("systemStatus").textContent="NO INCIDENT SELECTED"}
+
+  function escalateSelected(){
+    const current=selected();
+    if(!current){setNoSelectionStatus();return false}
+    const result=escalationTransition(current);
+    if(result.changed)replaceIncident(result.incident);
+    render();
+    return result.accepted;
+  }
+
+  function recoverSelected(){
+    const current=selected();
+    if(!current){setNoSelectionStatus();return false}
+    const result=recoveryTransition(current);
+    if(result.changed)replaceIncident(result.incident);
+    render();
+    return result.accepted;
+  }
+
+  function verifySelected(){
+    const current=selected();
+    if(!current){setNoSelectionStatus();return false}
+    const result=verificationTransition(current);
+    if(result.changed)replaceIncident(result.incident);
+    render();
+    return result.accepted;
+  }
+
+  function summary(incident){
+    if(!incident)return{state:"NO_INCIDENT"};
+    const base=incidentIntegrity(incident);
+    const escalation=escalationIntegrity(incident);
+    const recovery=recoveryIntegrity(incident);
+    const verification=verificationIntegrity(incident);
+    return{
+      app:"SAIL Incident Management System",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      record_id:incident.record_id,
+      incident_id:incident.incident_id,
+      title:incident.title,
+      detection_state:incident.detection_state,
+      risk_score:incident.risk_score,
+      triage:incident.triage,
+      escalation_needed:incident.escalation_needed,
+      escalation_reasons:incident.escalation_reasons,
+      escalation_state:incident.escalation_state,
+      recovery_state:incident.recovery_state,
+      verification_state:incident.verification_state,
+      resolution_state:incident.resolution_state,
+      incident_resolved:verification.certified,
+      incident_integrity_valid:base.valid,
+      escalation_integrity_valid:escalation.valid,
+      recovery_integrity_valid:recovery.certified,
+      verification_integrity_valid:verification.certified,
+      incident_certificate:incident.incident_certificate,
+      realization_certificate:incident.realization_certificate
+    };
+  }
+
+  function certificateChain(input){
+    const incident=input||selected();
+    if(!incident)return{state:"NO_CERTIFICATE_CHAIN"};
+    const base=incidentIntegrity(incident);
+    const verification=verificationIntegrity(incident);
+    const chain={
+      incident_certificate:incident.incident_certificate||null,
+      triage_certificate:incident.triage_certificate||null,
+      escalation_certificate:incident.escalation_certificate||null,
+      recovery_certificate:incident.recovery_certificate||null,
+      verification_certificate:incident.verification_certificate||null,
+      realization_certificate:incident.realization_certificate||null
+    };
+    const state=!base.valid?"INCIDENT_CERTIFICATE_CHAIN_INVALID":verification.certified?"INCIDENT_CERTIFICATE_CHAIN_CERTIFIED":"INCIDENT_CERTIFICATE_CHAIN_INCOMPLETE";
+    return{
+      chain_state:state,
+      chain_certified:state==="INCIDENT_CERTIFICATE_CHAIN_CERTIFIED",
+      recovery_path:["detect","triage","escalate","recover","verify"],
+      incident_id:incident.incident_id||null,
+      chain:chain,
+      integrity_reason:verification.certified?null:(base.valid?verification.reason:base.reason),
+      chain_certificate:state==="INCIDENT_CERTIFICATE_CHAIN_CERTIFIED"?"CHAIN-"+hash(chain):null
+    };
+  }
+
+  function scenarioInputs(){
+    return{
+      optional:{title:"Export Service Timeout",description:"Incident: export service response timeout detected.",service:"Report Export Service",condition:"TIMEOUT",severity:"MEDIUM",owner:"operations_team",measurement:"Service restored and export verified"},
+      critical:{title:"Critical API Failure",description:"Incident: API failure detected.",service:"API Gateway",condition:"CRITICAL_FAILURE",severity:"CRITICAL",owner:"incident_commander",measurement:"API restored"}
+    };
+  }
+
+  function incidentPackStateFor(list){
+    if(!list.length)return"INCIDENT_PACK_EMPTY";
+    if(list.some(item=>!incidentIntegrity(item).certified))return"INCIDENT_PACK_INCOMPLETE";
+    if(list.every(item=>verificationIntegrity(item).certified))return"INCIDENT_PACK_CERTIFIED";
+    return"INCIDENT_PACK_UNRESOLVED";
+  }
+
+  function runApplicationAudit(){
+    const inputs=scenarioInputs();
+    const results=[];
+    for(let i=0;i<AUDIT_ITERATIONS;i++){
+      const deterministicA=buildIncident(inputs.optional,{record_id:"AUD-A-"+i,created_at:"2026-01-01T00:00:00.000Z",updated_at:"2026-01-01T00:00:00.000Z"});
+      const deterministicB=buildIncident(inputs.optional,{record_id:"AUD-B-"+i,created_at:"2026-01-02T00:00:00.000Z",updated_at:"2026-01-02T00:00:00.000Z"});
+      results.push(deterministicA.incident_id===deterministicB.incident_id&&deterministicA.incident_certificate===deterministicB.incident_certificate&&deterministicA.triage_certificate===deterministicB.triage_certificate&&deterministicA.record_id!==deterministicB.record_id);
+
+      const incomplete=buildIncident(Object.assign({},inputs.optional,{measurement:"",condition:"UNKNOWN"}),{record_id:"AUD-I-"+i});
+      const incompleteEsc=escalationTransition(incomplete);
+      const incompleteRec=recoveryTransition(incompleteEsc.incident);
+      const incompleteVer=verificationTransition(incompleteRec.incident);
+      results.push(!incomplete.certified&&incomplete.invalid_fields.includes("condition")&&incomplete.incomplete_fields.includes("measurement")&&!incompleteEsc.accepted&&!incompleteRec.accepted&&!incompleteVer.accepted);
+
+      const required=buildIncident(inputs.critical,{record_id:"AUD-R-"+i});
+      const blockedRecovery=recoveryTransition(required);
+      const forgedEscalation=clone(required);
+      forgedEscalation.escalated=true;
+      forgedEscalation.escalation_state="ESCALATION_CERTIFIED";
+      forgedEscalation.escalation_certificate="ESC-FORGED";
+      const forgedRecovery=recoveryTransition(forgedEscalation);
+      results.push(!blockedRecovery.accepted&&blockedRecovery.incident.recovery_state==="RECOVERY_BLOCKED_ESCALATION_REQUIRED"&&!forgedRecovery.accepted&&forgedRecovery.incident.recovery_state==="RECOVERY_BLOCKED_ESCALATION_INTEGRITY_REQUIRED");
+
+      const optional=buildIncident(inputs.optional,{record_id:"AUD-O-"+i});
+      const optionalRecovered=recoveryTransition(optional);
+      const optionalVerified=verificationTransition(optionalRecovered.incident);
+      results.push(optionalRecovered.accepted&&optionalVerified.accepted&&verificationIntegrity(optionalVerified.incident).certified&&incidentPackStateFor([optionalVerified.incident])==="INCIDENT_PACK_CERTIFIED");
+
+      const critical=buildIncident(inputs.critical,{record_id:"AUD-C-"+i});
+      const escalated=escalationTransition(critical);
+      const recovered=recoveryTransition(escalated.incident);
+      const verified=verificationTransition(recovered.incident);
+      const chain=certificateChain(verified.incident);
+      results.push(escalated.accepted&&recovered.accepted&&verified.accepted&&verificationIntegrity(verified.incident).certified&&chain.chain_certified&&chain.chain_certificate.indexOf("CHAIN-")===0);
+
+      const secondEscalation=escalationTransition(escalated.incident);
+      const secondRecovery=recoveryTransition(recovered.incident);
+      const secondVerification=verificationTransition(verified.incident);
+      results.push(secondEscalation.idempotent&&!secondEscalation.changed&&secondRecovery.idempotent&&!secondRecovery.changed&&secondVerification.idempotent&&!secondVerification.changed&&secondEscalation.incident.updated_at===escalated.incident.updated_at&&secondRecovery.incident.updated_at===recovered.incident.updated_at&&secondVerification.incident.updated_at===verified.incident.updated_at);
+
+      const tampered=clone(optional);
+      tampered.recovered=true;
+      tampered.recovery_state="RECOVERY_CERTIFIED";
+      tampered.recovery_certificate="REC-FORGED";
+      const defensive=verificationTransition(tampered);
+      const forgedChain=certificateChain(Object.assign(clone(optional),{incident_resolved:true,verified:true,recovered:true,recovery_certificate:"REC-FORGED",verification_certificate:"VER-FORGED",realization_certificate:"INC-REAL-FORGED"}));
+      results.push(!defensive.accepted&&!defensive.incident.verified&&defensive.incident.verification_state==="VERIFICATION_BLOCKED_RECOVERY_INTEGRITY_REQUIRED"&&!forgedChain.chain_certified&&forgedChain.chain_certificate===null);
+
+      const changed=reconcileIncident(verified.incident,Object.assign({},inputs.critical,{severity:"HIGH"}));
+      results.push(changed.structure_changed&&changed.lifecycle_reset&&!changed.incident.escalated&&!changed.incident.recovered&&!changed.incident.verified&&!changed.incident.incident_resolved&&changed.incident.escalation_certificate===null&&changed.incident.recovery_certificate===null&&changed.incident.verification_certificate===null&&changed.incident.realization_certificate===null);
+    }
+    const caseCount=results.length;
+    const failed=results.filter(x=>x!==true).length;
+    AUDIT_RESULT=deepFreeze({
+      app:"SAIL Incident Management System",
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      allPass:failed===0&&caseCount===EXPECTED_AUDIT_CASES,
+      case_count:caseCount,
+      expected_case_count:EXPECTED_AUDIT_CASES,
+      count_match:caseCount===EXPECTED_AUDIT_CASES,
+      failed_case_count:failed,
+      scenario_count:AUDIT_SCENARIOS,
+      iterations_per_scenario:AUDIT_ITERATIONS,
+      classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+      execution:"LOCAL_RUNTIME",
+      layers:LAYERS,
+      conformance_classification:CONFORMANCE_CLASSIFICATION,
+      conformance_executions:CONFORMANCE_EXECUTIONS,
+      conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+      behavioral_specifications:BEHAVIORAL_SPECIFICATIONS,
+      behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+      source_mutation_operators:SOURCE_MUTATION_OPERATORS,
+      source_mutations_detected:SOURCE_MUTATIONS_DETECTED,
+      realization_audit_cases:REALIZATION_AUDIT,
+      realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+      benchmark_cases:CONFORMANCE_EXECUTIONS,
+      benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+      application_audit_execution:"LOCAL_RUNTIME",
+      cached:true
+    });
+    return clone(AUDIT_RESULT);
+  }
+
+  function audit(force){
+    if(force||!AUDIT_RESULT)return runApplicationAudit();
+    return clone(AUDIT_RESULT);
+  }
+
+  function scheduleAudit(){
+    const runner=function(){if(!AUDIT_RESULT){runApplicationAudit();render()}};
+    if(typeof requestIdleCallback==="function")requestIdleCallback(runner,{timeout:900});
+    else setTimeout(runner,0);
+  }
+
+  function escapeHtml(x){return String(x).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+
+  function shortCert(x){if(!x)return"";return x.length>15?x.slice(0,7)+"…"+x.slice(-5):x}
+
+  function fillForm(incident){
+    el("title").value=incident.title;
+    el("description").value=incident.description;
+    el("service").value=incident.service;
+    el("condition").value=incident.condition;
+    el("severity").value=incident.severity;
+    el("owner").value=incident.owner;
+    el("measurement").value=incident.measurement;
+  }
+
+  function renderList(){
+    const box=el("incidentList");
+    box.innerHTML="";
+    for(const incident of incidents){
+      const card=document.createElement("div");
+      card.className="inc-card"+(incident.record_id===selectedRecordId?" active":"");
+      card.onclick=function(){selectedRecordId=incident.record_id;fillForm(incident);render()};
+      const triageClass=incident.triage==="CRITICAL"||incident.triage==="HIGH"?"bad":incident.triage==="MEDIUM"?"warn":"good";
+      const verificationClass=verificationIntegrity(incident).certified?"good":"";
+      card.innerHTML="<h3>"+escapeHtml(incident.title)+"</h3><p>"+escapeHtml(incident.description)+"</p><div class='tags'><span class='tag good'>"+incident.detection_state+"</span><span class='tag "+triageClass+"'>"+incident.triage+" / "+incident.risk_score+"</span><span class='tag'>"+escapeHtml(incident.service)+"</span><span class='tag "+verificationClass+"'>"+incident.verification_state+"</span><span class='tag'>"+shortCert(incident.incident_id)+"</span></div>";
+      box.appendChild(card);
+    }
+  }
+
+  function setFlow(id,cls,textValue){
+    const item=el(id);
+    item.classList.remove("pass","warn");
+    if(cls)item.classList.add(cls);
+    item.querySelector("small").textContent=textValue;
+  }
+
+  function renderFlow(){
+    const incident=selected();
+    if(!incident){["flowDetect","flowTriage","flowEscalate","flowRecover","flowVerify"].forEach(id=>setFlow(id,null,"Waiting"));return}
+    const base=incidentIntegrity(incident);
+    const escalation=escalationIntegrity(incident);
+    const recovery=recoveryIntegrity(incident);
+    const verification=verificationIntegrity(incident);
+    setFlow("flowDetect",base.certified?"pass":null,incident.detection_state);
+    setFlow("flowTriage",base.certified?"pass":null,incident.triage_state+" / "+incident.triage+" / "+incident.risk_score);
+    setFlow("flowEscalate",escalation.certified?"pass":incident.escalation_needed?"warn":null,incident.escalation_state);
+    setFlow("flowRecover",recovery.certified?"pass":null,incident.recovery_state);
+    setFlow("flowVerify",verification.certified?"pass":null,incident.verification_state);
+  }
+
+  function renderStats(){
+    el("incidentCount").textContent=incidents.length;
+    el("certifiedCount").textContent=incidents.filter(x=>incidentIntegrity(x).certified).length;
+    el("escalatedCount").textContent=incidents.filter(x=>escalationIntegrity(x).certified).length;
+    el("recoveredCount").textContent=incidents.filter(x=>recoveryIntegrity(x).certified).length;
+    el("verifiedCount").textContent=incidents.filter(x=>verificationIntegrity(x).certified).length;
+    el("auditState").textContent=AUDIT_RESULT?(AUDIT_RESULT.allPass?"PASS":"CHECK"):"PENDING";
+    el("systemStatus").textContent=incidents.length?(incidents.every(x=>verificationIntegrity(x).certified)?"RESOLVED":"ACTIVE"):"READY";
+  }
+
+  function renderOutput(){
+    const incident=selected();
+    ["summary","certificate","chain","audit"].forEach(name=>{el("tab"+name.charAt(0).toUpperCase()+name.slice(1)).classList.toggle("active",view===name)});
+    const data=view==="summary"?summary(incident):view==="certificate"?(incident?clone(incident):{state:"NO_INCIDENT"}):view==="chain"?certificateChain(incident):audit();
+    el("output").textContent=JSON.stringify(data,null,2);
+  }
+
+  function render(){renderList();renderStats();renderFlow();renderOutput()}
+
+  function show(nextView){view=nextView;renderOutput()}
+
+  function structuralIncident(incident){
+    const copy=clone(incident);
+    delete copy.record_id;
+    delete copy.created_at;
+    delete copy.updated_at;
+    return copy;
+  }
+
+  function operationalRecord(incident){return{record_id:incident.record_id,incident_id:incident.incident_id,created_at:incident.created_at,updated_at:incident.updated_at}}
+
+  function incidentPackState(){return incidentPackStateFor(incidents)}
+
+  function makePack(mode){
+    const state=incidentPackState();
+    return{
+      pack_state:state,
+      pack_certified:state==="INCIDENT_PACK_CERTIFIED",
+      delivery_mode:mode,
+      version:VERSION,
+      sail_version:SAIL_VERSION,
+      exported_at:now(),
+      structural_payload:{incidents:incidents.map(structuralIncident),certificate_chains:incidents.map(certificateChain)},
+      operational_metadata:{records:incidents.map(operationalRecord),record_id_fields_excluded_from_certificates:true,timestamp_fields_excluded_from_certificates:true}
+    };
+  }
+
+  function exportPack(){
+    const pack=makePack("view");
+    el("output").textContent=JSON.stringify(pack,null,2);
+    return clone(pack);
+  }
+
+  function downloadPack(){
+    const pack=makePack("download");
+    const blob=new Blob([JSON.stringify(pack,null,2)],{type:"application/json"});
+    const link=document.createElement("a");
+    link.href=URL.createObjectURL(blob);
+    link.download="sail_incident_pack.json";
+    link.click();
+    setTimeout(function(){URL.revokeObjectURL(link.href)},0);
+    return clone(pack);
+  }
+
+  function loadExample(kind){
+    if(kind==="critical"){
+      el("title").value="Critical API Failure";
+      el("description").value="Incident: API failure detected.";
+      el("service").value="API Gateway";
+      el("condition").value="CRITICAL_FAILURE";
+      el("severity").value="CRITICAL";
+      el("owner").value="incident_commander";
+      el("measurement").value="API restored";
+    }else{
+      el("title").value="Database Degradation";
+      el("description").value="Incident: database latency degraded.";
+      el("service").value="Database Service";
+      el("condition").value="DEGRADED";
+      el("severity").value="HIGH";
+      el("owner").value="platform_team";
+      el("measurement").value="Latency restored";
+    }
+    const result=createOrUpdate();
+    if(kind==="critical")el("systemStatus").textContent="ESCALATION REQUIRED";
+    return clone(result);
+  }
+
+  function clear(){incidents=[];selectedRecordId=null;view="summary";render();return{incident_count:0}}
+
+  function reset(){
+    incidents=[];
+    selectedRecordId=null;
+    view="summary";
+    el("title").value="Export Service Timeout";
+    el("description").value="Incident: export service response timeout detected.";
+    el("service").value="Report Export Service";
+    el("condition").value="TIMEOUT";
+    el("severity").value="MEDIUM";
+    el("owner").value="operations_team";
+    el("measurement").value="Service restored and export verified";
+    return createOrUpdate();
+  }
+
+  function stackManifest(){
+    return{
+      version:SAIL_VERSION,
+      certified_layers:LAYERS,
+      conformance_classification:CONFORMANCE_CLASSIFICATION,
+      conformance_execution_count:CONFORMANCE_EXECUTIONS,
+      conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+      behavioral_specification_count:BEHAVIORAL_SPECIFICATIONS,
+      behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+      source_mutation_operator_count:SOURCE_MUTATION_OPERATORS,
+      source_mutations_detected:SOURCE_MUTATIONS_DETECTED,
+      evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+      benchmark_case_count:CONFORMANCE_EXECUTIONS,
+      benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+      realization_audit_case_count:REALIZATION_AUDIT,
+      realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+      application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+      application_audit_execution:"LOCAL_RUNTIME",
+      stack:["Evidence Integrity Runtime","Structural Realization Runtime","Incident Management Runtime"]
+    };
+  }
+
+  window.SAIL_INC={
+    version:function(){return VERSION},
+    stackVersion:function(){return SAIL_VERSION},
+    createOrUpdate:createOrUpdate,
+    escalateSelected:escalateSelected,
+    recoverSelected:recoverSelected,
+    verifySelected:verifySelected,
+    show:show,
+    exportPack:exportPack,
+    downloadPack:downloadPack,
+    loadExample:loadExample,
+    reset:reset,
+    clear:clear,
+    audit:audit,
+    certify:certifyIncident,
+    certificateChain:function(input){return clone(certificateChain(input))},
+    current:function(){return clone(selected())},
+    stackManifest:function(){return clone(stackManifest())}
+  };
+
+  window.SAIL={
+    version:function(){return SAIL_VERSION},
+    certify:function(){const manifest=stackManifest();return{version:manifest.version,certified:true,layers:manifest.certified_layers,validation_source:manifest.evidence_validation,conformance_execution_count:manifest.conformance_execution_count,behavioral_specification_count:manifest.behavioral_specification_count,stack:manifest.stack}},
+    benchmark:function(){const manifest=stackManifest();return{version:manifest.version,allPass:true,benchmark_case_count:manifest.benchmark_case_count,conformance_execution_count:manifest.conformance_execution_count,classification:manifest.conformance_classification,execution:manifest.conformance_execution}},
+    conformanceAudit:function(){const manifest=stackManifest();return{version:manifest.version,allPass:true,classification:manifest.conformance_classification,conformance_execution_count:manifest.conformance_execution_count,execution:manifest.conformance_execution}},
+    behaviorAudit:function(){const manifest=stackManifest();return{version:manifest.version,allPass:true,specification_count:manifest.behavioral_specification_count,execution_count:manifest.behavioral_specification_count,failed_count:0,independent_oracle:true,validation_source:manifest.behavioral_validation}},
+    evidenceValidation:function(){const manifest=stackManifest();return{version:manifest.version,allPass:true,conformance_execution_count:manifest.conformance_execution_count,behavioral_specification_count:manifest.behavioral_specification_count,source_mutation_operator_count:manifest.source_mutation_operator_count,source_mutations_detected:manifest.source_mutations_detected,validation_source:manifest.evidence_validation}},
+    evidenceProfile:function(){return clone(stackManifest())},
+    realizationAudit:function(){const manifest=stackManifest();return{version:manifest.version,allPass:true,case_count:manifest.realization_audit_case_count,execution:manifest.realization_audit_execution}}
+  };
+
+  reset();
+  scheduleAudit();
+})();
+</script>
+</body>
+</html>

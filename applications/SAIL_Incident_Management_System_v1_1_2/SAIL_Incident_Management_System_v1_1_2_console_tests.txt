@@ -1,0 +1,2054 @@
+SAIL Incident Management System Validation
+SAIL Incident Management System v1.1.2
+Built on SAIL v5.9.0 Evidence Integrity Runtime
+
+==================================================
+APPLICATION VALIDATION
+==================================================
+
+[
+  SAIL_INC.version(),
+  SAIL_INC.stackVersion(),
+  SAIL_INC.audit().allPass,
+  SAIL_INC.audit().case_count,
+  SAIL.certify().layers,
+  SAIL.benchmark().benchmark_case_count
+]
+
+Expected:
+
+[
+  "1.1.2",
+  "5.9.0",
+  true,
+  12000,
+  37,
+  347400
+]
+
+==================================================
+EVIDENCE REFERENCE VALIDATION
+==================================================
+
+(() => {
+  const manifest = SAIL_INC.stackManifest();
+  const conformance = SAIL.conformanceAudit();
+  const behavior = SAIL.behaviorAudit();
+  const evidence = SAIL.evidenceValidation();
+
+  return {
+    version:manifest.version,
+    conformance_classification:conformance.classification,
+    conformance_execution_count:conformance.conformance_execution_count,
+    behavioral_specification_count:behavior.specification_count,
+    behavioral_failures:behavior.failed_count,
+    source_mutation_operators:evidence.source_mutation_operator_count,
+    source_mutations_detected:evidence.source_mutations_detected,
+    evidence_all_pass:evidence.allPass
+  };
+})()
+
+Expected:
+
+{
+  version:"5.9.0",
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  behavioral_failures:0,
+  source_mutation_operators:5,
+  source_mutations_detected:5,
+  evidence_all_pass:true
+}
+
+Referenced validation boundary:
+
+`347400`, `96`, `5 of 5`, and `48600` are release metadata identified as `REFERENCE_RELEASE_VALIDATION`.
+
+They are not re-executed by this application.
+
+The local application executes `12000` application conformance executions.
+
+==================================================
+DETERMINISTIC AND SESSION-LOCAL RECORD IDENTITY
+==================================================
+
+(() => {
+  const input = {
+    title:"Export Service Timeout",
+    description:"Incident: export service response timeout detected.",
+    service:"Report Export Service",
+    condition:"TIMEOUT",
+    severity:"MEDIUM",
+    owner:"operations_team",
+    measurement:"Service restored and export verified"
+  };
+
+  const first =
+    SAIL_INC.certify(input);
+
+  const second =
+    SAIL_INC.certify(input);
+
+  const firstRecordNumber =
+    Number(first.record_id.slice(4));
+
+  const secondRecordNumber =
+    Number(second.record_id.slice(4));
+
+  return {
+    same_incident_id:
+      first.incident_id ===
+      second.incident_id,
+
+    same_incident_certificate:
+      first.incident_certificate ===
+      second.incident_certificate,
+
+    same_triage_certificate:
+      first.triage_certificate ===
+      second.triage_certificate,
+
+    different_record_id:
+      first.record_id !==
+      second.record_id,
+
+    first_record_id_format_valid:
+      /^REC-[0-9]{12}$/.test(
+        first.record_id
+      ),
+
+    second_record_id_format_valid:
+      /^REC-[0-9]{12}$/.test(
+        second.record_id
+      ),
+
+    consecutive_record_numbers:
+      secondRecordNumber ===
+      firstRecordNumber + 1,
+
+    record_id_excluded_from_invariant:
+      !Object.prototype.hasOwnProperty.call(
+        first.invariant,
+        "record_id"
+      ),
+
+    created_at_excluded_from_invariant:
+      !Object.prototype.hasOwnProperty.call(
+        first.invariant,
+        "created_at"
+      )
+  };
+})()
+
+Expected:
+
+{
+  same_incident_id:true,
+  same_incident_certificate:true,
+  same_triage_certificate:true,
+  different_record_id:true,
+  first_record_id_format_valid:true,
+  second_record_id_format_valid:true,
+  consecutive_record_numbers:true,
+  record_id_excluded_from_invariant:true,
+  created_at_excluded_from_invariant:true
+}
+
+Structural identity invariant:
+
+same incident structure -> same incident identity and certificates
+
+Operational identity invariant:
+
+separate runtime record -> separate session-local record identity
+
+Record format invariant:
+
+record identity matches `REC-` followed by 12 numeric digits
+
+Sequence invariant:
+
+next operational record number = previous operational record number + 1
+
+Certificate boundary:
+
+operational record identity and timestamps are excluded from deterministic incident certificates
+
+==================================================
+INCIDENT CERTIFICATION
+==================================================
+
+(() => {
+  const result = SAIL_INC.certify({
+    title:"Export Service Timeout",
+    description:"Incident: export service response timeout detected.",
+    service:"Report Export Service",
+    condition:"TIMEOUT",
+    severity:"MEDIUM",
+    owner:"operations_team",
+    measurement:"Service restored and export verified"
+  });
+
+  return {
+    title:result.title,
+    service:result.service,
+    condition:result.condition,
+    severity:result.severity,
+    certified:result.certified,
+    risk_score:result.risk_score,
+    triage:result.triage,
+    escalation_needed:
+      result.escalation_needed,
+    recovered:result.recovered,
+    verified:result.verified,
+    incident_resolved:
+      result.incident_resolved,
+    detection_state:
+      result.detection_state,
+    triage_state:
+      result.triage_state,
+    recovery_state:
+      result.recovery_state,
+    verification_state:
+      result.verification_state,
+    incident_certificate_present:
+      result.incident_certificate.startsWith("INCCERT-"),
+    triage_certificate_present:
+      result.triage_certificate.startsWith("TRIAGE-")
+  };
+})()
+
+Expected:
+
+{
+  title:"Export Service Timeout",
+  service:"Report Export Service",
+  condition:"TIMEOUT",
+  severity:"MEDIUM",
+  certified:true,
+  risk_score:4,
+  triage:"MEDIUM",
+  escalation_needed:false,
+  recovered:false,
+  verified:false,
+  incident_resolved:false,
+  detection_state:"INCIDENT_CERTIFIED",
+  triage_state:"TRIAGE_CERTIFIED",
+  recovery_state:"RECOVERY_WAITING",
+  verification_state:"VERIFICATION_WAITING",
+  incident_certificate_present:true,
+  triage_certificate_present:true
+}
+
+==================================================
+CURRENT INCIDENT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const returned =
+    SAIL_INC.current();
+
+  returned.recovered =
+    true;
+
+  returned.recovery_state =
+    "RECOVERY_CERTIFIED";
+
+  returned.recovery_certificate =
+    "REC-FORGED";
+
+  const verificationAccepted =
+    SAIL_INC.verifySelected();
+
+  const current =
+    SAIL_INC.current();
+
+  return {
+    verification_accepted:
+      verificationAccepted,
+
+    recovered:
+      current.recovered,
+
+    verified:
+      current.verified,
+
+    recovery_certificate:
+      current.recovery_certificate,
+
+    verification_state:
+      current.verification_state
+  };
+})()
+
+Expected:
+
+{
+  verification_accepted:false,
+  recovered:false,
+  verified:false,
+  recovery_certificate:null,
+  verification_state:"VERIFICATION_BLOCKED_RECOVERY_REQUIRED"
+}
+
+Snapshot invariant:
+
+mutation of `SAIL_INC.current()` does not mutate the internal incident register
+
+==================================================
+RETURNED INCIDENT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  const returned =
+    SAIL_INC.reset();
+
+  returned.certified =
+    false;
+
+  returned.incident_certificate =
+    "INCCERT-FORGED";
+
+  const current =
+    SAIL_INC.current();
+
+  return {
+    certified:
+      current.certified,
+
+    certificate_preserved:
+      current.incident_certificate !==
+      "INCCERT-FORGED",
+
+    detection_state:
+      current.detection_state
+  };
+})()
+
+Expected:
+
+{
+  certified:true,
+  certificate_preserved:true,
+  detection_state:"INCIDENT_CERTIFIED"
+}
+
+Snapshot invariant:
+
+mutation of a returned create, reset, or example result does not mutate internal incident state
+
+==================================================
+INCOMPLETE INCIDENT CERTIFICATION
+==================================================
+
+(() => {
+  const result = SAIL_INC.certify({
+    title:"Incomplete Incident",
+    description:"Incident structure is incomplete.",
+    service:"Example Service",
+    condition:"TIMEOUT",
+    severity:"MEDIUM",
+    owner:"operations_team",
+    measurement:""
+  });
+
+  return {
+    certified:result.certified,
+    detection_state:
+      result.detection_state,
+    triage_state:
+      result.triage_state,
+    escalation_state:
+      result.escalation_state,
+    recovery_state:
+      result.recovery_state,
+    verification_state:
+      result.verification_state
+  };
+})()
+
+Expected:
+
+{
+  certified:false,
+  detection_state:"INCIDENT_INCOMPLETE",
+  triage_state:"TRIAGE_WAITING",
+  escalation_state:"ESCALATION_BLOCKED_INCIDENT_REQUIRED",
+  recovery_state:"RECOVERY_BLOCKED_INCIDENT_REQUIRED",
+  verification_state:"VERIFICATION_BLOCKED_INCIDENT_REQUIRED"
+}
+
+==================================================
+INVALID INCIDENT ADMISSION
+==================================================
+
+(() => {
+  const result =
+    SAIL_INC.certify({
+      title:"Invalid Incident",
+      description:"Invalid condition and severity.",
+      service:"Validation Service",
+      condition:"UNKNOWN",
+      severity:"EXTREME",
+      owner:"operations_team",
+      measurement:"Validation measurement"
+    });
+
+  return {
+    certified:
+      result.certified,
+
+    invalid_fields:
+      result.invalid_fields,
+
+    incomplete_fields:
+      result.incomplete_fields,
+
+    risk_score:
+      result.risk_score,
+
+    triage:
+      result.triage,
+
+    detection_state:
+      result.detection_state,
+
+    triage_state:
+      result.triage_state
+  };
+})()
+
+Expected:
+
+{
+  certified:false,
+  invalid_fields:[
+    "condition",
+    "severity"
+  ],
+  incomplete_fields:[],
+  risk_score:null,
+  triage:"UNRESOLVED",
+  detection_state:"INCIDENT_INCOMPLETE",
+  triage_state:"TRIAGE_WAITING"
+}
+
+Admission invariant:
+
+incident certified iff required fields are complete and condition and severity values are admitted
+
+==================================================
+TRIAGE SCORE TABLE
+==================================================
+
+(() => {
+  const cases = [
+    {
+      name:"NORMAL_LOW",
+      condition:"NORMAL",
+      severity:"LOW"
+    },
+    {
+      name:"NORMAL_CRITICAL",
+      condition:"NORMAL",
+      severity:"CRITICAL"
+    },
+    {
+      name:"TIMEOUT_HIGH",
+      condition:"TIMEOUT",
+      severity:"HIGH"
+    },
+    {
+      name:"CRITICAL_FAILURE_HIGH",
+      condition:"CRITICAL_FAILURE",
+      severity:"HIGH"
+    },
+    {
+      name:"CRITICAL_FAILURE_CRITICAL",
+      condition:"CRITICAL_FAILURE",
+      severity:"CRITICAL"
+    }
+  ];
+
+  return cases.map(item => {
+    const result = SAIL_INC.certify({
+      title:item.name,
+      description:"Triage score validation.",
+      service:"Triage Service",
+      condition:item.condition,
+      severity:item.severity,
+      owner:"operations_team",
+      measurement:"Triage measurement"
+    });
+
+    return {
+      name:item.name,
+      risk_score:result.risk_score,
+      triage:result.triage,
+      escalation_needed:
+        result.escalation_needed,
+      escalation_reasons:
+        result.escalation_reasons
+    };
+  });
+})()
+
+Expected:
+
+[
+  {
+    name:"NORMAL_LOW",
+    risk_score:1,
+    triage:"LOW",
+    escalation_needed:false,
+    escalation_reasons:[]
+  },
+  {
+    name:"NORMAL_CRITICAL",
+    risk_score:4,
+    triage:"MEDIUM",
+    escalation_needed:true,
+    escalation_reasons:[
+      "SEVERITY_CRITICAL"
+    ]
+  },
+  {
+    name:"TIMEOUT_HIGH",
+    risk_score:5,
+    triage:"HIGH",
+    escalation_needed:true,
+    escalation_reasons:[
+      "TRIAGE_HIGH"
+    ]
+  },
+  {
+    name:"CRITICAL_FAILURE_HIGH",
+    risk_score:7,
+    triage:"CRITICAL",
+    escalation_needed:true,
+    escalation_reasons:[
+      "TRIAGE_CRITICAL"
+    ]
+  },
+  {
+    name:"CRITICAL_FAILURE_CRITICAL",
+    risk_score:8,
+    triage:"CRITICAL",
+    escalation_needed:true,
+    escalation_reasons:[
+      "TRIAGE_CRITICAL",
+      "SEVERITY_CRITICAL"
+    ]
+  }
+]
+
+Risk formula:
+
+risk score = severity weight + condition weight
+
+Severity weights:
+
+LOW = 1
+MEDIUM = 2
+HIGH = 3
+CRITICAL = 4
+
+Condition weights:
+
+NORMAL = 0
+TIMEOUT = 2
+DEGRADED = 2
+CRITICAL_FAILURE = 4
+
+Triage boundaries:
+
+score < 3 -> LOW
+score >= 3 -> MEDIUM
+score >= 5 -> HIGH
+score >= 7 -> CRITICAL
+
+==================================================
+CRITICAL SEVERITY ESCALATION INDEPENDENCE
+==================================================
+
+(() => {
+  const result = SAIL_INC.certify({
+    title:"Critical Severity with Normal Condition",
+    description:"Critical severity independently requires escalation.",
+    service:"Severity Test Service",
+    condition:"NORMAL",
+    severity:"CRITICAL",
+    owner:"incident_commander",
+    measurement:"Severity response verified"
+  });
+
+  return {
+    risk_score:result.risk_score,
+    triage:result.triage,
+    escalation_needed:
+      result.escalation_needed,
+    escalation_reasons:
+      result.escalation_reasons,
+    escalation_state:
+      result.escalation_state
+  };
+})()
+
+Expected:
+
+{
+  risk_score:4,
+  triage:"MEDIUM",
+  escalation_needed:true,
+  escalation_reasons:[
+    "SEVERITY_CRITICAL"
+  ],
+  escalation_state:"ESCALATION_REQUIRED"
+}
+
+Escalation invariant:
+
+escalation required if triage is HIGH or CRITICAL OR severity is CRITICAL
+
+==================================================
+VERIFICATION GUARD
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const accepted =
+    SAIL_INC.verifySelected();
+
+  const result =
+    SAIL_INC.current();
+
+  return {
+    verification_accepted:
+      accepted,
+    certified:
+      result.certified,
+    recovered:
+      result.recovered,
+    verified:
+      result.verified,
+    verification_state:
+      result.verification_state
+  };
+})()
+
+Expected:
+
+{
+  verification_accepted:false,
+  certified:true,
+  recovered:false,
+  verified:false,
+  verification_state:"VERIFICATION_BLOCKED_RECOVERY_REQUIRED"
+}
+
+Verification invariant:
+
+verification requires certified incident and certified recovery
+
+==================================================
+ESCALATION BEFORE RECOVERY GUARD
+==================================================
+
+(() => {
+  const incident =
+    SAIL_INC.loadExample("critical");
+
+  const recoveryAccepted =
+    SAIL_INC.recoverSelected();
+
+  const result =
+    SAIL_INC.current();
+
+  return {
+    escalation_needed:
+      incident.escalation_needed,
+    escalation_reasons:
+      incident.escalation_reasons,
+    escalated:
+      result.escalated,
+    recovery_accepted:
+      recoveryAccepted,
+    recovered:
+      result.recovered,
+    recovery_state:
+      result.recovery_state
+  };
+})()
+
+Expected:
+
+{
+  escalation_needed:true,
+  escalation_reasons:[
+    "TRIAGE_CRITICAL",
+    "SEVERITY_CRITICAL"
+  ],
+  escalated:false,
+  recovery_accepted:false,
+  recovered:false,
+  recovery_state:"RECOVERY_BLOCKED_ESCALATION_REQUIRED"
+}
+
+Recovery invariant:
+
+recovery blocked when escalation is required but not certified
+
+==================================================
+OPTIONAL ESCALATION RECOVERY PATH
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const before =
+    SAIL_INC.current();
+
+  const recoveryAccepted =
+    SAIL_INC.recoverSelected();
+
+  const verificationAccepted =
+    SAIL_INC.verifySelected();
+
+  const after =
+    SAIL_INC.current();
+
+  return {
+    escalation_needed:
+      before.escalation_needed,
+    escalation_state:
+      before.escalation_state,
+    recovery_accepted:
+      recoveryAccepted,
+    verification_accepted:
+      verificationAccepted,
+    recovered:
+      after.recovered,
+    verified:
+      after.verified,
+    incident_resolved:
+      after.incident_resolved,
+    resolution_state:
+      after.resolution_state,
+    recovery_state:
+      after.recovery_state,
+    verification_state:
+      after.verification_state,
+    realization_certificate_present:
+      after.realization_certificate.startsWith("INC-REAL-")
+  };
+})()
+
+Expected:
+
+{
+  escalation_needed:false,
+  escalation_state:"ESCALATION_OPTIONAL",
+  recovery_accepted:true,
+  verification_accepted:true,
+  recovered:true,
+  verified:true,
+  incident_resolved:true,
+  resolution_state:"INCIDENT_RESOLVED",
+  recovery_state:"RECOVERY_CERTIFIED",
+  verification_state:"OUTCOME_VERIFIED",
+  realization_certificate_present:true
+}
+
+==================================================
+FULL ESCALATION, RECOVERY, AND VERIFICATION PATH
+==================================================
+
+(() => {
+  SAIL_INC.loadExample("critical");
+
+  const escalationAccepted =
+    SAIL_INC.escalateSelected();
+
+  const recoveryAccepted =
+    SAIL_INC.recoverSelected();
+
+  const verificationAccepted =
+    SAIL_INC.verifySelected();
+
+  const result =
+    SAIL_INC.current();
+
+  return {
+    escalation_accepted:
+      escalationAccepted,
+    recovery_accepted:
+      recoveryAccepted,
+    verification_accepted:
+      verificationAccepted,
+    escalated:
+      result.escalated,
+    recovered:
+      result.recovered,
+    verified:
+      result.verified,
+    incident_resolved:
+      result.incident_resolved,
+    escalation_state:
+      result.escalation_state,
+    recovery_state:
+      result.recovery_state,
+    verification_state:
+      result.verification_state,
+    resolution_state:
+      result.resolution_state,
+    escalation_certificate_present:
+      result.escalation_certificate.startsWith("ESC-"),
+    recovery_certificate_present:
+      result.recovery_certificate.startsWith("REC-"),
+    verification_certificate_present:
+      result.verification_certificate.startsWith("VER-"),
+    realization_certificate_present:
+      result.realization_certificate.startsWith("INC-REAL-")
+  };
+})()
+
+Expected:
+
+{
+  escalation_accepted:true,
+  recovery_accepted:true,
+  verification_accepted:true,
+  escalated:true,
+  recovered:true,
+  verified:true,
+  incident_resolved:true,
+  escalation_state:"ESCALATION_CERTIFIED",
+  recovery_state:"RECOVERY_CERTIFIED",
+  verification_state:"OUTCOME_VERIFIED",
+  resolution_state:"INCIDENT_RESOLVED",
+  escalation_certificate_present:true,
+  recovery_certificate_present:true,
+  verification_certificate_present:true,
+  realization_certificate_present:true
+}
+
+Resolution invariant:
+
+incident resolved iff recovery certified AND verification certified
+
+==================================================
+IDEMPOTENT LIFECYCLE TRANSITIONS
+==================================================
+
+(() => {
+  SAIL_INC.loadExample("critical");
+
+  SAIL_INC.escalateSelected();
+  const afterFirstEscalation =
+    SAIL_INC.current();
+
+  const firstEscalationCertificate =
+    afterFirstEscalation.escalation_certificate;
+
+  const firstEscalationUpdatedAt =
+    afterFirstEscalation.updated_at;
+
+  const secondEscalationAccepted =
+    SAIL_INC.escalateSelected();
+
+  const afterSecondEscalation =
+    SAIL_INC.current();
+
+  SAIL_INC.recoverSelected();
+  const afterFirstRecovery =
+    SAIL_INC.current();
+
+  const firstRecoveryCertificate =
+    afterFirstRecovery.recovery_certificate;
+
+  const firstRecoveryUpdatedAt =
+    afterFirstRecovery.updated_at;
+
+  const secondRecoveryAccepted =
+    SAIL_INC.recoverSelected();
+
+  const afterSecondRecovery =
+    SAIL_INC.current();
+
+  SAIL_INC.verifySelected();
+  const afterFirstVerification =
+    SAIL_INC.current();
+
+  const firstVerificationCertificate =
+    afterFirstVerification.verification_certificate;
+
+  const firstRealizationCertificate =
+    afterFirstVerification.realization_certificate;
+
+  const firstVerificationUpdatedAt =
+    afterFirstVerification.updated_at;
+
+  const secondVerificationAccepted =
+    SAIL_INC.verifySelected();
+
+  const afterSecondVerification =
+    SAIL_INC.current();
+
+  return {
+    second_escalation_accepted:
+      secondEscalationAccepted,
+
+    same_escalation_certificate:
+      firstEscalationCertificate ===
+      afterSecondEscalation.escalation_certificate,
+
+    escalation_timestamp_unchanged:
+      firstEscalationUpdatedAt ===
+      afterSecondEscalation.updated_at,
+
+    second_recovery_accepted:
+      secondRecoveryAccepted,
+
+    same_recovery_certificate:
+      firstRecoveryCertificate ===
+      afterSecondRecovery.recovery_certificate,
+
+    recovery_timestamp_unchanged:
+      firstRecoveryUpdatedAt ===
+      afterSecondRecovery.updated_at,
+
+    second_verification_accepted:
+      secondVerificationAccepted,
+
+    same_verification_certificate:
+      firstVerificationCertificate ===
+      afterSecondVerification.verification_certificate,
+
+    same_realization_certificate:
+      firstRealizationCertificate ===
+      afterSecondVerification.realization_certificate,
+
+    verification_timestamp_unchanged:
+      firstVerificationUpdatedAt ===
+      afterSecondVerification.updated_at
+  };
+})()
+
+Expected:
+
+{
+  second_escalation_accepted:true,
+  same_escalation_certificate:true,
+  escalation_timestamp_unchanged:true,
+  second_recovery_accepted:true,
+  same_recovery_certificate:true,
+  recovery_timestamp_unchanged:true,
+  second_verification_accepted:true,
+  same_verification_certificate:true,
+  same_realization_certificate:true,
+  verification_timestamp_unchanged:true
+}
+
+Idempotency invariant:
+
+repeating an accepted lifecycle transition does not mutate its certificate or operational timestamp
+
+==================================================
+LIFECYCLE RESET AFTER STRUCTURAL CHANGE
+==================================================
+
+(() => {
+  SAIL_INC.loadExample("critical");
+  SAIL_INC.escalateSelected();
+  SAIL_INC.recoverSelected();
+  SAIL_INC.verifySelected();
+
+  const before =
+    SAIL_INC.current();
+
+  document.getElementById("severity").value =
+    "HIGH";
+
+  const changed =
+    SAIL_INC.createOrUpdate();
+
+  return {
+    same_record_id:
+      before.record_id === changed.record_id,
+
+    changed_incident_id:
+      before.incident_id !== changed.incident_id,
+
+    changed_incident_certificate:
+      before.incident_certificate !==
+      changed.incident_certificate,
+
+    escalated:
+      changed.escalated,
+
+    recovered:
+      changed.recovered,
+
+    verified:
+      changed.verified,
+
+    incident_resolved:
+      changed.incident_resolved,
+
+    escalation_certificate:
+      changed.escalation_certificate,
+
+    recovery_certificate:
+      changed.recovery_certificate,
+
+    verification_certificate:
+      changed.verification_certificate,
+
+    realization_certificate:
+      changed.realization_certificate
+  };
+})()
+
+Expected:
+
+{
+  same_record_id:true,
+  changed_incident_id:true,
+  changed_incident_certificate:true,
+  escalated:false,
+  recovered:false,
+  verified:false,
+  incident_resolved:false,
+  escalation_certificate:null,
+  recovery_certificate:null,
+  verification_certificate:null,
+  realization_certificate:null
+}
+
+Structural-change invariant:
+
+changed incident structure -> lifecycle certificates reset
+
+==================================================
+CERTIFICATE CHAIN
+==================================================
+
+(() => {
+  SAIL_INC.loadExample("critical");
+  SAIL_INC.escalateSelected();
+  SAIL_INC.recoverSelected();
+  SAIL_INC.verifySelected();
+
+  const incident =
+    SAIL_INC.current();
+
+  const first =
+    SAIL_INC.certificateChain(incident);
+
+  const second =
+    SAIL_INC.certificateChain(incident);
+
+  return {
+    chain_state:
+      first.chain_state,
+
+    chain_certified:
+      first.chain_certified,
+
+    integrity_reason:
+      first.integrity_reason,
+
+    recovery_path:
+      first.recovery_path,
+
+    incident_certificate_present:
+      first.chain.incident_certificate.startsWith("INCCERT-"),
+
+    triage_certificate_present:
+      first.chain.triage_certificate.startsWith("TRIAGE-"),
+
+    escalation_certificate_present:
+      first.chain.escalation_certificate.startsWith("ESC-"),
+
+    recovery_certificate_present:
+      first.chain.recovery_certificate.startsWith("REC-"),
+
+    verification_certificate_present:
+      first.chain.verification_certificate.startsWith("VER-"),
+
+    realization_certificate_present:
+      first.chain.realization_certificate.startsWith("INC-REAL-"),
+
+    chain_certificate_present:
+      first.chain_certificate.startsWith("CHAIN-"),
+
+    deterministic_chain:
+      first.chain_certificate ===
+      second.chain_certificate
+  };
+})()
+
+Expected:
+
+{
+  chain_state:"INCIDENT_CERTIFICATE_CHAIN_CERTIFIED",
+  chain_certified:true,
+  integrity_reason:null,
+  recovery_path:[
+    "detect",
+    "triage",
+    "escalate",
+    "recover",
+    "verify"
+  ],
+  incident_certificate_present:true,
+  triage_certificate_present:true,
+  escalation_certificate_present:true,
+  recovery_certificate_present:true,
+  verification_certificate_present:true,
+  realization_certificate_present:true,
+  chain_certificate_present:true,
+  deterministic_chain:true
+}
+
+Certificate-chain invariant:
+
+same lifecycle certificate chain -> same chain certificate
+
+==================================================
+FORGED CERTIFICATE CHAIN REJECTION
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const forged =
+    SAIL_INC.current();
+
+  forged.recovered =
+    true;
+
+  forged.verified =
+    true;
+
+  forged.incident_resolved =
+    true;
+
+  forged.recovery_state =
+    "RECOVERY_CERTIFIED";
+
+  forged.verification_state =
+    "OUTCOME_VERIFIED";
+
+  forged.resolution_state =
+    "INCIDENT_RESOLVED";
+
+  forged.recovery_certificate =
+    "REC-FORGED";
+
+  forged.verification_certificate =
+    "VER-FORGED";
+
+  forged.realization_certificate =
+    "INC-REAL-FORGED";
+
+  const chain =
+    SAIL_INC.certificateChain(forged);
+
+  return {
+    chain_state:
+      chain.chain_state,
+
+    chain_certified:
+      chain.chain_certified,
+
+    chain_certificate:
+      chain.chain_certificate,
+
+    integrity_reason:
+      chain.integrity_reason
+  };
+})()
+
+Expected:
+
+{
+  chain_state:"INCIDENT_CERTIFICATE_CHAIN_INCOMPLETE",
+  chain_certified:false,
+  chain_certificate:null,
+  integrity_reason:"RECOVERY_INTEGRITY_INVALID"
+}
+
+Chain invariant:
+
+certificate chain certified iff incident, recovery, verification, and realization integrity are valid
+
+==================================================
+VERIFIED STATUS COUNTER
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const before =
+    document.getElementById("verifiedCount").textContent;
+
+  SAIL_INC.recoverSelected();
+  SAIL_INC.verifySelected();
+
+  const after =
+    document.getElementById("verifiedCount").textContent;
+
+  const status =
+    document.getElementById("systemStatus").textContent;
+
+  return {
+    verified_before:before,
+    verified_after:after,
+    system_status:status
+  };
+})()
+
+Expected:
+
+{
+  verified_before:"0",
+  verified_after:"1",
+  system_status:"RESOLVED"
+}
+
+==================================================
+EMPTY-SELECTION GUARDS
+==================================================
+
+(() => {
+  SAIL_INC.clear();
+
+  const escalation =
+    SAIL_INC.escalateSelected();
+
+  const recovery =
+    SAIL_INC.recoverSelected();
+
+  const verification =
+    SAIL_INC.verifySelected();
+
+  return {
+    escalation_result:escalation,
+    recovery_result:recovery,
+    verification_result:verification,
+    current_incident:
+      SAIL_INC.current(),
+    system_status:
+      document.getElementById("systemStatus").textContent
+  };
+})()
+
+Expected:
+
+{
+  escalation_result:false,
+  recovery_result:false,
+  verification_result:false,
+  current_incident:null,
+  system_status:"NO INCIDENT SELECTED"
+}
+
+==================================================
+APPLICATION AUDIT
+==================================================
+
+SAIL_INC.audit(true)
+
+Expected key fields:
+
+{
+  app:"SAIL Incident Management System",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  allPass:true,
+  case_count:12000,
+  expected_case_count:12000,
+  count_match:true,
+  failed_case_count:0,
+  scenario_count:8,
+  iterations_per_scenario:1500,
+  classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  execution:"LOCAL_RUNTIME",
+  layers:37,
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_executions:347400,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_specifications:96,
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operators:5,
+  source_mutations_detected:5,
+  realization_audit_cases:48600,
+  realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_cases:347400,
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_execution:"LOCAL_RUNTIME",
+  cached:true
+}
+
+Application audit scenarios:
+
+1. deterministic structural identity and separate operational identity
+2. incomplete and invalid incident admission guards
+3. required-escalation and forged-escalation recovery guards
+4. optional recovery, verification, and certified-pack eligibility
+5. critical escalation, recovery, verification, and chain certification
+6. idempotent lifecycle transitions
+7. forged recovery and forged certificate-chain rejection
+8. lifecycle reset after structural change
+
+Application audit formula:
+
+8 scenarios x 1,500 iterations = 12,000 cases
+
+Audit invariant:
+
+audit passes iff observed case count equals expected case count and every scenario passes
+
+==================================================
+APPLICATION AUDIT SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  const first =
+    SAIL_INC.audit(true);
+
+  first.allPass =
+    false;
+
+  first.case_count =
+    1;
+
+  first.failed_case_count =
+    999;
+
+  const second =
+    SAIL_INC.audit();
+
+  return {
+    independent_snapshot:
+      first !== second,
+
+    allPass:
+      second.allPass,
+
+    case_count:
+      second.case_count,
+
+    failed_case_count:
+      second.failed_case_count,
+
+    cached:
+      second.cached
+  };
+})()
+
+Expected:
+
+{
+  independent_snapshot:true,
+  allPass:true,
+  case_count:12000,
+  failed_case_count:0,
+  cached:true
+}
+
+Audit isolation invariant:
+
+external mutation does not alter the cached application-audit result
+
+==================================================
+STACK MANIFEST
+==================================================
+
+SAIL_INC.stackManifest()
+
+Expected:
+
+{
+  version:"5.9.0",
+  certified_layers:37,
+  conformance_classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  conformance_execution_count:347400,
+  conformance_execution:"REFERENCE_RELEASE_VALIDATION",
+  behavioral_specification_count:96,
+  behavioral_validation:"REFERENCE_RELEASE_VALIDATION",
+  source_mutation_operator_count:5,
+  source_mutations_detected:5,
+  evidence_validation:"REFERENCE_RELEASE_VALIDATION",
+  benchmark_case_count:347400,
+  benchmark_execution:"REFERENCE_RELEASE_VALIDATION",
+  realization_audit_case_count:48600,
+  realization_audit_execution:"REFERENCE_RELEASE_VALIDATION",
+  application_audit_classification:"LOCAL_APPLICATION_CONFORMANCE_EXECUTIONS",
+  application_audit_execution:"LOCAL_RUNTIME",
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Incident Management Runtime"
+  ]
+}
+
+==================================================
+STACK INTERFACE
+==================================================
+
+SAIL.certify()
+
+Expected key fields:
+
+{
+  version:"5.9.0",
+  certified:true,
+  layers:37,
+  validation_source:"REFERENCE_RELEASE_VALIDATION",
+  conformance_execution_count:347400,
+  behavioral_specification_count:96,
+  stack:[
+    "Evidence Integrity Runtime",
+    "Structural Realization Runtime",
+    "Incident Management Runtime"
+  ]
+}
+
+SAIL.benchmark()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  benchmark_case_count:347400,
+  conformance_execution_count:347400,
+  classification:"SYNTHETIC_STRUCTURAL_CONFORMANCE_EXECUTIONS",
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+SAIL.realizationAudit()
+
+Expected:
+
+{
+  version:"5.9.0",
+  allPass:true,
+  case_count:48600,
+  execution:"REFERENCE_RELEASE_VALIDATION"
+}
+
+Validation distinction:
+
+Application conformance execution:
+LOCAL_RUNTIME
+
+Core conformance execution:
+REFERENCE_RELEASE_VALIDATION
+
+Core behavioral validation:
+REFERENCE_RELEASE_VALIDATION
+
+Core evidence validation:
+REFERENCE_RELEASE_VALIDATION
+
+Core realization audit execution:
+REFERENCE_RELEASE_VALIDATION
+
+==================================================
+TRUTHFUL INCIDENT PACK LIFECYCLE
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const initialPack =
+    SAIL_INC.exportPack();
+
+  SAIL_INC.recoverSelected();
+
+  const recoveredPack =
+    SAIL_INC.exportPack();
+
+  SAIL_INC.verifySelected();
+
+  const resolvedPack =
+    SAIL_INC.exportPack();
+
+  return {
+    initial_pack_state:
+      initialPack.pack_state,
+
+    initial_pack_certified:
+      initialPack.pack_certified,
+
+    recovered_pack_state:
+      recoveredPack.pack_state,
+
+    recovered_pack_certified:
+      recoveredPack.pack_certified,
+
+    resolved_pack_state:
+      resolvedPack.pack_state,
+
+    resolved_pack_certified:
+      resolvedPack.pack_certified,
+
+    resolved_chain_certified:
+      resolvedPack
+        .structural_payload
+        .certificate_chains[0]
+        .chain_certified
+  };
+})()
+
+Expected:
+
+{
+  initial_pack_state:"INCIDENT_PACK_UNRESOLVED",
+  initial_pack_certified:false,
+  recovered_pack_state:"INCIDENT_PACK_UNRESOLVED",
+  recovered_pack_certified:false,
+  resolved_pack_state:"INCIDENT_PACK_CERTIFIED",
+  resolved_pack_certified:true,
+  resolved_chain_certified:true
+}
+
+Pack invariant:
+
+pack certified iff every incident has certified structural, recovery, verification, realization, and chain integrity
+
+==================================================
+INCIDENT PACK SNAPSHOT ISOLATION
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+  SAIL_INC.recoverSelected();
+  SAIL_INC.verifySelected();
+
+  const first =
+    SAIL_INC.exportPack();
+
+  first.pack_certified =
+    false;
+
+  first.structural_payload
+    .incidents[0]
+    .verified =
+      false;
+
+  const second =
+    SAIL_INC.exportPack();
+
+  return {
+    pack_certified:
+      second.pack_certified,
+
+    incident_verified:
+      second
+        .structural_payload
+        .incidents[0]
+        .verified,
+
+    chain_certified:
+      second
+        .structural_payload
+        .certificate_chains[0]
+        .chain_certified
+  };
+})()
+
+Expected:
+
+{
+  pack_certified:true,
+  incident_verified:true,
+  chain_certified:true
+}
+
+Pack isolation invariant:
+
+mutation of an exported pack does not mutate the incident register or later exports
+
+==================================================
+CERTIFIED INCIDENT PACK VIEW STATE
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+  SAIL_INC.recoverSelected();
+  SAIL_INC.verifySelected();
+
+  const pack =
+    SAIL_INC.exportPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+
+    pack_certified:
+      pack.pack_certified,
+
+    delivery_mode:
+      pack.delivery_mode,
+
+    version:
+      pack.version,
+
+    sail_version:
+      pack.sail_version,
+
+    structural_incidents_present:
+      Array.isArray(
+        pack.structural_payload.incidents
+      ),
+
+    certificate_chains_present:
+      Array.isArray(
+        pack.structural_payload.certificate_chains
+      ),
+
+    chain_certified:
+      pack.structural_payload
+        .certificate_chains[0]
+        .chain_certified,
+
+    operational_records_present:
+      Array.isArray(
+        pack.operational_metadata.records
+      ),
+
+    record_ids_excluded:
+      pack.operational_metadata
+        .record_id_fields_excluded_from_certificates,
+
+    timestamps_excluded:
+      pack.operational_metadata
+        .timestamp_fields_excluded_from_certificates
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"INCIDENT_PACK_CERTIFIED",
+  pack_certified:true,
+  delivery_mode:"view",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  structural_incidents_present:true,
+  certificate_chains_present:true,
+  chain_certified:true,
+  operational_records_present:true,
+  record_ids_excluded:true,
+  timestamps_excluded:true
+}
+
+==================================================
+STRUCTURAL AND OPERATIONAL PACK SEPARATION
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const pack =
+    SAIL_INC.exportPack();
+
+  const structuralIncident =
+    pack.structural_payload.incidents[0];
+
+  const operationalRecord =
+    pack.operational_metadata.records[0];
+
+  return {
+    structural_contains_record_id:
+      Object.prototype.hasOwnProperty.call(
+        structuralIncident,
+        "record_id"
+      ),
+
+    structural_contains_created_at:
+      Object.prototype.hasOwnProperty.call(
+        structuralIncident,
+        "created_at"
+      ),
+
+    structural_contains_updated_at:
+      Object.prototype.hasOwnProperty.call(
+        structuralIncident,
+        "updated_at"
+      ),
+
+    operational_contains_record_id:
+      Object.prototype.hasOwnProperty.call(
+        operationalRecord,
+        "record_id"
+      ),
+
+    operational_contains_incident_id:
+      Object.prototype.hasOwnProperty.call(
+        operationalRecord,
+        "incident_id"
+      ),
+
+    operational_contains_created_at:
+      Object.prototype.hasOwnProperty.call(
+        operationalRecord,
+        "created_at"
+      ),
+
+    operational_contains_updated_at:
+      Object.prototype.hasOwnProperty.call(
+        operationalRecord,
+        "updated_at"
+      )
+  };
+})()
+
+Expected:
+
+{
+  structural_contains_record_id:false,
+  structural_contains_created_at:false,
+  structural_contains_updated_at:false,
+  operational_contains_record_id:true,
+  operational_contains_incident_id:true,
+  operational_contains_created_at:true,
+  operational_contains_updated_at:true
+}
+
+Pack invariant:
+
+operational record identity and timestamps are excluded from structural certificates
+
+==================================================
+CERTIFIED INCIDENT PACK DOWNLOAD STATE
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+  SAIL_INC.recoverSelected();
+  SAIL_INC.verifySelected();
+
+  const pack =
+    SAIL_INC.downloadPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+    pack_certified:
+      pack.pack_certified,
+    delivery_mode:
+      pack.delivery_mode,
+    version:
+      pack.version,
+    sail_version:
+      pack.sail_version,
+    structural_incidents_present:
+      Array.isArray(
+        pack.structural_payload.incidents
+      ),
+    operational_records_present:
+      Array.isArray(
+        pack.operational_metadata.records
+      )
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"INCIDENT_PACK_CERTIFIED",
+  pack_certified:true,
+  delivery_mode:"download",
+  version:"1.1.2",
+  sail_version:"5.9.0",
+  structural_incidents_present:true,
+  operational_records_present:true
+}
+
+==================================================
+UNRESOLVED INCIDENT PACK STATE
+==================================================
+
+(() => {
+  SAIL_INC.reset();
+
+  const pack =
+    SAIL_INC.exportPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+    pack_certified:
+      pack.pack_certified,
+    delivery_mode:
+      pack.delivery_mode,
+    certified:
+      pack.structural_payload.incidents[0].certified,
+    verified:
+      pack.structural_payload.incidents[0].verified,
+    incident_resolved:
+      pack.structural_payload.incidents[0].incident_resolved
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"INCIDENT_PACK_UNRESOLVED",
+  pack_certified:false,
+  delivery_mode:"view",
+  certified:true,
+  verified:false,
+  incident_resolved:false
+}
+
+==================================================
+INCOMPLETE INCIDENT PACK STATE
+==================================================
+
+(() => {
+  SAIL_INC.clear();
+
+  document.getElementById("title").value =
+    "Incomplete Incident";
+
+  document.getElementById("description").value =
+    "Incident structure is incomplete.";
+
+  document.getElementById("service").value =
+    "Example Service";
+
+  document.getElementById("condition").value =
+    "TIMEOUT";
+
+  document.getElementById("severity").value =
+    "MEDIUM";
+
+  document.getElementById("owner").value =
+    "operations_team";
+
+  document.getElementById("measurement").value =
+    "";
+
+  SAIL_INC.createOrUpdate();
+
+  const pack =
+    SAIL_INC.exportPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+    pack_certified:
+      pack.pack_certified,
+    delivery_mode:
+      pack.delivery_mode,
+    certified:
+      pack.structural_payload.incidents[0].certified,
+    detection_state:
+      pack.structural_payload.incidents[0].detection_state
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"INCIDENT_PACK_INCOMPLETE",
+  pack_certified:false,
+  delivery_mode:"view",
+  certified:false,
+  detection_state:"INCIDENT_INCOMPLETE"
+}
+
+==================================================
+EMPTY INCIDENT PACK STATE
+==================================================
+
+(() => {
+  SAIL_INC.clear();
+
+  const pack =
+    SAIL_INC.exportPack();
+
+  return {
+    pack_state:
+      pack.pack_state,
+    pack_certified:
+      pack.pack_certified,
+    delivery_mode:
+      pack.delivery_mode,
+    structural_incident_count:
+      pack.structural_payload.incidents.length,
+    operational_record_count:
+      pack.operational_metadata.records.length
+  };
+})()
+
+Expected:
+
+{
+  pack_state:"INCIDENT_PACK_EMPTY",
+  pack_certified:false,
+  delivery_mode:"view",
+  structural_incident_count:0,
+  operational_record_count:0
+}
+
+==================================================
+VALIDATION STATUS
+==================================================
+
+Application:
+SAIL Incident Management System
+
+Application Version:
+1.1.2
+
+SAIL Stack:
+5.9.0
+
+Application Conformance:
+PASS
+
+Application Conformance Executions:
+12000
+
+Expected Application Conformance Executions:
+12000
+
+Application Count Match:
+PASS
+
+Failed Application Cases:
+0
+
+Audit Scenarios:
+8
+
+Iterations Per Scenario:
+1500
+
+Certified Layers:
+37
+
+Referenced Core Conformance Executions:
+347400
+
+Referenced Core Realization Audit Cases:
+48600
+
+Deterministic Incident Identity:
+PASS
+
+Operational Record Separation:
+PASS
+
+Session-Local Record Identity:
+PASS
+
+Monotonic Record Sequence:
+PASS
+
+No Random Identity Source Gate:
+PASS
+
+Incident Certification:
+PASS
+
+Incomplete Incident Handling:
+PASS
+
+Invalid Incident Admission:
+PASS
+
+Current Incident Snapshot Isolation:
+PASS
+
+Returned Incident Snapshot Isolation:
+PASS
+
+Triage Score Table:
+PASS
+
+Critical Severity Escalation:
+PASS
+
+Recovery Guard:
+PASS
+
+Verification Guard:
+PASS
+
+Optional Escalation Path:
+PASS
+
+Critical Escalation Path:
+PASS
+
+Lifecycle Idempotency:
+PASS
+
+Lifecycle Structural Reset:
+PASS
+
+Certificate Chain:
+PASS
+
+Forged Certificate Chain Rejection:
+PASS
+
+Verified Status Counter:
+PASS
+
+Empty Selection Guards:
+PASS
+
+Application Audit Snapshot Isolation:
+PASS
+
+Stack Validation Metadata:
+PASS
+
+Truthful Incident Pack Lifecycle:
+PASS
+
+Incident Pack Snapshot Isolation:
+PASS
+
+Certified Pack View State:
+PASS
+
+Structural and Operational Pack Separation:
+PASS
+
+Certified Pack Download State:
+PASS
+
+Unresolved Pack State:
+PASS
+
+Incomplete Pack State:
+PASS
+
+Empty Pack State:
+PASS
+
+External Source Integrity Checks:
+39
+
+External Runtime Behavioral Checks:
+20
+
+External Validation Failed Checks:
+0
+
+Validation Status:
+VALIDATED
